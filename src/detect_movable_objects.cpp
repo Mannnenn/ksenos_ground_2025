@@ -1,3 +1,17 @@
+// Copyright 2025 ksenos_ground
+//
+// Licensed under the MIT License (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://opensource.org/licenses/MIT
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @file detect_movable_objects.cpp
  * @brief 移動物体検出ノード
@@ -204,7 +218,7 @@ private:
         scan_cloud = downsampled_cloud;
 
         RCLCPP_DEBUG(this->get_logger(), "Scan received with %zu points (after downsampling: %zu)",
-                     msg->width * msg->height, scan_cloud->size());
+                     static_cast<size_t>(msg->width * msg->height), scan_cloud->size());
 
         // Octreeを使って差分を抽出
         pcl::PointCloud<pcl::PointXYZ>::Ptr diff_cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -390,7 +404,7 @@ private:
                      std::count_if(tracked_objects_.begin(), tracked_objects_.end(),
                                    [this](const auto &pair)
                                    {
-                                       return pair.second.is_active && pair.second.cluster_size >= min_tf_cluster_size_;
+                                       return pair.second.is_active && pair.second.cluster_size >= static_cast<size_t>(min_tf_cluster_size_);
                                    }),
                      min_tf_cluster_size_);
 
@@ -469,7 +483,7 @@ private:
         for (const auto &obj_pair : tracked_objects_)
         {
             const auto &obj = obj_pair.second;
-            if (obj.is_active && obj.cluster_size >= min_tf_cluster_size_)
+            if (obj.is_active && obj.cluster_size >= static_cast<size_t>(min_tf_cluster_size_))
             {
                 publishObjectTF(obj, header);
             }

@@ -1,0 +1,86 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+#   workflow_dispatch:
+#   schedule:
+#     - cron: '0 0 * * *'
+#   release:
+#     types: [published]
+
+jobs:
+  build_and_test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04
+        rosdistro:
+          - humble
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: ros:${{ matrix.rosdistro }}-ros-base
+      # options: --memory=8g --memory-swap=8g
+
+    steps:
+      - name: Setup directories
+        run: mkdir -p ros2_ws/src
+
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          path: ros2_ws/src/ros2_topic_sample
+
+      - name: Install dependencies
+        run: |
+          rosdep update && 
+          apt-get update && 
+          apt-get install -y \
+            libpcl-dev \
+            libeigen3-dev \
+            libopencv-dev \
+            ros-${{ matrix.rosdistro }}-pcl-conversions \
+            ros-${{ matrix.rosdistro }}-pcl-msgs \
+            ros-${{ matrix.rosdistro }}-cv-bridge && 
+          rosdep install --from-path . -i -y --rosdistro ${{ matrix.rosdistro }}
+
+      - name: Install diagnostic-updater
+        run: apt-get install ros-${{ matrix.rosdistro }}-diagnostic-updater
+
+      - name: Build tests
+        id: build_test
+        run: |
+          cd ros2_ws &&
+          . /opt/ros/${{ matrix.rosdistro }}/setup.sh && 
+          colcon build --parallel-workers 1 --cmake-args -DCMAKE_BUILD_TYPE=Release
+        continue-on-error: true
+
+      - name: build_test command success
+        if: steps.build_test.outcome == 'success'
+        run: echo "result - success"
+
+      - name: build_test command failure
+        if: steps.build_test.outcome == 'failure'
+        run: echo "result - failure" && exit 1
+
+      - name: Run tests
+        id: run_test
+        run: |
+          cd ros2_ws &&
+          . /opt/ros/${{ matrix.rosdistro }}/setup.sh &&
+          . install/setup.sh &&
+          colcon test && 
+          colcon test-result
+        continue-on-error: true
+
+      - name: run_test command success
+        if: steps.run_test.outcome == 'success'
+        run: echo "result - success"
+
+      - name: run_test command failure
+        if: steps.run_test.outcome == 'failure'
+        run: echo "result - failure" && exit 1

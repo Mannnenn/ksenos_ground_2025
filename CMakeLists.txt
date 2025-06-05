@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.8)
 project(ksenos_ground)
 
+# Set policy CMP0074 to NEW to use <PackageName>_ROOT variables
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -37,11 +42,17 @@ install(TARGETS detect_movable_objects
   DESTINATION lib/${PROJECT_NAME})
 
 
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)
-  set(ament_cmake_cpplint_FOUND TRUE)
+  set(ament_cmake_flake8_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
 
 ament_auto_package()
