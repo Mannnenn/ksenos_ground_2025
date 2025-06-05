@@ -42,10 +42,6 @@ install(TARGETS detect_movable_objects
   DESTINATION lib/${PROJECT_NAME})
 
 
-install(
-  DIRECTORY include/
-  DESTINATION include
-)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
