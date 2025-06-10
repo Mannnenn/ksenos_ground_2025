@@ -41,7 +41,19 @@ ament_target_dependencies(detect_movable_objects pcl_conversions)
 install(TARGETS detect_movable_objects
   DESTINATION lib/${PROJECT_NAME})
 
+ament_auto_add_executable(correction_ground src/correction_ground.cpp)
+target_compile_features(correction_ground PUBLIC c_std_99 cxx_std_17)
+target_link_libraries(correction_ground ${PCL_LIBRARIES})
+ament_target_dependencies(correction_ground pcl_conversions)
+install(TARGETS correction_ground
+  DESTINATION lib/${PROJECT_NAME})
 
+# Install launch files and config files
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch)
+
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

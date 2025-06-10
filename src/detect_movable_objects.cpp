@@ -148,10 +148,19 @@ public:
         RCLCPP_INFO(this->get_logger(), "  Map topic: %s", map_topic_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Scan topic: %s", scan_topic_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Output topic: %s", output_topic_.c_str());
-        RCLCPP_INFO(this->get_logger(), "  Octree resolution: %.3f", octree_resolution_);
-        RCLCPP_INFO(this->get_logger(), "  Voxel leaf size: %.3f", voxel_leaf_size_);
-        RCLCPP_INFO(this->get_logger(), "  Cluster tolerance: %.2f", cluster_tolerance_);
-        RCLCPP_INFO(this->get_logger(), "  Min TF cluster size: %d", min_tf_cluster_size_);
+        RCLCPP_INFO(this->get_logger(), "  Elevation topic: %s", elevation_topic_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Lidar frame: %s", lidar_frame_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Base frame: %s", base_frame_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Object frame prefix: %s", object_frame_prefix_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Octree resolution: %.2f m", octree_resolution_);
+        RCLCPP_INFO(this->get_logger(), "  Voxel leaf size: %.3f m", voxel_leaf_size_);
+        RCLCPP_INFO(this->get_logger(), "  Cluster tolerance: %.2f m", cluster_tolerance_);
+        RCLCPP_INFO(this->get_logger(), "  Min cluster size: %d points", min_cluster_size_);
+        RCLCPP_INFO(this->get_logger(), "  Max cluster size: %d points", max_cluster_size_);
+        RCLCPP_INFO(this->get_logger(), "  Object timeout: %.2f seconds", object_timeout_);
+        RCLCPP_INFO(this->get_logger(), "  Max association distance: %.2f m", max_association_distance_);
+        RCLCPP_INFO(this->get_logger(), "  Min TF cluster size: %d points", min_tf_cluster_size_);
+        RCLCPP_INFO(this->get_logger(), "  Next object ID: %d", next_object_id_);
 
         // 地図データ用の一回限りのサブスクライバー
         map_subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(

@@ -1,0 +1,220 @@
+launch:
+  # ========================================
+  # Topic Configuration
+  # ========================================
+
+  - arg:
+      name: "lidar_pointcloud_topic_name"
+      default: "lidar_points"
+
+  - arg:
+      name: "lidar_pointcloud_transformed_topic_name"
+      default: "transformed_points"
+
+  - arg:
+      name: "map_pointcloud_topic_name"
+      default: "map_points"
+
+  - arg:
+      name: "target_elevation_topic_name"
+      default: "target_pitch_angle"
+
+  # ========================================
+  # Frame Configuration
+  # ========================================
+
+  - arg:
+      name: "motor_base_frame"
+      default: "motor_base"
+
+  - arg:
+      name: "lidar_frame"
+      default: "hesai_lidar"
+
+  - arg:
+      name: "lidar_center_frame"
+      default: "lidar_center"
+
+  - arg:
+      name: "origin_frame"
+      default: "map"
+
+  - arg:
+      name: "motor_rotating_frame"
+      default: "motor_rotating"
+
+  - arg:
+      name: "motor_base_frame"
+      default: "motor_base"
+
+  - arg:
+      name: "sensor_base_frame"
+      default: "sensor_base"
+
+  - arg:
+      name: "hesai_lidar_frame"
+      default: "hesai_lidar"
+
+  # ========================================
+  # Frame Configuration
+  # ========================================
+
+  - arg:
+      name: "robot_name"
+      default: "ksenos"
+
+  - arg:
+      name: "lidar_motor_horizontal_offset"
+      default: "0.074"
+
+  - arg:
+      name: "lidar_motor_vertical_offset"
+      default: "0.03"
+
+  # ========================================
+  # PointCloud Processing Nodes
+  # ========================================
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "init_scans"
+      name: "init_scans"
+      output: "log"
+      param:
+        - name: "angle_topic"
+          value: "$(var target_elevation_topic_name)"
+        - name: "input_pointcloud_topic"
+          value: "$(var lidar_pointcloud_transformed_topic_name)"
+        - name: "output_pointcloud_topic"
+          value: "$(var map_pointcloud_topic_name)"
+        - name: "scan_duration"
+          value: 10.0
+        - name: "lower_limit_rad"
+          value: -1.57
+        - name: "upper_limit_rad"
+          value: 1.57
+        - name: "init_angle_rad"
+          value: 0.314
+        - name: "voxel_leaf_size"
+          value: 0.15
+        - name: "timer_period_ms"
+          value: 100
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "pointcloud_transform"
+      name: "pointcloud_transform"
+      output: "log"
+      param:
+        - name: "input_topic"
+          value: "$(var lidar_pointcloud_topic_name)"
+        - name: "output_topic"
+          value: "$(var lidar_pointcloud_transformed_topic_name)"
+        - name: "target_frame"
+          value: "$(var motor_base_frame)"
+        - name: "source_frame"
+          value: "$(var lidar_frame)"
+        - name: "timeout_seconds"
+          value: 0.1
+        - name: "queue_size"
+          value: 10
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "detect_movable_objects"
+      name: "detect_movable_objects"
+      output: "log"
+      param:
+        - name: "map_topic"
+          value: "$(var map_pointcloud_topic_name)"
+        - name: "scan_topic"
+          value: "$(var lidar_pointcloud_transformed_topic_name)"
+        - name: "output_topic"
+          value: "$(var robot_name)"
+        - name: "elevation_topic"
+          value: "$(var target_elevation_topic_name)"
+
+        - name: "lidar_frame"
+          value: "$(var lidar_center_frame)"
+        - name: "base_frame"
+          value: "$(var motor_base_frame)"
+        - name: "object_frame_prefix"
+          value: "$(var robot_name)_object_"
+
+        - name: "octree_resolution"
+          value: 1.5
+        - name: "voxel_leaf_size"
+          value: 0.025
+
+        - name: "cluster_tolerance"
+          value: 0.2
+        - name: "min_cluster_size"
+          value: 10
+        - name: "max_cluster_size"
+          value: 350
+
+        - name: "object_timeout"
+          value: 5.0
+        - name: "max_association_distance"
+          value: 5.0
+        - name: "min_tf_cluster_size"
+          value: 10
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "correction_ground"
+      name: "correction_ground"
+      output: "log"
+      param:
+        - name: "input_topic"
+          value: "$(var map_pointcloud_topic_name)"
+        - name: "base_frame"
+          value: "$(var origin_frame)"
+        - name: "lidar_frame"
+          value: "$(var motor_base_frame)"
+        - name: "voxel_size"
+          value: 0.05
+        - name: "plane_distance_threshold"
+          value: 0.1
+        - name: "max_iterations"
+          value: 10
+        - name: "min_inliers"
+          value: 100
+        - name: "publish_rate"
+          value: 10.0
+        - name: "statistical_filter_mean_k"
+          value: 500
+        - name: "statistical_filter_std_dev"
+          value: 1.0
+
+  # ========================================
+  # Static Transform Publishers
+  # ========================================
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_sensorBase2motorBase"
+      args: "--x 0 --y -$(var lidar_motor_horizontal_offset) --z $(var lidar_motor_vertical_offset) --roll 0 --pitch 0 --yaw 0 --frame-id $(var sensor_base_frame) --child-frame-id $(var motor_base_frame)"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_motorBase2lidarCenter"
+      args: "--x 0 --y -$(var lidar_motor_horizontal_offset) --z $(var lidar_motor_vertical_offset) --roll 0 --pitch 0 --yaw 0 --frame-id $(var motor_base_frame) --child-frame-id $(var lidar_center_frame)"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_motorRotating2hesaiLidar"
+      args: "--x 0 --y $(var lidar_motor_horizontal_offset) --z 0 --roll 0 --pitch 3.14 --yaw 0 --frame-id $(var motor_rotating_frame) --child-frame-id $(var hesai_lidar_frame)"
+
+  # ========================================
+  # Visualization
+  # ========================================
+
+  - node:
+      pkg: "rviz2"
+      exec: "rviz2"
+      name: "rviz2"
+      output: "log"

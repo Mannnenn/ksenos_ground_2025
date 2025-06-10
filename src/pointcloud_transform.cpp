@@ -27,12 +27,33 @@ public:
           tf_buffer_(this->get_clock()),
           tf_listener_(tf_buffer_)
     {
-        // パブリッシャ: 変換後のPointCloudを"transformed_points"トピックへ配信
-        pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("transformed_points", 10);
-        // サブスクライバ: hesai_lidarフレームで取得したlidat_pointsを受信（"lidat_points"トピック）
+        // パラメータの宣言と初期値設定
+        this->declare_parameter("input_topic", "lidar_points");
+        this->declare_parameter("output_topic", "transformed_points");
+        this->declare_parameter("target_frame", "motor_base");
+        this->declare_parameter("source_frame", "hesai_lidar");
+        this->declare_parameter("timeout_seconds", 0.01);
+        this->declare_parameter("queue_size", 10);
+
+        // パラメータの取得
+        std::string input_topic = this->get_parameter("input_topic").as_string();
+        std::string output_topic = this->get_parameter("output_topic").as_string();
+        target_frame_ = this->get_parameter("target_frame").as_string();
+        source_frame_ = this->get_parameter("source_frame").as_string();
+        timeout_seconds_ = this->get_parameter("timeout_seconds").as_double();
+        int queue_size = this->get_parameter("queue_size").as_int();
+
+        // パブリッシャとサブスクライバの作成
+        pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(output_topic, queue_size);
         sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-            "lidar_points", 10,
+            input_topic, queue_size,
             std::bind(&PointCloudTransformer::pointCloudCallback, this, std::placeholders::_1));
+
+        RCLCPP_INFO(this->get_logger(), "PointCloud Transformer initialized:");
+        RCLCPP_INFO(this->get_logger(), "  Input topic: %s", input_topic.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Output topic: %s", output_topic.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Transform: %s -> %s", source_frame_.c_str(), target_frame_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Timeout: %.3f seconds", timeout_seconds_);
     }
 
 private:
@@ -42,18 +63,20 @@ private:
         try
         {
             // tf2を利用して変換
-            // ここではmsg->header.stampを用いてtf2の値を取得。タイムアウトを0.01秒に設定
-            tf_buffer_.lookupTransform("motor_base", "hesai_lidar", msg->header.stamp, rclcpp::Duration::from_seconds(0.01));
+            tf_buffer_.lookupTransform(target_frame_, source_frame_, msg->header.stamp,
+                                       rclcpp::Duration::from_seconds(timeout_seconds_));
 
             // pcl_ros::transformPointCloudを利用してPointCloudを変換
-            pcl_ros::transformPointCloud("motor_base", *msg, transformed_points, tf_buffer_);
+            pcl_ros::transformPointCloud(target_frame_, *msg, transformed_points, tf_buffer_);
 
-            RCLCPP_INFO(this->get_logger(), "PointCloud transformed from hesai_lidar to motor_base.");
+            RCLCPP_DEBUG(this->get_logger(), "PointCloud transformed from %s to %s.",
+                         source_frame_.c_str(), target_frame_.c_str());
             pub_->publish(transformed_points);
         }
         catch (const tf2::TransformException &ex)
         {
-            RCLCPP_ERROR(this->get_logger(), "Transform failed: %s", ex.what());
+            RCLCPP_ERROR(this->get_logger(), "Transform failed from %s to %s: %s",
+                         source_frame_.c_str(), target_frame_.c_str(), ex.what());
         }
     }
 
@@ -61,6 +84,11 @@ private:
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_;
     tf2_ros::Buffer tf_buffer_;
     tf2_ros::TransformListener tf_listener_;
+
+    // パラメータ用メンバ変数
+    std::string target_frame_;
+    std::string source_frame_;
+    double timeout_seconds_;
 };
 
 int main(int argc, char *argv[])

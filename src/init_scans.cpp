@@ -31,30 +31,59 @@ class LidarScanNode : public rclcpp::Node
 {
 public:
     LidarScanNode()
-        : Node("lidar_scan_node"),
-          scan_duration_(10.0),
-          lower_limit_rad_(-M_PI / 2.0),
-          upper_limit_rad_(M_PI / 2.0),
-          init_angle_rad_(M_PI / 12.0f)
+        : Node("lidar_scan_node")
     {
+        // パラメータの宣言とデフォルト値の設定
+        this->declare_parameter<double>("scan_duration", 10.0);
+        this->declare_parameter<double>("lower_limit_rad", -M_PI / 2.0);
+        this->declare_parameter<double>("upper_limit_rad", M_PI / 2.0);
+        this->declare_parameter<double>("init_angle_rad", M_PI / 12.0);
+        this->declare_parameter<double>("voxel_leaf_size", 0.15);
+        this->declare_parameter<int>("timer_period_ms", 100);
+        // トピック名のパラメータを追加
+        this->declare_parameter<std::string>("angle_topic", "target_pitch_angle");
+        this->declare_parameter<std::string>("input_pointcloud_topic", "transformed_points");
+        this->declare_parameter<std::string>("output_pointcloud_topic", "map_points");
+
+        // パラメータの取得
+        scan_duration_ = this->get_parameter("scan_duration").as_double();
+        lower_limit_rad_ = this->get_parameter("lower_limit_rad").as_double();
+        upper_limit_rad_ = this->get_parameter("upper_limit_rad").as_double();
+        init_angle_rad_ = this->get_parameter("init_angle_rad").as_double();
+        voxel_leaf_size_ = this->get_parameter("voxel_leaf_size").as_double();
+        int timer_period_ms = this->get_parameter("timer_period_ms").as_int();
+        std::string angle_topic = this->get_parameter("angle_topic").as_string();
+        std::string input_pointcloud_topic = this->get_parameter("input_pointcloud_topic").as_string();
+        std::string output_pointcloud_topic = this->get_parameter("output_pointcloud_topic").as_string();
+
         // publisher: LiDARの角度指定用
-        angle_pub_ = this->create_publisher<std_msgs::msg::Float32>("target_pitch_angle", 10);
+        angle_pub_ = this->create_publisher<std_msgs::msg::Float32>(angle_topic, 10);
         // subscriber: transformed_points
         pointcloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-            "transformed_points", 10,
+            input_pointcloud_topic, 10,
             std::bind(&LidarScanNode::pointCloudCallback, this, std::placeholders::_1));
         // publisher: フィルタ後のポイントクラウド出力用
-        filtered_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("map_points", 10);
+        filtered_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(output_pointcloud_topic, 10);
 
         start_time_ = this->now();
         // scan期間中に定期的に角度制御を行うタイマー
-        timer_ = this->create_wall_timer(100ms, std::bind(&LidarScanNode::timerCallback, this));
+        timer_ = this->create_wall_timer(
+            std::chrono::milliseconds(timer_period_ms),
+            std::bind(&LidarScanNode::timerCallback, this));
 
         // accumulated cloudの初期化
         acc_cloud_ = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
         header_set_ = false;
 
-        RCLCPP_INFO(this->get_logger(), "LidarScanNode started");
+        RCLCPP_INFO(this->get_logger(), "LidarScanNode started with parameters:");
+        RCLCPP_INFO(this->get_logger(), "  scan_duration: %.2f", scan_duration_);
+        RCLCPP_INFO(this->get_logger(), "  lower_limit_rad: %.2f", lower_limit_rad_);
+        RCLCPP_INFO(this->get_logger(), "  upper_limit_rad: %.2f", upper_limit_rad_);
+        RCLCPP_INFO(this->get_logger(), "  init_angle_rad: %.2f", init_angle_rad_);
+        RCLCPP_INFO(this->get_logger(), "  voxel_leaf_size: %.2f", voxel_leaf_size_);
+        RCLCPP_INFO(this->get_logger(), "  angle_topic: %s", angle_topic.c_str());
+        RCLCPP_INFO(this->get_logger(), "  input_pointcloud_topic: %s", input_pointcloud_topic.c_str());
+        RCLCPP_INFO(this->get_logger(), "  output_pointcloud_topic: %s", output_pointcloud_topic.c_str());
     }
 
 private:
@@ -89,7 +118,7 @@ private:
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::VoxelGrid<pcl::PointXYZ> vg;
         vg.setInputCloud(acc_cloud_);
-        vg.setLeafSize(0.15f, 0.15f, 0.15f);
+        vg.setLeafSize(voxel_leaf_size_, voxel_leaf_size_, voxel_leaf_size_);
         vg.filter(*cloud_filtered);
 
         sensor_msgs::msg::PointCloud2::SharedPtr filtered_msg(new sensor_msgs::msg::PointCloud2);
@@ -149,10 +178,11 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Time start_time_;
-    const double scan_duration_;
-    const float lower_limit_rad_;
-    const float upper_limit_rad_;
-    const float init_angle_rad_;
+    double scan_duration_;
+    double lower_limit_rad_;
+    double upper_limit_rad_;
+    double init_angle_rad_;
+    double voxel_leaf_size_;
 
     // vectorによる蓄積を廃止し、単一の累積クラウドを使用
     pcl::PointCloud<pcl::PointXYZ>::Ptr acc_cloud_;
