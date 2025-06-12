@@ -31,6 +31,7 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "std_msgs/msg/float32.hpp"
+#include "visualization_msgs/msg/marker.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
@@ -42,6 +43,7 @@
 #include "pcl/filters/voxel_grid.h"
 #include "pcl/octree/octree_pointcloud_changedetector.h"
 #include "pcl/segmentation/extract_clusters.h"
+#include "pcl_ros/transforms.hpp"
 
 // 定数定義
 namespace
@@ -94,15 +96,25 @@ public:
         this->declare_parameter("scan_topic", "/transformed_points");
         this->declare_parameter("output_topic", "/detected_objects");
         this->declare_parameter("elevation_topic", "/target_pitch_angle");
+        this->declare_parameter("bbox_marker_topic", "/bbox_marker");
 
         // フレーム関連パラメータの宣言
         this->declare_parameter("lidar_frame", "lidar_center");
         this->declare_parameter("base_frame", "motor_base");
+        this->declare_parameter("map_frame", "map");
         this->declare_parameter("object_frame_prefix", "movable_object_");
 
         // 点群処理パラメータの宣言
         this->declare_parameter("octree_resolution", 1.5);
         this->declare_parameter("voxel_leaf_size", 0.025);
+
+        // 直方体フィルタリングパラメータの宣言
+        this->declare_parameter("bbox_min_x", -10.0); // 手前左下X座標
+        this->declare_parameter("bbox_min_y", -10.0); // 手前左下Y座標
+        this->declare_parameter("bbox_min_z", -2.0);  // 手前左下Z座標
+        this->declare_parameter("bbox_max_x", 10.0);  // 奥右上X座標
+        this->declare_parameter("bbox_max_y", 10.0);  // 奥右上Y座標
+        this->declare_parameter("bbox_max_z", 10.0);  // 奥右上Z座標
 
         // クラスタリングパラメータの宣言
         this->declare_parameter("cluster_tolerance", 0.25);
@@ -114,25 +126,44 @@ public:
         this->declare_parameter("max_association_distance", 5.0); // 物体関連付けの最大距離[m]
         this->declare_parameter("min_tf_cluster_size", 10);       // TF発行する最小クラスタサイズ
 
+        this->declare_parameter("elevation_offset", -0.0523); // 仰角オフセット
+
         // パラメータの取得
         map_topic_ = this->get_parameter("map_topic").as_string();
         scan_topic_ = this->get_parameter("scan_topic").as_string();
         output_topic_ = this->get_parameter("output_topic").as_string();
         elevation_topic_ = this->get_parameter("elevation_topic").as_string();
+        bbox_marker_topic_ = this->get_parameter("bbox_marker_topic").as_string();
+
         lidar_frame_ = this->get_parameter("lidar_frame").as_string();
         base_frame_ = this->get_parameter("base_frame").as_string();
+        map_frame_ = this->get_parameter("map_frame").as_string();
         object_frame_prefix_ = this->get_parameter("object_frame_prefix").as_string();
+
         octree_resolution_ = this->get_parameter("octree_resolution").as_double();
         voxel_leaf_size_ = this->get_parameter("voxel_leaf_size").as_double();
+
+        // 直方体フィルタリングパラメータの取得
+        bbox_min_x_ = this->get_parameter("bbox_min_x").as_double();
+        bbox_min_y_ = this->get_parameter("bbox_min_y").as_double();
+        bbox_min_z_ = this->get_parameter("bbox_min_z").as_double();
+        bbox_max_x_ = this->get_parameter("bbox_max_x").as_double();
+        bbox_max_y_ = this->get_parameter("bbox_max_y").as_double();
+        bbox_max_z_ = this->get_parameter("bbox_max_z").as_double();
+
         cluster_tolerance_ = this->get_parameter("cluster_tolerance").as_double();
         min_cluster_size_ = this->get_parameter("min_cluster_size").as_int();
         max_cluster_size_ = this->get_parameter("max_cluster_size").as_int();
+
         object_timeout_ = this->get_parameter("object_timeout").as_double();
         max_association_distance_ = this->get_parameter("max_association_distance").as_double();
         min_tf_cluster_size_ = this->get_parameter("min_tf_cluster_size").as_int();
 
+        elevation_offset_ = this->get_parameter("elevation_offset").as_double();
+
         // 初期化
         next_object_id_ = 0;
+        bbox_marker_published_ = false;
 
         // TFバッファとリスナーの初期化
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -141,52 +172,128 @@ public:
         // パブリッシャーとTFブロードキャスターの作成
         publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(output_topic_, 10);
         elevation_publisher_ = this->create_publisher<std_msgs::msg::Float32>(elevation_topic_, 10);
+        bbox_marker_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>(bbox_marker_topic_, 1);
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
         // パラメータ値をログ出力
         RCLCPP_INFO(this->get_logger(), "MovableObjectDetector initialized with:");
+
         RCLCPP_INFO(this->get_logger(), "  Map topic: %s", map_topic_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Scan topic: %s", scan_topic_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Output topic: %s", output_topic_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Elevation topic: %s", elevation_topic_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  BBox marker topic: %s", bbox_marker_topic_.c_str());
+
         RCLCPP_INFO(this->get_logger(), "  Lidar frame: %s", lidar_frame_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Base frame: %s", base_frame_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Map frame: %s", map_frame_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Object frame prefix: %s", object_frame_prefix_.c_str());
+
         RCLCPP_INFO(this->get_logger(), "  Octree resolution: %.2f m", octree_resolution_);
         RCLCPP_INFO(this->get_logger(), "  Voxel leaf size: %.3f m", voxel_leaf_size_);
+
+        RCLCPP_INFO(this->get_logger(), "  BBox filter: (%.1f,%.1f,%.1f) to (%.1f,%.1f,%.1f)",
+                    bbox_min_x_, bbox_min_y_, bbox_min_z_, bbox_max_x_, bbox_max_y_, bbox_max_z_);
+
         RCLCPP_INFO(this->get_logger(), "  Cluster tolerance: %.2f m", cluster_tolerance_);
         RCLCPP_INFO(this->get_logger(), "  Min cluster size: %d points", min_cluster_size_);
         RCLCPP_INFO(this->get_logger(), "  Max cluster size: %d points", max_cluster_size_);
+
         RCLCPP_INFO(this->get_logger(), "  Object timeout: %.2f seconds", object_timeout_);
         RCLCPP_INFO(this->get_logger(), "  Max association distance: %.2f m", max_association_distance_);
         RCLCPP_INFO(this->get_logger(), "  Min TF cluster size: %d points", min_tf_cluster_size_);
+
+        RCLCPP_INFO(this->get_logger(), "  Elevation offset: %.2f rad", elevation_offset_);
+
         RCLCPP_INFO(this->get_logger(), "  Next object ID: %d", next_object_id_);
 
         // 地図データ用の一回限りのサブスクライバー
         map_subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
             map_topic_, 1,
-            [this](const sensor_msgs::msg::PointCloud2::SharedPtr msg)
-            {
-                // 地図データの受信と保存
-                pcl::fromROSMsg(*msg, *map_cloud_);
-                RCLCPP_INFO(this->get_logger(), "Map point cloud received with %zu points", map_cloud_->size());
-
-                // 地図を受信したら、継続的なスキャンデータのサブスクライブを開始
-                map_subscription_.reset();
-
-                scan_subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-                    scan_topic_, 10,
-                    std::bind(&MovableObjectDetector::scanCallback, this, std::placeholders::_1));
-
-                RCLCPP_INFO(this->get_logger(), "Started subscribing to scan data on: %s", scan_topic_.c_str());
-            });
+            std::bind(&MovableObjectDetector::mapCallback, this, std::placeholders::_1));
 
         RCLCPP_INFO(this->get_logger(), "Waiting for map data on: %s", map_topic_.c_str());
     }
 
 private:
+    /**
+     * @brief 地図データ受信コールバック（一回限り）
+     * @param msg 地図点群メッセージ
+     */
+    void mapCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
+    {
+        // 地図データをmap_frame_に変換してから保存
+        if (msg->header.frame_id != map_frame_)
+        {
+            if (!transformMapToMapFrame(msg))
+            {
+                return; // 変換失敗時は早期リターン
+            }
+        }
+        else
+        {
+            // 既にmap_frame_の場合はそのまま使用
+            pcl::fromROSMsg(*msg, *map_cloud_);
+            RCLCPP_INFO(this->get_logger(), "Map point cloud received with %zu points", map_cloud_->size());
+        }
+
+        // 地図を受信したら、継続的なスキャンデータのサブスクライブを開始
+        startScanSubscription();
+    }
+
+    /**
+     * @brief スキャンデータのサブスクリプションを開始
+     */
+    void startScanSubscription()
+    {
+        // 地図サブスクライバーを解除
+        map_subscription_.reset();
+
+        // 継続的なスキャンデータのサブスクライブを開始
+        scan_subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+            scan_topic_, 10,
+            std::bind(&MovableObjectDetector::scanCallback, this, std::placeholders::_1));
+
+        RCLCPP_INFO(this->get_logger(), "Started subscribing to scan data on: %s", scan_topic_.c_str());
+    }
+
+    /**
+     * @brief 地図データをmap_frame_に変換
+     * @param msg 地図点群メッセージ
+     * @return 変換成功時true、失敗時false
+     */
+    bool transformMapToMapFrame(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
+    {
+        sensor_msgs::msg::PointCloud2 transformed_map;
+        try
+        {
+            // 地図データをmap_frame_に変換
+            tf_buffer_->lookupTransform(map_frame_, msg->header.frame_id, msg->header.stamp,
+                                        rclcpp::Duration::from_seconds(1.0));
+
+            pcl_ros::transformPointCloud(map_frame_, *msg, transformed_map, *tf_buffer_);
+            pcl::fromROSMsg(transformed_map, *map_cloud_);
+
+            RCLCPP_INFO(this->get_logger(), "Map point cloud transformed from %s to %s and received with %zu points",
+                        msg->header.frame_id.c_str(), map_frame_.c_str(), map_cloud_->size());
+            return true;
+        }
+        catch (tf2::TransformException &ex)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Could not transform map from %s to %s: %s",
+                         msg->header.frame_id.c_str(), map_frame_.c_str(), ex.what());
+            return false;
+        }
+    }
     void scanCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
     {
+        // 初回実行時にBounding Boxマーカーを発行
+        if (!bbox_marker_published_)
+        {
+            publishBoundingBoxMarker(msg->header);
+            bbox_marker_published_ = true;
+        }
+
         // 地図データの存在確認
         if (map_cloud_->empty())
         {
@@ -195,14 +302,34 @@ private:
             return;
         }
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr scan_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-        pcl::fromROSMsg(*msg, *scan_cloud);
+        // 点群をmap座標系に変換
+        sensor_msgs::msg::PointCloud2 transformed_points;
+        try
+        {
+            // tf2を利用して変換 - tf_buffer_はunique_ptrなので->を使用
+            tf_buffer_->lookupTransform(map_frame_, msg->header.frame_id, msg->header.stamp,
+                                        rclcpp::Duration::from_seconds(0.1));
 
-        // scan_cloudから高さ10m以下の点のみを抽出
+            // pcl_ros::transformPointCloudを利用してPointCloudを変換
+            pcl_ros::transformPointCloud(map_frame_, *msg, transformed_points, *tf_buffer_);
+        }
+        catch (tf2::TransformException &ex)
+        {
+            RCLCPP_WARN(this->get_logger(), "Could not transform point cloud to %s: %s",
+                        map_frame_.c_str(), ex.what());
+            return;
+        }
+
+        pcl::PointCloud<pcl::PointXYZ>::Ptr scan_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::fromROSMsg(transformed_points, *scan_cloud);
+
+        // scan_cloudから指定した直方体の範囲内の点のみを抽出
         pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_scan_cloud(new pcl::PointCloud<pcl::PointXYZ>);
         for (const auto &pt : scan_cloud->points)
         {
-            if (pt.z <= 10.0)
+            if (pt.x >= bbox_min_x_ && pt.x <= bbox_max_x_ &&
+                pt.y >= bbox_min_y_ && pt.y <= bbox_max_y_ &&
+                pt.z >= bbox_min_z_ && pt.z <= bbox_max_z_)
             {
                 filtered_scan_cloud->points.push_back(pt);
             }
@@ -214,7 +341,7 @@ private:
 
         if (scan_cloud->empty())
         {
-            RCLCPP_WARN(this->get_logger(), "Received empty scan cloud");
+            RCLCPP_WARN(this->get_logger(), "Received empty scan cloud after bounding box filtering");
             return;
         }
 
@@ -511,7 +638,7 @@ private:
     {
         geometry_msgs::msg::TransformStamped transform_stamped;
         transform_stamped.header = header;
-        transform_stamped.header.frame_id = base_frame_;
+        transform_stamped.header.frame_id = map_frame_; // map座標系で物体位置を表現
         transform_stamped.child_frame_id = object_frame_prefix_ + std::to_string(obj.id);
 
         transform_stamped.transform.translation.x = obj.x;
@@ -580,16 +707,20 @@ private:
 
         try
         {
+            // map座標系からlidar座標系への変換を取得
             geometry_msgs::msg::TransformStamped lidar_transform =
-                tf_buffer_->lookupTransform(lidar_frame_, header.frame_id, header.stamp,
+                tf_buffer_->lookupTransform(lidar_frame_, map_frame_, header.stamp,
                                             rclcpp::Duration::from_seconds(TF_TIMEOUT_SECONDS));
 
+            // map座標系での物体位置
             geometry_msgs::msg::PointStamped point_in_map;
-            point_in_map.header = header;
+            point_in_map.header.frame_id = map_frame_;
+            point_in_map.header.stamp = header.stamp;
             point_in_map.point.x = largest_object->x;
             point_in_map.point.y = largest_object->y;
             point_in_map.point.z = largest_object->z;
 
+            // lidar座標系に変換
             geometry_msgs::msg::PointStamped point_in_lidar;
             tf2::doTransform(point_in_map, point_in_lidar, lidar_transform);
 
@@ -598,9 +729,9 @@ private:
                 point_in_lidar.point.y,
                 point_in_lidar.point.z);
 
-            // 最大クラスタの迎角をパブリッシュ
+            // 仰角をパブリッシュ（補正なし）
             std_msgs::msg::Float32 elevation_msg;
-            elevation_msg.data = static_cast<float>(spherical.elevation) - 2 * M_PI * 3 / 360;
+            elevation_msg.data = static_cast<float>(spherical.elevation + elevation_offset_);
             elevation_publisher_->publish(elevation_msg);
 
             RCLCPP_INFO(this->get_logger(),
@@ -622,18 +753,26 @@ private:
     std::string scan_topic_;
     std::string output_topic_;
     std::string elevation_topic_;
+    std::string bbox_marker_topic_;
     std::string lidar_frame_;
     std::string base_frame_;
+    std::string map_frame_;
     std::string object_frame_prefix_;
 
     // 点群処理パラメータ
     double octree_resolution_;
     double voxel_leaf_size_;
 
+    // 直方体フィルタリングパラメータ
+    double bbox_min_x_, bbox_min_y_, bbox_min_z_; // 手前左下の座標
+    double bbox_max_x_, bbox_max_y_, bbox_max_z_; // 奥右上の座標
+
     // クラスタリングパラメータ
     double cluster_tolerance_;
     int min_cluster_size_;
     int max_cluster_size_;
+
+    float elevation_offset_; // 仰角のオフセット（補正値）
 
     // 物体追跡パラメータ
     double object_timeout_;
@@ -641,6 +780,7 @@ private:
     int min_tf_cluster_size_;
     int next_object_id_;
     std::map<int, TrackedObject> tracked_objects_;
+    bool bbox_marker_published_; // Bounding Box マーカーが発行済みかどうかのフラグ
 
     // 保存用の地図点群
     pcl::PointCloud<pcl::PointXYZ>::Ptr map_cloud_{new pcl::PointCloud<pcl::PointXYZ>};
@@ -654,7 +794,54 @@ private:
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr scan_subscription_;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
     rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr elevation_publisher_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr bbox_marker_publisher_;
     std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
+    /**
+     * @brief Bounding Boxの可視化マーカーを発行
+     * @param header メッセージヘッダー
+     */
+    void publishBoundingBoxMarker(const std_msgs::msg::Header &header)
+    {
+        visualization_msgs::msg::Marker marker;
+        marker.header = header;
+        marker.header.frame_id = map_frame_;
+        marker.ns = "bounding_box";
+        marker.id = 0;
+        marker.type = visualization_msgs::msg::Marker::CUBE;
+        marker.action = visualization_msgs::msg::Marker::ADD;
+
+        // Bounding Boxの中心位置
+        marker.pose.position.x = (bbox_min_x_ + bbox_max_x_) / 2.0;
+        marker.pose.position.y = (bbox_min_y_ + bbox_max_y_) / 2.0;
+        marker.pose.position.z = (bbox_min_z_ + bbox_max_z_) / 2.0;
+
+        // 回転は単位クォータニオン（回転なし）
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+
+        // Bounding Boxのサイズ
+        marker.scale.x = bbox_max_x_ - bbox_min_x_;
+        marker.scale.y = bbox_max_y_ - bbox_min_y_;
+        marker.scale.z = bbox_max_z_ - bbox_min_z_;
+
+        // 透明な青色で表示
+        marker.color.r = 0.0;
+        marker.color.g = 0.0;
+        marker.color.b = 1.0;
+        marker.color.a = 0.2; // 透明度
+
+        // 永続的に表示
+        marker.lifetime = rclcpp::Duration::from_seconds(0);
+
+        bbox_marker_publisher_->publish(marker);
+
+        RCLCPP_INFO(this->get_logger(), "Published bounding box marker: center=(%.1f,%.1f,%.1f), size=(%.1f,%.1f,%.1f)",
+                    marker.pose.position.x, marker.pose.position.y, marker.pose.position.z,
+                    marker.scale.x, marker.scale.y, marker.scale.z);
+    }
 };
 
 int main(int argc, char *argv[])

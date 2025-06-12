@@ -16,8 +16,10 @@ ament_auto_find_build_dependencies()
 
 find_package(PCL REQUIRED COMPONENTS common filters segmentation search)
 find_package(pcl_conversions REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 include_directories(${PCL_INCLUDE_DIRS})
+include_directories(${EIGEN3_INCLUDE_DIR})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
@@ -46,6 +48,13 @@ target_compile_features(correction_ground PUBLIC c_std_99 cxx_std_17)
 target_link_libraries(correction_ground ${PCL_LIBRARIES})
 ament_target_dependencies(correction_ground pcl_conversions)
 install(TARGETS correction_ground
+  DESTINATION lib/${PROJECT_NAME})
+
+# 速度推定ノード
+ament_auto_add_executable(estimate_vel src/estimate_vel.cpp)
+target_compile_features(estimate_vel PUBLIC c_std_99 cxx_std_17)
+target_link_libraries(estimate_vel Eigen3::Eigen)
+install(TARGETS estimate_vel
   DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files and config files

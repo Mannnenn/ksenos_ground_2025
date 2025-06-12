@@ -138,6 +138,8 @@ launch:
           value: "$(var lidar_center_frame)"
         - name: "base_frame"
           value: "$(var motor_base_frame)"
+        - name: "map_frame"
+          value: "$(var origin_frame)"
         - name: "object_frame_prefix"
           value: "$(var robot_name)_object_"
 
@@ -159,6 +161,9 @@ launch:
           value: 5.0
         - name: "min_tf_cluster_size"
           value: 10
+
+        - name: "elevation_offset"
+          value: -0.0523
 
   - node:
       pkg: "ksenos_ground"
