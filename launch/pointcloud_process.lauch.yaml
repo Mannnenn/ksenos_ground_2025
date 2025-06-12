@@ -19,6 +19,10 @@ launch:
       name: "target_elevation_topic_name"
       default: "target_pitch_angle"
 
+  - arg:
+      name: "bbox_maker_topic_name"
+      default: "filer_box_size_maker"
+
   # ========================================
   # Frame Configuration
   # ========================================
@@ -133,6 +137,8 @@ launch:
           value: "$(var robot_name)"
         - name: "elevation_topic"
           value: "$(var target_elevation_topic_name)"
+        - name: "bbox_maker_topic"
+          value: "$(var bbox_maker_topic_name)"
 
         - name: "lidar_frame"
           value: "$(var lidar_center_frame)"
@@ -147,6 +153,19 @@ launch:
           value: 1.5
         - name: "voxel_leaf_size"
           value: 0.025
+
+        - name: "bbox_min_x"
+          value: -10.0
+        - name: "bbox_min_y"
+          value: 0.0
+        - name: "bbox_min_z"
+          value: 0.1
+        - name: "bbox_max_x"
+          value: 10.0
+        - name: "bbox_max_y"
+          value: 20.0
+        - name: "bbox_max_z"
+          value: 13.0
 
         - name: "cluster_tolerance"
           value: 0.2
@@ -191,6 +210,23 @@ launch:
           value: 500
         - name: "statistical_filter_std_dev"
           value: 1.0
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "estimate_vel"
+      name: "estimate_vel_0"
+      output: "log"
+      param:
+        - name: "target_frame"
+          value: "$(var origin_frame)"
+        - name: "source_frame"
+          value: "$(var robot_name)_object_0"
+        - name: "velocity_topic"
+          value: "$(var robot_name)_object_0_velocity"
+        - name: "process_noise"
+          value: 0.1
+        - name: "measurement_noise"
+          value: 5.0
 
   # ========================================
   # Static Transform Publishers

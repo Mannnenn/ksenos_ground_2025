@@ -15,11 +15,11 @@
 
 using namespace std::chrono_literals;
 
-class AirplaneTrackerNode : public rclcpp::Node
+class EstimateVelNode : public rclcpp::Node
 {
 public:
-    AirplaneTrackerNode()
-        : Node("airplane_tracker_node")
+    EstimateVelNode()
+        : Node("estimate_vel_node")
     {
         // === ROS2 パラメータ設定 ===
         this->declare_parameter<std::string>("target_frame", "world");
@@ -34,6 +34,15 @@ public:
         this->get_parameter("velocity_topic", velocity_topic_);
         double process_noise = this->get_parameter("process_noise").as_double();
         double measurement_noise = this->get_parameter("measurement_noise").as_double();
+
+        RCLCPP_INFO(
+            this->get_logger(),
+            "Target frame: %s, Source frame: %s, Velocity topic: %s",
+            target_frame_.c_str(), source_frame_.c_str(), velocity_topic_.c_str());
+        RCLCPP_INFO(
+            this->get_logger(),
+            "Process noise: %.2f, Measurement noise: %.2f",
+            process_noise, measurement_noise);
 
         // === TFリスナー初期化 ===
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -68,9 +77,9 @@ public:
         // === タイマー設定 ===
         // より短い周期で実行（例: 100ms）
         timer_ = this->create_wall_timer(
-            100ms, std::bind(&AirplaneTrackerNode::on_timer, this));
+            100ms, std::bind(&EstimateVelNode::on_timer, this));
 
-        RCLCPP_INFO(this->get_logger(), "Airplane tracker node initialized.");
+        RCLCPP_INFO(this->get_logger(), "Estimate velocity node initialized.");
     }
 
 private:
@@ -177,7 +186,7 @@ private:
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<AirplaneTrackerNode>());
+    rclcpp::spin(std::make_shared<EstimateVelNode>());
     rclcpp::shutdown();
     return 0;
 }
