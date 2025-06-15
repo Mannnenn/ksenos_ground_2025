@@ -147,23 +147,23 @@ launch:
         - name: "map_frame"
           value: "$(var origin_frame)"
         - name: "object_frame_prefix"
-          value: "$(var robot_name)_object_"
+          value: "$(var robot_name)_"
 
         - name: "octree_resolution"
-          value: 1.5
+          value: 2.0
         - name: "voxel_leaf_size"
-          value: 0.025
+          value: 0.05
 
         - name: "bbox_min_x"
           value: 0.5
         - name: "bbox_min_y"
-          value: -8.0
+          value: -10.5
         - name: "bbox_min_z"
-          value: 0.3
+          value: 0.5
         - name: "bbox_max_x"
           value: 30.0
         - name: "bbox_max_y"
-          value: 10.0
+          value: 10.5
         - name: "bbox_max_z"
           value: 13.0
 
@@ -212,7 +212,7 @@ launch:
   - node:
       pkg: "ksenos_ground"
       exec: "tf_smoother"
-      name: "tf_smoother_0"
+      name: "tf_smoother"
       output: "log"
       param:
         - name: "source_frame"
@@ -222,15 +222,15 @@ launch:
         - name: "smoothed_target_frame"
           value: "$(var robot_name)_smooth_0"
         - name: "max_translation_threshold"
-          value: 0.75
+          value: 5.0
         - name: "max_rotation_threshold"
-          value: 0.5
+          value: 0.75
         - name: "timeout_duration"
-          value: 1.0
+          value: 0.5
         - name: "publish_rate"
-          value: 10
+          value: 10.0
         - name: "smoothing_factor"
-          value: 0.1
+          value: 0.5
 
   - node:
       pkg: "ksenos_ground"
@@ -245,9 +245,9 @@ launch:
         - name: "velocity_topic"
           value: "$(var robot_name)smooth_velocity_0"
         - name: "process_noise"
-          value: 0.1
+          value: 0.3
         - name: "measurement_noise"
-          value: 5.0
+          value: 1.0
 
   # ========================================
   # Static Transform Publishers

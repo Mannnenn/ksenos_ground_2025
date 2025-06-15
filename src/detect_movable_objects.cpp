@@ -524,7 +524,7 @@ private:
             double size_z = max_z - min_z;
 
             // 1.5m四方の立体に収まらない場合は除去
-            constexpr double MAX_CLUSTER_SIZE = 1.3;
+            constexpr double MAX_CLUSTER_SIZE = 1.5;
             if (size_x > MAX_CLUSTER_SIZE || size_y > MAX_CLUSTER_SIZE || size_z > MAX_CLUSTER_SIZE)
             {
                 RCLCPP_DEBUG(this->get_logger(), "Cluster filtered out due to size: %.2fx%.2fx%.2f m", size_x, size_y, size_z);

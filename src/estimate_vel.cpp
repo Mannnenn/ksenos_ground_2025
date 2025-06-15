@@ -145,10 +145,7 @@ private:
         // --- 結果の表示 ---
         RCLCPP_INFO(
             this->get_logger(),
-            "Estimated Pos: [x: %.2f, y: %.2f, z: %.2f], Vel: [vx: %.2f, vy: %.2f, vz: %.2f], Speed: %.2f",
-            x_hat_(0), x_hat_(1), x_hat_(2),
-            x_hat_(3), x_hat_(4), x_hat_(5),
-            speed);
+            "Estimated Speed: %.2f [m/s]", speed);
 
         // --- 速度のパブリッシュ ---
         geometry_msgs::msg::TwistStamped velocity_msg;

@@ -19,8 +19,8 @@ public:
     {
         // パラメータの宣言
         this->declare_parameter("source_frame", "map");
-        this->declare_parameter("target_frame", "base_link");
-        this->declare_parameter("smoothed_target_frame", "base_link_smooth");
+        this->declare_parameter("target_frame", "ksenos_0");
+        this->declare_parameter("smoothed_target_frame", "ksenos_smooth_0");
         this->declare_parameter("max_translation_threshold", 0.5); // [m]
         this->declare_parameter("max_rotation_threshold", 0.5);    // [rad]
         this->declare_parameter("timeout_duration", 1.0);          // [s]
@@ -61,12 +61,15 @@ private:
     {
         try
         {
+            RCLCPP_DEBUG(this->get_logger(), "Looking up transform from %s to %s", source_frame_.c_str(), target_frame_.c_str());
             // 現在の変換を取得
             geometry_msgs::msg::TransformStamped transform_stamped;
             transform_stamped = tf_buffer_->lookupTransform(
                 source_frame_, target_frame_, tf2::TimePointZero);
+            RCLCPP_DEBUG(this->get_logger(), "Transform lookup successful");
 
             auto current_time = this->get_clock()->now();
+            RCLCPP_DEBUG(this->get_logger(), "Current time obtained");
 
             // 初回の場合は現在の位置を初期位置として設定
             if (!is_initialized_)
@@ -76,7 +79,7 @@ private:
                 smoothed_transform_.child_frame_id = smoothed_target_frame_;
                 is_initialized_ = true;
                 last_update_time_ = current_time;
-                RCLCPP_INFO(this->get_logger(), "Initialized with current transform");
+                RCLCPP_DEBUG(this->get_logger(), "Initialized with current transform");
                 broadcast_smoothed_transform();
                 return;
             }
