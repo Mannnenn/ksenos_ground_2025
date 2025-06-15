@@ -1,7 +1,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
-#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <pcl/point_cloud.h>
@@ -27,9 +28,8 @@ public:
         this->declare_parameter("lidar_frame", "lidar");
         this->declare_parameter("voxel_size", 0.05);
         this->declare_parameter("plane_distance_threshold", 0.02);
-        this->declare_parameter("max_iterations", 1000);
+        this->declare_parameter("max_iterations", 100);
         this->declare_parameter("min_inliers", 1000);
-        this->declare_parameter("publish_rate", 10.0);
         this->declare_parameter("statistical_filter_mean_k", 50);
         this->declare_parameter("statistical_filter_stddev", 1.0);
 
@@ -40,21 +40,15 @@ public:
         plane_distance_threshold_ = this->get_parameter("plane_distance_threshold").as_double();
         max_iterations_ = this->get_parameter("max_iterations").as_int();
         min_inliers_ = static_cast<std::size_t>(this->get_parameter("min_inliers").as_int());
-        publish_rate_ = this->get_parameter("publish_rate").as_double();
         statistical_filter_mean_k_ = this->get_parameter("statistical_filter_mean_k").as_int();
         statistical_filter_stddev_ = this->get_parameter("statistical_filter_stddev").as_double();
 
-        // サブスクライバーとパブリッシャーの初期化
+        // サブスクライバーとstatic TF broadcasterの初期化
         pointcloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
             input_topic_, 10,
             std::bind(&GroundCorrectionNode::pointcloudCallback, this, std::placeholders::_1));
 
-        tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-
-        // TF配信用タイマー
-        timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(static_cast<int>(1000.0 / publish_rate_)),
-            std::bind(&GroundCorrectionNode::publishTransform, this));
+        static_tf_broadcaster_ = std::make_unique<tf2_ros::StaticTransformBroadcaster>(*this);
 
         RCLCPP_INFO(this->get_logger(), "Ground correction node parameters:");
         RCLCPP_INFO(this->get_logger(), "  Input topic: %s", input_topic_.c_str());
@@ -64,11 +58,9 @@ public:
         RCLCPP_INFO(this->get_logger(), "  Plane distance threshold: %.3f", plane_distance_threshold_);
         RCLCPP_INFO(this->get_logger(), "  Max iterations: %d", max_iterations_);
         RCLCPP_INFO(this->get_logger(), "  Min inliers: %zu", min_inliers_);
-        RCLCPP_INFO(this->get_logger(), "  Publish rate: %.2f Hz", publish_rate_);
         RCLCPP_INFO(this->get_logger(), "  Statistical filter mean K: %d", statistical_filter_mean_k_);
         RCLCPP_INFO(this->get_logger(), "  Statistical filter stddev: %.2f", statistical_filter_stddev_);
-        RCLCPP_INFO(this->get_logger(), "  Transform will be published at %.2f Hz", publish_rate_);
-        RCLCPP_INFO(this->get_logger(), "  Transform frame IDs: %s -> %s", base_frame_.c_str(), lidar_frame_.c_str());
+        RCLCPP_INFO(this->get_logger(), "  Static TF will be published: %s -> %s", base_frame_.c_str(), lidar_frame_.c_str());
         // 初期化完了メッセージ
 
         RCLCPP_INFO(this->get_logger(), "Ground correction node initialized");
@@ -109,7 +101,6 @@ private:
             // 平面検出
             if (estimateGroundPlane(cloud_denoised))
             {
-                last_valid_timestamp_ = msg->header.stamp;
                 RCLCPP_DEBUG(this->get_logger(), "Ground plane estimation successful");
             }
             else
@@ -131,7 +122,30 @@ private:
             return false;
         }
 
+        // 平面検出範囲の制限（x: -5~5m, y: -10~10m, z: -3~3m）
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered_region(new pcl::PointCloud<pcl::PointXYZ>);
+        for (const auto &point : *cloud)
+        {
+            if (point.x >= -7.5 && point.x <= 7.5 &&
+                point.y >= 0 && point.y <= 20.0 &&
+                point.z >= -3.0 && point.z <= 0)
+            {
+                cloud_filtered_region->push_back(point);
+            }
+        }
+
+        if (cloud_filtered_region->size() < min_inliers_)
+        {
+            RCLCPP_WARN(this->get_logger(), "Not enough points in detection region for plane estimation: %zu", cloud_filtered_region->size());
+            return false;
+        }
+
+        RCLCPP_DEBUG(this->get_logger(), "Points in detection region: %zu / %zu", cloud_filtered_region->size(), cloud->size());
+
         // RANSACによる平面推定
+        RCLCPP_DEBUG(this->get_logger(), "Starting RANSAC with max_iterations: %d, distance_threshold: %.3f",
+                     max_iterations_, plane_distance_threshold_);
+
         pcl::SACSegmentation<pcl::PointXYZ> seg;
         pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
         pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
@@ -141,7 +155,7 @@ private:
         seg.setMethodType(pcl::SAC_RANSAC);
         seg.setMaxIterations(max_iterations_);
         seg.setDistanceThreshold(plane_distance_threshold_);
-        seg.setInputCloud(cloud);
+        seg.setInputCloud(cloud_filtered_region);
         seg.segment(*inliers, *coefficients);
 
         if (inliers->indices.size() < min_inliers_)
@@ -183,54 +197,43 @@ private:
         tf2::Quaternion q;
         q.setRPY(roll, pitch, 0.0);
 
-        // 変換行列を更新
-        std::lock_guard<std::mutex> lock(transform_mutex_);
-        transform_.header.frame_id = base_frame_;
-        transform_.child_frame_id = lidar_frame_;
-        transform_.transform.translation.x = 0.0;
-        transform_.transform.translation.y = 0.0;
-        transform_.transform.translation.z = ground_height;
-        transform_.transform.rotation.x = q.x();
-        transform_.transform.rotation.y = q.y();
-        transform_.transform.rotation.z = q.z();
-        transform_.transform.rotation.w = q.w();
+        // Static transformを作成して配信
+        if (!static_transform_published_)
+        {
+            geometry_msgs::msg::TransformStamped static_transform;
+            static_transform.header.stamp = this->get_clock()->now();
+            static_transform.header.frame_id = base_frame_;
+            static_transform.child_frame_id = lidar_frame_;
+            static_transform.transform.translation.x = 0.0;
+            static_transform.transform.translation.y = 0.0;
+            static_transform.transform.translation.z = ground_height;
+            static_transform.transform.rotation.x = q.x();
+            static_transform.transform.rotation.y = q.y();
+            static_transform.transform.rotation.z = q.z();
+            static_transform.transform.rotation.w = q.w();
 
-        has_valid_transform_ = true;
+            try
+            {
+                static_tf_broadcaster_->sendTransform(static_transform);
+                static_transform_published_ = true;
+                RCLCPP_INFO(this->get_logger(), "Static TF published: %s -> %s", base_frame_.c_str(), lidar_frame_.c_str());
+            }
+            catch (const std::exception &e)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Failed to publish static transform: %s", e.what());
+            }
+        }
 
-        RCLCPP_DEBUG(this->get_logger(),
-                     "Ground plane: height=%.3f, roll=%.3f°, pitch=%.3f°, inliers=%zu",
-                     ground_height, roll * 180.0 / M_PI, pitch * 180.0 / M_PI, inliers->indices.size());
+        RCLCPP_INFO(this->get_logger(),
+                    "Ground plane: height=%.3f, roll=%.3f°, pitch=%.3f°, inliers=%zu, iterations=%d",
+                    ground_height, roll * 180.0 / M_PI, pitch * 180.0 / M_PI, inliers->indices.size(), max_iterations_);
 
         return true;
     }
 
-    void publishTransform()
-    {
-        std::lock_guard<std::mutex> lock(transform_mutex_);
-
-        if (!has_valid_transform_)
-        {
-            return;
-        }
-
-        // タイムスタンプを更新
-        transform_.header.stamp = last_valid_timestamp_.nanoseconds() == 0 ? this->get_clock()->now() : last_valid_timestamp_;
-
-        try
-        {
-            tf_broadcaster_->sendTransform(transform_);
-            RCLCPP_DEBUG_ONCE(this->get_logger(), "Publishing TF transform");
-        }
-        catch (const std::exception &e)
-        {
-            RCLCPP_ERROR(this->get_logger(), "Failed to publish transform: %s", e.what());
-        }
-    }
-
     // メンバ変数
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
-    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-    rclcpp::TimerBase::SharedPtr timer_;
+    std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 
     std::string input_topic_;
     std::string base_frame_;
@@ -239,14 +242,10 @@ private:
     double plane_distance_threshold_;
     int max_iterations_;
     std::size_t min_inliers_;
-    double publish_rate_;
     int statistical_filter_mean_k_;
     double statistical_filter_stddev_;
 
-    geometry_msgs::msg::TransformStamped transform_;
-    std::mutex transform_mutex_;
-    bool has_valid_transform_ = false;
-    rclcpp::Time last_valid_timestamp_;
+    bool static_transform_published_ = false;
 };
 
 int main(int argc, char **argv)

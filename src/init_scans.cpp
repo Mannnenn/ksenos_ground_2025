@@ -102,8 +102,8 @@ private:
 
         // 累積: 新たに受信したcloudの全ポイントを追加
         *acc_cloud_ += *cloud;
-        RCLCPP_INFO(this->get_logger(), "Accumulated %zu points, total: %zu",
-                    cloud->points.size(), acc_cloud_->points.size());
+        RCLCPP_DEBUG(this->get_logger(), "Accumulated %zu points, total: %zu",
+                     cloud->points.size(), acc_cloud_->points.size());
     }
 
     // 蓄積したcloudにフィルタを適用
@@ -141,7 +141,7 @@ private:
             std_msgs::msg::Float32 angle_msg;
             angle_msg.data = lower_limit_rad_ + t * (upper_limit_rad_ - lower_limit_rad_);
             angle_pub_->publish(angle_msg);
-            RCLCPP_INFO(this->get_logger(), "Publishing target pitch angle: %.2f", angle_msg.data);
+            RCLCPP_DEBUG(this->get_logger(), "Publishing target pitch angle: %.2f", angle_msg.data);
         }
         else
         {
