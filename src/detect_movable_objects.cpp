@@ -26,6 +26,8 @@
 #include <cmath>
 #include <map>
 #include <limits>
+#include <thread>
+#include <chrono>
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -212,7 +214,13 @@ public:
             map_topic_, 1,
             std::bind(&MovableObjectDetector::mapCallback, this, std::placeholders::_1));
 
+        // 継続的なスキャンデータのサブスクライブを開始
+        scan_subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+            scan_topic_, 10,
+            std::bind(&MovableObjectDetector::scanCallback, this, std::placeholders::_1));
+
         RCLCPP_INFO(this->get_logger(), "Waiting for map data on: %s", map_topic_.c_str());
+        RCLCPP_INFO(this->get_logger(), "Started subscribing to scan data on: %s", scan_topic_.c_str());
     }
 
 private:
@@ -225,9 +233,12 @@ private:
         // 地図データをmap_frame_に変換してから保存
         if (msg->header.frame_id != map_frame_)
         {
-            if (!transformMapToMapFrame(msg))
+            // 変換が成功するまで繰り返し試行
+            while (!transformMapToMapFrame(msg))
             {
-                return; // 変換失敗時は早期リターン
+                RCLCPP_WARN(this->get_logger(), "Failed to transform map from %s to %s, retrying in 1 second...",
+                            msg->header.frame_id.c_str(), map_frame_.c_str());
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
         else
@@ -248,13 +259,6 @@ private:
     {
         // 地図サブスクライバーを解除
         map_subscription_.reset();
-
-        // 継続的なスキャンデータのサブスクライブを開始
-        scan_subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-            scan_topic_, 10,
-            std::bind(&MovableObjectDetector::scanCallback, this, std::placeholders::_1));
-
-        RCLCPP_INFO(this->get_logger(), "Started subscribing to scan data on: %s", scan_topic_.c_str());
     }
 
     /**
@@ -272,10 +276,27 @@ private:
                                         rclcpp::Duration::from_seconds(1.0));
 
             pcl_ros::transformPointCloud(map_frame_, *msg, transformed_map, *tf_buffer_);
-            pcl::fromROSMsg(transformed_map, *map_cloud_);
 
-            RCLCPP_INFO(this->get_logger(), "Map point cloud transformed from %s to %s and received with %zu points",
-                        msg->header.frame_id.c_str(), map_frame_.c_str(), map_cloud_->size());
+            // 変換した地図データを一時的なクラウドに格納
+            pcl::PointCloud<pcl::PointXYZ>::Ptr temp_map_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+            pcl::fromROSMsg(transformed_map, *temp_map_cloud);
+
+            // 地図データから指定した直方体の範囲内の点のみを抽出
+            for (const auto &pt : temp_map_cloud->points)
+            {
+                if (pt.x >= bbox_min_x_ && pt.x <= bbox_max_x_ &&
+                    pt.y >= bbox_min_y_ && pt.y <= bbox_max_y_ &&
+                    pt.z >= bbox_min_z_ && pt.z <= bbox_max_z_)
+                {
+                    map_cloud_->points.push_back(pt);
+                }
+            }
+            map_cloud_->width = map_cloud_->points.size();
+            map_cloud_->height = 1;
+            map_cloud_->is_dense = true;
+
+            RCLCPP_INFO(this->get_logger(), "Map point cloud transformed from %s to %s and filtered with %zu points (original: %zu)",
+                        msg->header.frame_id.c_str(), map_frame_.c_str(), map_cloud_->size(), temp_map_cloud->size());
             return true;
         }
         catch (tf2::TransformException &ex)
@@ -287,12 +308,6 @@ private:
     }
     void scanCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
     {
-        // 初回実行時にBounding Boxマーカーを発行
-        if (!bbox_marker_published_)
-        {
-            publishBoundingBoxMarker(msg->header);
-            bbox_marker_published_ = true;
-        }
 
         // 地図データの存在確認
         if (map_cloud_->empty())
@@ -300,6 +315,13 @@ private:
             RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
                                  "Map cloud is empty, skipping scan processing");
             return;
+        }
+
+        // 初回実行時にBounding Boxマーカーを発行
+        if (!bbox_marker_published_)
+        {
+            publishBoundingBoxMarker(msg->header);
+            bbox_marker_published_ = true;
         }
 
         // 点群をmap座標系に変換
@@ -368,13 +390,14 @@ private:
         sensor_msgs::msg::PointCloud2 output_msg;
         pcl::toROSMsg(*movable_objects, output_msg);
         output_msg.header = msg->header;
+        output_msg.header.frame_id = map_frame_;
 
         publisher_->publish(output_msg);
     }
 
     /**
      * @brief Octreeを使用して地図データとスキャンデータの差分を抽出
-     * @param scan_cloud 入力スキャン点群
+     * @param scan_cloud 入力スキャン点群tf_id
      * @param diff_cloud 出力差分点群（地図にない新しい点）
      */
     void extractMapDifferenceOctree(const pcl::PointCloud<pcl::PointXYZ>::Ptr &scan_cloud,
@@ -501,7 +524,7 @@ private:
             double size_z = max_z - min_z;
 
             // 1.5m四方の立体に収まらない場合は除去
-            constexpr double MAX_CLUSTER_SIZE = 1.5;
+            constexpr double MAX_CLUSTER_SIZE = 1.3;
             if (size_x > MAX_CLUSTER_SIZE || size_y > MAX_CLUSTER_SIZE || size_z > MAX_CLUSTER_SIZE)
             {
                 RCLCPP_DEBUG(this->get_logger(), "Cluster filtered out due to size: %.2fx%.2fx%.2f m", size_x, size_y, size_z);
@@ -616,12 +639,15 @@ private:
         }
 
         // アクティブな物体のTFをパブリッシュ（最小クラスタサイズ以上の場合のみ）
+        // TF名を0から連番になるように採番し直す
+        int tf_id = 0;
         for (const auto &obj_pair : tracked_objects_)
         {
             const auto &obj = obj_pair.second;
             if (obj.is_active && obj.cluster_size >= static_cast<size_t>(min_tf_cluster_size_))
             {
-                publishObjectTF(obj, header);
+                publishObjectTF(obj, header, tf_id);
+                tf_id++;
             }
         }
 
@@ -633,13 +659,14 @@ private:
      * @brief 追跡物体のTFを発行
      * @param obj 追跡物体
      * @param header メッセージヘッダー
+     * @param tf_id TF名用の連番ID（0から開始）
      */
-    void publishObjectTF(const TrackedObject &obj, const std_msgs::msg::Header &header)
+    void publishObjectTF(const TrackedObject &obj, const std_msgs::msg::Header &header, int tf_id)
     {
         geometry_msgs::msg::TransformStamped transform_stamped;
         transform_stamped.header = header;
         transform_stamped.header.frame_id = map_frame_; // map座標系で物体位置を表現
-        transform_stamped.child_frame_id = object_frame_prefix_ + std::to_string(obj.id);
+        transform_stamped.child_frame_id = object_frame_prefix_ + std::to_string(tf_id);
 
         transform_stamped.transform.translation.x = obj.x;
         transform_stamped.transform.translation.y = obj.y;
@@ -734,12 +761,12 @@ private:
             elevation_msg.data = static_cast<float>(spherical.elevation + elevation_offset_);
             elevation_publisher_->publish(elevation_msg);
 
-            RCLCPP_INFO(this->get_logger(),
-                        "Tracking largest object %d (%zu points) - Range=%.2fm, Azimuth=%.2f°, Elevation=%.2f°",
-                        largest_object->id, largest_object->cluster_size,
-                        spherical.range,
-                        spherical.azimuth * RADIANS_TO_DEGREES,
-                        spherical.elevation * RADIANS_TO_DEGREES);
+            RCLCPP_DEBUG(this->get_logger(),
+                         "Tracking largest object %d (%zu points) - Range=%.2fm, Azimuth=%.2f°, Elevation=%.2f°",
+                         largest_object->id, largest_object->cluster_size,
+                         spherical.range,
+                         spherical.azimuth * RADIANS_TO_DEGREES,
+                         spherical.elevation * RADIANS_TO_DEGREES);
         }
         catch (tf2::TransformException &ex)
         {
@@ -831,7 +858,7 @@ private:
         marker.color.r = 0.0;
         marker.color.g = 0.0;
         marker.color.b = 1.0;
-        marker.color.a = 0.2; // 透明度
+        marker.color.a = 0.1; // 透明度
 
         // 永続的に表示
         marker.lifetime = rclcpp::Duration::from_seconds(0);

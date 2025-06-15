@@ -126,6 +126,59 @@ ros2 run ksenos_ground correction_ground --ros-args \
 2. `statistical_filter_*` パラメータで外れ値除去を強化
 3. `publish_rate` を下げて TF 更新頻度を調整
 
+## tf_smoother
+
+TF（座標変換）を平滑化するノードです。急激な変化を除去し、なめらかな TF をパブリッシュします。
+
+### 機能
+
+- **TF サブスクリプション**: 指定されたフレーム間の TF を監視
+- **フィルタリング**: 設定された閾値を超える急激な変化を無視
+- **平滑化**: 線形補間と SLERP（球面線形補間）による平滑化
+- **タイムアウト処理**: 長時間更新がない場合の再初期化
+
+### パラメータ
+
+| パラメータ名                | デフォルト値       | 説明                    |
+| --------------------------- | ------------------ | ----------------------- |
+| `source_frame`              | "map"              | 基準フレーム            |
+| `target_frame`              | "base_link"        | ターゲットフレーム      |
+| `smoothed_target_frame`     | "base_link_smooth" | 平滑化後のフレーム名    |
+| `max_translation_threshold` | 0.5                | 並進移動の最大閾値 [m]  |
+| `max_rotation_threshold`    | 0.5                | 回転の最大閾値 [rad]    |
+| `timeout_duration`          | 1.0                | タイムアウト時間 [s]    |
+| `publish_rate`              | 50.0               | パブリッシュレート [Hz] |
+| `smoothing_factor`          | 0.1                | 平滑化係数 (0.0-1.0)    |
+
+### 使用方法
+
+#### 1. パラメータ指定での実行
+
+```bash
+ros2 launch ksenos_ground tf_smoother.launch.py source_frame:=map target_frame:=base_link
+```
+
+#### 2. 設定ファイルを使用した実行
+
+```bash
+ros2 launch ksenos_ground tf_smoother_with_config.launch.py
+```
+
+#### 3. 直接実行
+
+```bash
+ros2 run ksenos_ground tf_smoother
+```
+
+### アルゴリズム
+
+1. **TF 監視**: 指定されたフレーム間の TF を定期的に取得
+2. **変化量計算**: 前回の TF と比較して並進・回転の変化量を計算
+3. **閾値判定**: 設定された閾値を超える場合は変化を無視
+4. **平滑化適用**: 線形補間（位置）と SLERP（回転）で平滑化
+5. **TF パブリッシュ**: 平滑化された TF をブロードキャスト
+6. **タイムアウト処理**: 長時間更新がない場合は再初期化
+
 ## ライセンス
 
 MIT License

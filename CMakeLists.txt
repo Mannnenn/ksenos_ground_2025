@@ -57,6 +57,12 @@ target_link_libraries(estimate_vel Eigen3::Eigen)
 install(TARGETS estimate_vel
   DESTINATION lib/${PROJECT_NAME})
 
+# TF平滑化ノード
+ament_auto_add_executable(tf_smoother src/tf_smoother.cpp)
+target_compile_features(tf_smoother PUBLIC c_std_99 cxx_std_17)
+install(TARGETS tf_smoother
+  DESTINATION lib/${PROJECT_NAME})
+
 # Install launch files and config files
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch)

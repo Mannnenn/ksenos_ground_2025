@@ -67,7 +67,14 @@
     "cinttypes": "cpp",
     "typeindex": "cpp",
     "typeinfo": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "csignal": "cpp",
+    "any": "cpp",
+    "strstream": "cpp",
+    "codecvt": "cpp",
+    "future": "cpp",
+    "cfenv": "cpp",
+    "valarray": "cpp"
   },
   "terminal.integrated.defaultLocation": "editor",
   "terminal.integrated.suggest.enabled": true

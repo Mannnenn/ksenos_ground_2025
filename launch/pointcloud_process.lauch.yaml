@@ -98,9 +98,9 @@ launch:
         - name: "upper_limit_rad"
           value: 1.57
         - name: "init_angle_rad"
-          value: 0.314
+          value: 0.0
         - name: "voxel_leaf_size"
-          value: 0.15
+          value: 0.1
         - name: "timer_period_ms"
           value: 100
 
@@ -123,66 +123,66 @@ launch:
         - name: "queue_size"
           value: 10
 
-  # - node:
-  #     pkg: "ksenos_ground"
-  #     exec: "detect_movable_objects"
-  #     name: "detect_movable_objects"
-  #     output: "log"
-  #     param:
-  #       - name: "map_topic"
-  #         value: "$(var map_pointcloud_topic_name)"
-  #       - name: "scan_topic"
-  #         value: "$(var lidar_pointcloud_transformed_topic_name)"
-  #       - name: "output_topic"
-  #         value: "$(var robot_name)"
-  #       - name: "elevation_topic"
-  #         value: "$(var target_elevation_topic_name)"
-  #       - name: "bbox_maker_topic"
-  #         value: "$(var bbox_maker_topic_name)"
+  - node:
+      pkg: "ksenos_ground"
+      exec: "detect_movable_objects"
+      name: "detect_movable_objects"
+      output: "log"
+      param:
+        - name: "map_topic"
+          value: "$(var map_pointcloud_topic_name)"
+        - name: "scan_topic"
+          value: "$(var lidar_pointcloud_transformed_topic_name)"
+        - name: "output_topic"
+          value: "$(var robot_name)"
+        - name: "elevation_topic"
+          value: "$(var target_elevation_topic_name)"
+        - name: "bbox_maker_topic"
+          value: "$(var bbox_maker_topic_name)"
 
-  #       - name: "lidar_frame"
-  #         value: "$(var lidar_center_frame)"
-  #       - name: "base_frame"
-  #         value: "$(var motor_base_frame)"
-  #       - name: "map_frame"
-  #         value: "$(var origin_frame)"
-  #       - name: "object_frame_prefix"
-  #         value: "$(var robot_name)_object_"
+        - name: "lidar_frame"
+          value: "$(var lidar_center_frame)"
+        - name: "base_frame"
+          value: "$(var motor_base_frame)"
+        - name: "map_frame"
+          value: "$(var origin_frame)"
+        - name: "object_frame_prefix"
+          value: "$(var robot_name)_object_"
 
-  #       - name: "octree_resolution"
-  #         value: 1.5
-  #       - name: "voxel_leaf_size"
-  #         value: 0.025
+        - name: "octree_resolution"
+          value: 1.5
+        - name: "voxel_leaf_size"
+          value: 0.025
 
-  #       - name: "bbox_min_x"
-  #         value: -10.0
-  #       - name: "bbox_min_y"
-  #         value: 0.0
-  #       - name: "bbox_min_z"
-  #         value: 0.1
-  #       - name: "bbox_max_x"
-  #         value: 10.0
-  #       - name: "bbox_max_y"
-  #         value: 20.0
-  #       - name: "bbox_max_z"
-  #         value: 13.0
+        - name: "bbox_min_x"
+          value: 0.5
+        - name: "bbox_min_y"
+          value: -8.0
+        - name: "bbox_min_z"
+          value: 0.3
+        - name: "bbox_max_x"
+          value: 30.0
+        - name: "bbox_max_y"
+          value: 10.0
+        - name: "bbox_max_z"
+          value: 13.0
 
-  #       - name: "cluster_tolerance"
-  #         value: 0.2
-  #       - name: "min_cluster_size"
-  #         value: 10
-  #       - name: "max_cluster_size"
-  #         value: 350
+        - name: "cluster_tolerance"
+          value: 0.2
+        - name: "min_cluster_size"
+          value: 5
+        - name: "max_cluster_size"
+          value: 350
 
-  #       - name: "object_timeout"
-  #         value: 5.0
-  #       - name: "max_association_distance"
-  #         value: 5.0
-  #       - name: "min_tf_cluster_size"
-  #         value: 10
+        - name: "object_timeout"
+          value: 5.0
+        - name: "max_association_distance"
+          value: 5.0
+        - name: "min_tf_cluster_size"
+          value: 10
 
-  #       - name: "elevation_offset"
-  #         value: -0.0523
+        - name: "elevation_offset"
+          value: -0.0523
 
   - node:
       pkg: "ksenos_ground"
@@ -197,36 +197,57 @@ launch:
         - name: "lidar_frame"
           value: "$(var motor_base_frame)"
         - name: "voxel_size"
-          value: 0.1
+          value: 0.25
         - name: "plane_distance_threshold"
           value: 0.2
         - name: "max_iterations"
-          value: 5
+          value: 3
         - name: "min_inliers"
           value: 100
-        - name: "publish_rate"
-          value: 10.0
         - name: "statistical_filter_mean_k"
           value: 500
         - name: "statistical_filter_std_dev"
           value: 1.0
 
-  # - node:
-  #     pkg: "ksenos_ground"
-  #     exec: "estimate_vel"
-  #     name: "estimate_vel_0"
-  #     output: "log"
-  #     param:
-  #       - name: "target_frame"
-  #         value: "$(var origin_frame)"
-  #       - name: "source_frame"
-  #         value: "$(var robot_name)_object_0"
-  #       - name: "velocity_topic"
-  #         value: "$(var robot_name)_object_0_velocity"
-  #       - name: "process_noise"
-  #         value: 0.1
-  #       - name: "measurement_noise"
-  #         value: 5.0
+  - node:
+      pkg: "ksenos_ground"
+      exec: "tf_smoother"
+      name: "tf_smoother_0"
+      output: "log"
+      param:
+        - name: "source_frame"
+          value: "$(var origin_frame)"
+        - name: "target_frame"
+          value: "$(var robot_name)_0"
+        - name: "smoothed_target_frame"
+          value: "$(var robot_name)_smooth_0"
+        - name: "max_translation_threshold"
+          value: 0.75
+        - name: "max_rotation_threshold"
+          value: 0.5
+        - name: "timeout_duration"
+          value: 1.0
+        - name: "publish_rate"
+          value: 10
+        - name: "smoothing_factor"
+          value: 0.1
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "estimate_vel"
+      name: "estimate_vel_0"
+      output: "log"
+      param:
+        - name: "target_frame"
+          value: "$(var origin_frame)"
+        - name: "source_frame"
+          value: "$(var robot_name)_smooth_0"
+        - name: "velocity_topic"
+          value: "$(var robot_name)smooth_velocity_0"
+        - name: "process_noise"
+          value: 0.1
+        - name: "measurement_noise"
+          value: 5.0
 
   # ========================================
   # Static Transform Publishers
@@ -249,12 +270,6 @@ launch:
       exec: "static_transform_publisher"
       name: "static_transform_publisher_motorRotating2hesaiLidar"
       args: "--x 0 --y $(var lidar_motor_horizontal_offset) --z 0 --roll 0 --pitch 3.14 --yaw 0 --frame-id $(var motor_rotating_frame) --child-frame-id $(var hesai_lidar_frame)"
-
-  # - node:
-  #     pkg: "tf2_ros"
-  #     exec: "static_transform_publisher"
-  #     name: "static_transform_publisher_map2motorBase"
-  #     args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id $(var origin_frame) --child-frame-id $(var motor_base_frame)"
 
   # ========================================
   # Visualization

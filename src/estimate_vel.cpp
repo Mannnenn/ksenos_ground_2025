@@ -140,12 +140,15 @@ private:
         Eigen::MatrixXd I = Eigen::MatrixXd::Identity(6, 6);
         P_ = (I - K * H_) * P_; // 共分散の更新
 
+        double speed = std::sqrt(std::pow(x_hat_(3), 2) + std::pow(x_hat_(4), 2) + std::pow(x_hat_(5), 2));
+
         // --- 結果の表示 ---
         RCLCPP_INFO(
             this->get_logger(),
-            "Estimated Pos: [x: %.2f, y: %.2f, z: %.2f], Vel: [vx: %.2f, vy: %.2f, vz: %.2f]",
+            "Estimated Pos: [x: %.2f, y: %.2f, z: %.2f], Vel: [vx: %.2f, vy: %.2f, vz: %.2f], Speed: %.2f",
             x_hat_(0), x_hat_(1), x_hat_(2),
-            x_hat_(3), x_hat_(4), x_hat_(5));
+            x_hat_(3), x_hat_(4), x_hat_(5),
+            speed);
 
         // --- 速度のパブリッシュ ---
         geometry_msgs::msg::TwistStamped velocity_msg;
