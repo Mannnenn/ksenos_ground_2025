@@ -179,6 +179,93 @@ ros2 run ksenos_ground tf_smoother
 5. **TF パブリッシュ**: 平滑化された TF をブロードキャスト
 6. **タイムアウト処理**: 長時間更新がない場合は再初期化
 
+## proc_sbus_data
+
+SBUS（S.BUS）生データを処理し、実際のフライトコントロールデータに変換するノードです。
+
+### 機能
+
+- **サーボ制御値変換**: uint16 のカウント値からラジアンへの変換
+  - aileron_r, elevator, throttle, rudder, aileron_l
+- **オートパイロットモード判定**: しきい値による bool 変換
+- **投下装置制御**: 2 つのしきい値による 0,1,2 の状態判定
+- **自動着陸判定**: しきい値による有効/無効の判定
+- **フライトモード判定**:
+  - "horizontal rotation" (水平回転)
+  - "ascending turn" (上昇旋回)
+  - "eight turn" (8 の字旋回)
+  - "autolanding" (自動着陸)
+- **通信状態変換**: フレーム欠落とフェイルセーフ状態の bool 変換
+
+### メッセージ変換
+
+**入力**: `ksenos_ground_msgs/msg/SbusRawData`
+
+```
+std_msgs/Header header
+uint16 aileron_r
+uint16 elevator
+uint16 throttle
+uint16 rudder
+uint16 button1
+uint16 aileron_l
+uint16 is_autopilot
+uint16 dropping_device
+uint16 is_autolanding_enabled
+uint16 autopilot_mode
+uint16 is_lost_frame
+uint16 is_failsafe
+```
+
+**出力**: `ksenos_ground_msgs/msg/SbusData`
+
+```
+std_msgs/Header header
+float32 aileron_r
+float32 elevator
+float32 throttle
+float32 rudder
+float32 aileron_l
+bool is_autopilot
+uint8 dropping_device
+string autopilot_mode
+bool is_lost_frame
+bool is_failsafe
+```
+
+### パラメータ
+
+| パラメータ名                     | デフォルト値 | 説明                          |
+| -------------------------------- | ------------ | ----------------------------- |
+| `servo_min_count`                | 352          | サーボ最小カウント値          |
+| `servo_max_count`                | 1696         | サーボ最大カウント値          |
+| `servo_min_rad`                  | -0.5236      | サーボ最小角度 [rad] (-30 度) |
+| `servo_max_rad`                  | 0.5236       | サーボ最大角度 [rad] (30 度)  |
+| `autopilot_threshold`            | 1000         | オートパイロット判定しきい値  |
+| `autolanding_threshold`          | 1000         | 自動着陸判定しきい値          |
+| `dropping_device_threshold_low`  | 500          | 投下装置低しきい値            |
+| `dropping_device_threshold_high` | 1500         | 投下装置高しきい値            |
+| `autopilot_mode_threshold_low`   | 500          | フライトモード低しきい値      |
+| `autopilot_mode_threshold_high`  | 1500         | フライトモード高しきい値      |
+
+### 使用方法
+
+```bash
+# 基本実行
+ros2 run ksenos_ground proc_sbus_data
+
+# launchファイルを使用した実行
+ros2 launch ksenos_ground sbus_data_processor.launch.yaml
+```
+
+### アルゴリズム
+
+1. **SbusRawData 購読**: 生の SBUS データを受信
+2. **サーボ値変換**: カウント値を線形変換でラジアンに変換
+3. **しきい値判定**: 各種しきい値により状態を判定
+4. **モード決定**: 自動着陸有効時は"autolanding"、無効時は他のモード
+5. **SbusData パブリッシュ**: 変換されたデータを配信
+
 ## ライセンス
 
 MIT License

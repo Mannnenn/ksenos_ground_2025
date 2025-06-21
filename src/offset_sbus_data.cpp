@@ -1,0 +1,145 @@
+#include <rclcpp/rclcpp.hpp>
+#include <ksenos_ground_msgs/msg/sbus_data.hpp>
+#include <chrono>
+#include <vector>
+
+class SbusOffsetNode : public rclcpp::Node
+{
+public:
+    SbusOffsetNode() : Node("sbus_offset_node")
+    {
+        // パラメータ宣言
+        this->declare_parameter("calibration_duration", 3.0);
+        this->declare_parameter("input_topic", "sbus_raw");
+        this->declare_parameter("output_topic", "sbus_offset");
+
+        // パラメータ取得
+        calibration_duration_ = this->get_parameter("calibration_duration").as_double();
+        std::string input_topic = this->get_parameter("input_topic").as_string();
+        std::string output_topic = this->get_parameter("output_topic").as_string();
+
+        // 初期化
+        is_calibrating_ = true;
+        calibration_samples_ = 0;
+        aileron_r_sum_ = 0.0;
+        elevator_sum_ = 0.0;
+        rudder_sum_ = 0.0;
+        aileron_l_sum_ = 0.0;
+
+        aileron_r_offset_ = 0.0;
+        elevator_offset_ = 0.0;
+        rudder_offset_ = 0.0;
+        aileron_l_offset_ = 0.0;
+
+        // 開始時刻を記録
+        start_time_ = this->now();
+
+        // Subscriber and Publisher
+        sbus_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
+            input_topic, 10,
+            std::bind(&SbusOffsetNode::sbus_callback, this, std::placeholders::_1));
+
+        sbus_pub_ = this->create_publisher<ksenos_ground_msgs::msg::SbusData>(
+            output_topic, 10);
+
+        RCLCPP_INFO(this->get_logger(), "SBUS Offset Node started. Calibrating for %.1f seconds...", calibration_duration_);
+    }
+
+private:
+    void sbus_callback(const ksenos_ground_msgs::msg::SbusData::SharedPtr msg)
+    {
+        auto current_time = this->now();
+        double elapsed_time = (current_time - start_time_).seconds();
+
+        if (is_calibrating_)
+        {
+            if (elapsed_time < calibration_duration_)
+            {
+                // キャリブレーション中：平均値を計算するためのデータを蓄積
+                aileron_r_sum_ += msg->aileron_r;
+                elevator_sum_ += msg->elevator;
+                rudder_sum_ += msg->rudder;
+                aileron_l_sum_ += msg->aileron_l;
+                calibration_samples_++;
+
+                // 進捗表示（1秒ごと）
+                if (calibration_samples_ % 50 == 0) // 約50Hzの場合、1秒ごと
+                {
+                    RCLCPP_INFO(this->get_logger(), "Calibrating... %.1fs remaining",
+                                calibration_duration_ - elapsed_time);
+                }
+            }
+            else
+            {
+                // キャリブレーション完了：オフセット値を計算
+                if (calibration_samples_ > 0)
+                {
+                    aileron_r_offset_ = aileron_r_sum_ / calibration_samples_;
+                    elevator_offset_ = elevator_sum_ / calibration_samples_;
+                    rudder_offset_ = rudder_sum_ / calibration_samples_;
+                    aileron_l_offset_ = aileron_l_sum_ / calibration_samples_;
+
+                    RCLCPP_INFO(this->get_logger(),
+                                "Calibration completed! Offsets calculated from %d samples:",
+                                calibration_samples_);
+                    RCLCPP_INFO(this->get_logger(),
+                                "  aileron_r: %.4f, elevator: %.4f, rudder: %.4f, aileron_l: %.4f",
+                                aileron_r_offset_, elevator_offset_, rudder_offset_, aileron_l_offset_);
+                }
+                else
+                {
+                    RCLCPP_WARN(this->get_logger(),
+                                "No samples collected during calibration. Using zero offsets.");
+                }
+
+                is_calibrating_ = false;
+            }
+        }
+
+        if (!is_calibrating_)
+        {
+            // オフセット処理済みのメッセージを作成
+            auto offset_msg = std::make_shared<ksenos_ground_msgs::msg::SbusData>(*msg);
+
+            // オフセット適用
+            offset_msg->aileron_r -= aileron_r_offset_;
+            offset_msg->elevator -= elevator_offset_;
+            offset_msg->rudder -= rudder_offset_;
+            offset_msg->aileron_l -= aileron_l_offset_;
+
+            // パブリッシュ
+            sbus_pub_->publish(*offset_msg);
+        }
+    }
+
+    // Subscriber and Publisher
+    rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_sub_;
+    rclcpp::Publisher<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_pub_;
+
+    // キャリブレーション関連
+    bool is_calibrating_;
+    double calibration_duration_;
+    rclcpp::Time start_time_;
+    int calibration_samples_;
+
+    // 平均値計算用の累積値
+    double aileron_r_sum_;
+    double elevator_sum_;
+    double rudder_sum_;
+    double aileron_l_sum_;
+
+    // オフセット値
+    double aileron_r_offset_;
+    double elevator_offset_;
+    double rudder_offset_;
+    double aileron_l_offset_;
+};
+
+int main(int argc, char **argv)
+{
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<SbusOffsetNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}

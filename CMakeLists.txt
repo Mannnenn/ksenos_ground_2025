@@ -18,6 +18,7 @@ find_package(PCL REQUIRED COMPONENTS common filters segmentation search)
 find_package(pcl_conversions REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -61,6 +62,24 @@ install(TARGETS estimate_vel
 ament_auto_add_executable(tf_smoother src/tf_smoother.cpp)
 target_compile_features(tf_smoother PUBLIC c_std_99 cxx_std_17)
 install(TARGETS tf_smoother
+  DESTINATION lib/${PROJECT_NAME})
+
+# S.BUS生データ読み出しノード
+ament_auto_add_executable(get_sbus_raw_data src/get_sbus_raw_data.cpp)
+target_compile_features(get_sbus_raw_data PUBLIC c_std_99 cxx_std_17)
+install(TARGETS get_sbus_raw_data
+  DESTINATION lib/${PROJECT_NAME})
+
+# S.BUSデータ処理ノード
+ament_auto_add_executable(proc_sbus_data src/proc_sbus_data.cpp)
+target_compile_features(proc_sbus_data PUBLIC c_std_99 cxx_std_17)
+install(TARGETS proc_sbus_data
+  DESTINATION lib/${PROJECT_NAME})
+
+# S.BUSデータオフセットノード
+ament_auto_add_executable(offset_sbus_data src/offset_sbus_data.cpp)
+target_compile_features(offset_sbus_data PUBLIC c_std_99 cxx_std_17)
+install(TARGETS offset_sbus_data
   DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files and config files
