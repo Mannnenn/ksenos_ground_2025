@@ -1,0 +1,19 @@
+launch:
+  - node:
+      pkg: "ksenos_ground"
+      exec: "estimate_pose"
+      name: "attitude_estimator_kf"
+      param:
+        - name: "imu_topic"
+          value: "/sensor/imu"
+        - name: "pose_topic"
+          value: "/estimated_pose"
+        - name: "process_noise_gyro"
+          value: 0.001
+        - name: "process_noise_acc"
+          value: 0.001
+        - name: "measurement_noise"
+          value: 0.001
+        - name: "gravity"
+          value: 9.81
+      output: screen

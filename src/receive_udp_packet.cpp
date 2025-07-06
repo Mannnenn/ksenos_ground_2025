@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
+#include <cmath>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -29,8 +30,8 @@ struct SensorPacket
     uint8_t header[2];            // ヘッダー [0xAA, 0x55]
     uint32_t sequence;            // シーケンス番号
     uint64_t timestamp_millis;    // タイムスタンプ（ミリ秒）
-    float acc_x, acc_y, acc_z;    // 加速度 (m/s²)
-    float gyro_x, gyro_y, gyro_z; // 角速度 (rad/s)
+    float acc_x, acc_y, acc_z;    // 加速度 (G、ROS2発行時にm/s²に変換)
+    float gyro_x, gyro_y, gyro_z; // 角速度 (dps、ROS2発行時にrad/sに変換)
     float tof_distance;           // ToF距離 (mm)
     float baro_pressure;          // 気圧 (hPa)
     float flow_rate;              // 流量 (L/min)
@@ -45,7 +46,8 @@ public:
     UDPReceiver() : Node("udp_sensor_receiver")
     {
         // パラメータの宣言
-        this->declare_parameter("local_ip", "192.168.11.2");
+        // this->declare_parameter("local_ip", "192.168.11.2");
+        this->declare_parameter("local_ip", "10.42.0.1");
         this->declare_parameter("local_port", 8888);
         this->declare_parameter("publish_rate", 100.0); // Hz
 
@@ -274,13 +276,15 @@ private:
         imu_msg.header.stamp = sensor_time;
         imu_msg.header.frame_id = "imu_link";
 
-        imu_msg.linear_acceleration.x = packet.acc_x;
-        imu_msg.linear_acceleration.y = packet.acc_y;
-        imu_msg.linear_acceleration.z = packet.acc_z;
+        // 加速度の単位変換: G → m/s² (1G = 9.80665 m/s²)
+        imu_msg.linear_acceleration.x = packet.acc_x * 9.80665;
+        imu_msg.linear_acceleration.y = packet.acc_y * 9.80665;
+        imu_msg.linear_acceleration.z = packet.acc_z * 9.80665;
 
-        imu_msg.angular_velocity.x = packet.gyro_x;
-        imu_msg.angular_velocity.y = packet.gyro_y;
-        imu_msg.angular_velocity.z = packet.gyro_z;
+        // 角速度の単位変換: degrees/s → rad/s (π/180)
+        imu_msg.angular_velocity.x = packet.gyro_x * M_PI / 180.0;
+        imu_msg.angular_velocity.y = packet.gyro_y * M_PI / 180.0;
+        imu_msg.angular_velocity.z = packet.gyro_z * M_PI / 180.0;
 
         // 共分散行列は不明のため、すべて-1に設定
         for (int i = 0; i < 9; i++)

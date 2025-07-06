@@ -88,6 +88,13 @@ target_compile_features(receive_udp_packet PUBLIC c_std_99 cxx_std_17)
 install(TARGETS receive_udp_packet
   DESTINATION lib/${PROJECT_NAME})
 
+# 姿勢推定ノード（カルマンフィルター）
+ament_auto_add_executable(estimate_pose src/estimate_pose.cpp)
+target_compile_features(estimate_pose PUBLIC c_std_99 cxx_std_17)
+target_link_libraries(estimate_pose Eigen3::Eigen)
+install(TARGETS estimate_pose
+  DESTINATION lib/${PROJECT_NAME})
+
 # Install launch files and config files
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch)
