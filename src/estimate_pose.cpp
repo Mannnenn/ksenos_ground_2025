@@ -5,6 +5,8 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <chrono>
@@ -12,7 +14,8 @@
 class AttitudeEstimatorKF : public rclcpp::Node
 {
 public:
-    AttitudeEstimatorKF() : Node("attitude_estimator_kf"), is_initialized_(false), last_time_(0.0)
+    AttitudeEstimatorKF() : Node("attitude_estimator_kf"), is_initialized_(false), last_time_(0.0),
+                            bias_calibration_complete_(false), bias_sample_count_(0)
     {
         // パラメータの宣言
         this->declare_parameter("imu_topic", "/imu/data");
@@ -20,6 +23,14 @@ public:
         this->declare_parameter("process_noise_gyro", 0.01);
         this->declare_parameter("process_noise_acc", 0.1);
         this->declare_parameter("measurement_noise", 0.1);
+        this->declare_parameter("process_noise_bias", 1e-6);
+        this->declare_parameter("process_noise_bias_yaw", 1e-4); // ヨー軸バイアス用（大きめの値）
+        this->declare_parameter("initial_bias_uncertainty", 0.1);
+        this->declare_parameter("base_frame", "base_link");
+        this->declare_parameter("child_frame", "imu_link");
+        this->declare_parameter("bias_calibration_time", 5.0);         // バイアス計測時間（秒）
+        this->declare_parameter("bias_calibration_samples", 300);      // 最小サンプル数
+        this->declare_parameter("bias_fixed_after_calibration", true); // 計測後にバイアスを固定するか
 
         // パラメータの取得
         std::string imu_topic = this->get_parameter("imu_topic").as_string();
@@ -27,6 +38,18 @@ public:
         process_noise_gyro_ = this->get_parameter("process_noise_gyro").as_double();
         process_noise_acc_ = this->get_parameter("process_noise_acc").as_double();
         measurement_noise_ = this->get_parameter("measurement_noise").as_double();
+        process_noise_bias_ = this->get_parameter("process_noise_bias").as_double();
+        process_noise_bias_yaw_ = this->get_parameter("process_noise_bias_yaw").as_double();
+        initial_bias_uncertainty_ = this->get_parameter("initial_bias_uncertainty").as_double();
+        base_frame_ = this->get_parameter("base_frame").as_string();
+        child_frame_ = this->get_parameter("child_frame").as_string();
+        bias_calibration_time_ = this->get_parameter("bias_calibration_time").as_double();
+        bias_calibration_samples_ = this->get_parameter("bias_calibration_samples").as_int();
+        bias_fixed_after_calibration_ = this->get_parameter("bias_fixed_after_calibration").as_bool();
+
+        // バイアス計測用変数の初期化
+        gyro_bias_sum_ = Eigen::Vector3d::Zero();
+        bias_start_time_ = 0.0;
 
         // Publisher/Subscriberの初期化
         imu_subscriber_ = this->create_subscription<sensor_msgs::msg::Imu>(
@@ -36,10 +59,14 @@ public:
         pose_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
             pose_topic, 10);
 
+        // TFブロードキャスターの初期化
+        tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
         // カルマンフィルターの初期化
         initializeKalmanFilter();
 
         RCLCPP_INFO(this->get_logger(), "Attitude Estimator with Kalman Filter initialized");
+        RCLCPP_INFO(this->get_logger(), "Starting gyro bias calibration for %.1f seconds...", bias_calibration_time_);
     }
 
 private:
@@ -51,13 +78,16 @@ private:
 
         // 状態共分散行列
         P_ = Eigen::MatrixXd::Identity(7, 7);
-        P_.block<4, 4>(0, 0) *= 0.1;  // クォータニオンの初期不確かさ
-        P_.block<3, 3>(4, 4) *= 0.01; // ジャイロバイアスの初期不確かさ
+        P_.block<4, 4>(0, 0) *= 0.1;                       // クォータニオンの初期不確かさ
+        P_.block<3, 3>(4, 4) *= initial_bias_uncertainty_; // ジャイロバイアスの初期不確かさ
 
         // プロセスノイズ共分散行列
         Q_ = Eigen::MatrixXd::Zero(7, 7);
         Q_.block<4, 4>(0, 0) = Eigen::MatrixXd::Identity(4, 4) * process_noise_gyro_;
-        Q_.block<3, 3>(4, 4) = Eigen::MatrixXd::Identity(3, 3) * process_noise_acc_;
+        // ジャイロバイアス: X,Y軸は小さく、Z軸（ヨー）は大きく設定
+        Q_(4, 4) = process_noise_bias_;     // X軸バイアス
+        Q_(5, 5) = process_noise_bias_;     // Y軸バイアス
+        Q_(6, 6) = process_noise_bias_yaw_; // Z軸（ヨー）バイアス
 
         // 観測ノイズ共分散行列（加速度センサーから得られるロール・ピッチ）
         R_ = Eigen::MatrixXd::Identity(2, 2) * measurement_noise_;
@@ -66,6 +96,13 @@ private:
     void imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg)
     {
         double current_time = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
+
+        // バイアス計測フェーズ
+        if (!bias_calibration_complete_)
+        {
+            calibrateGyroBias(msg, current_time);
+            return;
+        }
 
         if (!is_initialized_)
         {
@@ -91,8 +128,82 @@ private:
 
         // 結果の公開
         publishPose(msg->header);
+        publishTF(msg->header);
 
         last_time_ = current_time;
+    }
+
+    void calibrateGyroBias(const sensor_msgs::msg::Imu::SharedPtr msg, double current_time)
+    {
+        if (bias_start_time_ == 0.0)
+        {
+            bias_start_time_ = current_time;
+        }
+
+        double elapsed_time = current_time - bias_start_time_;
+
+        // 静止状態の検証（加速度がほぼ重力加速度と一致するかチェック）
+        Eigen::Vector3d acc(msg->linear_acceleration.x,
+                            msg->linear_acceleration.y,
+                            msg->linear_acceleration.z);
+        double acc_magnitude = acc.norm();
+
+        // 重力加速度から大きく外れている場合は動いている可能性があるので警告
+        if (std::abs(acc_magnitude - 9.81) > 0.5)
+        {
+            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+                                 "Device may be moving during bias calibration! Acc magnitude: %.2f", acc_magnitude);
+        }
+
+        // ジャイロスコープデータを累積
+        gyro_bias_sum_.x() += msg->angular_velocity.x;
+        gyro_bias_sum_.y() += msg->angular_velocity.y;
+        gyro_bias_sum_.z() += msg->angular_velocity.z;
+        bias_sample_count_++;
+
+        // 進捗表示
+        if (bias_sample_count_ % 50 == 0)
+        {
+            RCLCPP_INFO(this->get_logger(), "Bias calibration progress: %.1f%% (%d samples)",
+                        (elapsed_time / bias_calibration_time_) * 100.0, bias_sample_count_);
+        }
+
+        // 計測完了条件をチェック
+        if (elapsed_time >= bias_calibration_time_ && bias_sample_count_ >= bias_calibration_samples_)
+        {
+            // バイアスの計算
+            Eigen::Vector3d measured_bias = gyro_bias_sum_ / bias_sample_count_;
+
+            // カルマンフィルターの状態にバイアスを設定
+            x_(4) = measured_bias.x(); // X軸バイアス
+            x_(5) = measured_bias.y(); // Y軸バイアス
+            x_(6) = measured_bias.z(); // Z軸（ヨー）バイアス
+
+            // バイアスの共分散を小さくする（より確信を持つ）
+            P_(4, 4) = 1e-12; // X軸バイアスの不確かさを非常に小さく
+            P_(5, 5) = 1e-12; // Y軸バイアスの不確かさを非常に小さく
+            P_(6, 6) = 1e-12; // Z軸バイアスの不確かさを非常に小さく
+
+            // バイアス固定オプションが有効な場合、プロセスノイズを極小に
+            if (bias_fixed_after_calibration_)
+            {
+                Q_(4, 4) = 1e-15; // X軸バイアスのプロセスノイズを極小に
+                Q_(5, 5) = 1e-15; // Y軸バイアスのプロセスノイズを極小に
+                Q_(6, 6) = 1e-15; // Z軸バイアスのプロセスノイズを極小に
+                RCLCPP_INFO(this->get_logger(), "Bias values are now fixed (process noise minimized)");
+            }
+
+            bias_calibration_complete_ = true;
+
+            RCLCPP_INFO(this->get_logger(),
+                        "Gyro bias calibration completed with %d samples over %.1f seconds",
+                        bias_sample_count_, elapsed_time);
+            RCLCPP_INFO(this->get_logger(),
+                        "Measured gyro bias: X=%.6f, Y=%.6f, Z=%.6f rad/s",
+                        measured_bias.x(), measured_bias.y(), measured_bias.z());
+            RCLCPP_INFO(this->get_logger(),
+                        "Yaw bias: %.4f deg/s", measured_bias.z() * 180.0 / M_PI);
+        }
     }
 
     void initializePoseFromAccelerometer(const sensor_msgs::msg::Imu::SharedPtr msg)
@@ -289,7 +400,7 @@ private:
     {
         geometry_msgs::msg::PoseStamped pose_msg;
         pose_msg.header = header;
-        pose_msg.header.frame_id = "base_link";
+        pose_msg.header.frame_id = base_frame_;
 
         pose_msg.pose.orientation.w = x_(0);
         pose_msg.pose.orientation.x = x_(1);
@@ -314,9 +425,33 @@ private:
                     x_(4), x_(5), x_(6));    // Gyro bias
     }
 
+    void publishTF(const std_msgs::msg::Header &header)
+    {
+        geometry_msgs::msg::TransformStamped transform_stamped;
+
+        transform_stamped.header = header;
+        transform_stamped.header.frame_id = base_frame_;
+        transform_stamped.child_frame_id = child_frame_;
+
+        // 位置は原点とする
+        transform_stamped.transform.translation.x = 0.0;
+        transform_stamped.transform.translation.y = 0.0;
+        transform_stamped.transform.translation.z = 0.0;
+
+        // 姿勢（クォータニオン）
+        transform_stamped.transform.rotation.w = x_(0);
+        transform_stamped.transform.rotation.x = x_(1);
+        transform_stamped.transform.rotation.y = x_(2);
+        transform_stamped.transform.rotation.z = x_(3);
+
+        // TFを送信
+        tf_broadcaster_->sendTransform(transform_stamped);
+    }
+
     // メンバ変数
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_publisher_;
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
     // カルマンフィルターの状態
     Eigen::VectorXd x_; // 状態ベクトル [qw, qx, qy, qz, bias_gx, bias_gy, bias_gz]
@@ -328,10 +463,24 @@ private:
     double process_noise_gyro_;
     double process_noise_acc_;
     double measurement_noise_;
+    double process_noise_bias_;
+    double process_noise_bias_yaw_; // ヨー軸バイアス用
+    double initial_bias_uncertainty_;
+    std::string base_frame_;
+    std::string child_frame_;
+    double bias_calibration_time_;
+    int bias_calibration_samples_;
+    bool bias_fixed_after_calibration_;
 
     // フィルターの状態
     bool is_initialized_;
     double last_time_;
+
+    // バイアス計測用変数
+    bool bias_calibration_complete_;
+    int bias_sample_count_;
+    Eigen::Vector3d gyro_bias_sum_;
+    double bias_start_time_;
 };
 
 int main(int argc, char **argv)

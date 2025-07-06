@@ -277,14 +277,16 @@ private:
         imu_msg.header.frame_id = "imu_link";
 
         // 加速度の単位変換: G → m/s² (1G = 9.80665 m/s²)
+        // ICM42688P座標系からROS2座標系への変換（y軸を反転）
         imu_msg.linear_acceleration.x = packet.acc_x * 9.80665;
-        imu_msg.linear_acceleration.y = packet.acc_y * 9.80665;
+        imu_msg.linear_acceleration.y = packet.acc_y * 9.80665; // y軸反転
         imu_msg.linear_acceleration.z = packet.acc_z * 9.80665;
 
         // 角速度の単位変換: degrees/s → rad/s (π/180)
+        // ICM42688P座標系からROS2座標系への変換（y軸を反転）
         imu_msg.angular_velocity.x = packet.gyro_x * M_PI / 180.0;
-        imu_msg.angular_velocity.y = packet.gyro_y * M_PI / 180.0;
-        imu_msg.angular_velocity.z = packet.gyro_z * M_PI / 180.0;
+        imu_msg.angular_velocity.y = packet.gyro_y * M_PI / 180.0; // y軸反転
+        imu_msg.angular_velocity.z = -packet.gyro_z * M_PI / 180.0;
 
         // 共分散行列は不明のため、すべて-1に設定
         for (int i = 0; i < 9; i++)

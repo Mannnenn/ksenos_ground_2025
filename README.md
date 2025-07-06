@@ -266,6 +266,52 @@ ros2 launch ksenos_ground sbus_data_processor.launch.yaml
 4. **モード決定**: 自動着陸有効時は"autolanding"、無効時は他のモード
 5. **SbusData パブリッシュ**: 変換されたデータを配信
 
+## estimate_kalman_gain
+
+### 目的
+
+IMU の静止状態データを解析し、カルマンフィルター用の最適なノイズパラメーターを自動推定するノードです。
+
+### 推定パラメーター
+
+- **process_noise_gyro**: ジャイロスコーププロセスノイズ
+- **process_noise_acc**: 加速度計プロセスノイズ
+- **measurement_noise**: 測定ノイズ
+- **process_noise_bias**: バイアスプロセスノイズ
+- **process_noise_bias_yaw**: ヨーバイアスプロセスノイズ
+- **initial_bias_uncertainty**: 初期バイアス不確実性
+
+### アルゴリズム
+
+1. **データ収集**: 指定時間 IMU の静止状態データを収集
+2. **ノイズ推定**: 各センサーの分散を計算してノイズレベルを推定
+3. **バイアス分析**: 時間変動を分析してバイアスドリフトを推定
+4. **パラメーター出力**: YAML ファイルとして最適パラメーターを保存
+
+### 使用方法
+
+```bash
+# IMUを完全に静止させた状態で実行
+ros2 launch ksenos_ground estimate_kalman_gain.launch.yaml
+
+# 結果は /tmp/kalman_parameters.yaml に保存されます
+```
+
+### パラメーター
+
+| パラメータ名             | デフォルト値                | 説明                 |
+| ------------------------ | --------------------------- | -------------------- |
+| `estimation_duration`    | 60.0                        | 推定時間（秒）       |
+| `output_file`            | /tmp/kalman_parameters.yaml | 出力ファイルパス     |
+| `imu_topic`              | /imu/data                   | IMU データトピック   |
+| `estimation_start_delay` | 5.0                         | 開始前待機時間（秒） |
+
+### 注意事項
+
+- **IMU は完全に静止**させて実行してください
+- 推定時間は最低 30 秒以上を推奨
+- 振動や外乱のない環境で実行してください
+
 ## ライセンス
 
 MIT License

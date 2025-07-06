@@ -9,11 +9,23 @@ launch:
         - name: "pose_topic"
           value: "/estimated_pose"
         - name: "process_noise_gyro"
-          value: 0.001
+          value: 5.583225e-07
         - name: "process_noise_acc"
-          value: 0.001
+          value: 8.459858e-05
         - name: "measurement_noise"
-          value: 0.001
+          value: 8.459858e-05
+        - name: "process_noise_bias"
+          value: 4.289784e-09
+        - name: "process_noise_bias_yaw"
+          value: 3.350429e-08
+        - name: "initial_bias_uncertainty"
+          value: 5.793960e-03
         - name: "gravity"
           value: 9.81
       output: screen
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "map2base_link"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id base_link"

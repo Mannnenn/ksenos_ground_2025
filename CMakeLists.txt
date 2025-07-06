@@ -95,6 +95,13 @@ target_link_libraries(estimate_pose Eigen3::Eigen)
 install(TARGETS estimate_pose
   DESTINATION lib/${PROJECT_NAME})
 
+# カルマンゲイン推定ノード
+ament_auto_add_executable(estimate_kalman_gain src/estimate_kalman_gain.cpp)
+target_compile_features(estimate_kalman_gain PUBLIC c_std_99 cxx_std_17)
+target_link_libraries(estimate_kalman_gain Eigen3::Eigen)
+install(TARGETS estimate_kalman_gain
+  DESTINATION lib/${PROJECT_NAME})
+
 # Install launch files and config files
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch)
