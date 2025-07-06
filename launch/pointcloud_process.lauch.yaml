@@ -150,25 +150,25 @@ launch:
           value: "$(var robot_name)_"
 
         - name: "octree_resolution"
-          value: 2.0
+          value: 1.0
         - name: "voxel_leaf_size"
           value: 0.05
 
         - name: "bbox_min_x"
           value: 0.5
         - name: "bbox_min_y"
-          value: -10.5
+          value: -15.0
         - name: "bbox_min_z"
-          value: 0.5
+          value: 0.4
         - name: "bbox_max_x"
-          value: 30.0
+          value: 21.0
         - name: "bbox_max_y"
-          value: 10.5
+          value: 15.0
         - name: "bbox_max_z"
           value: 13.0
 
         - name: "cluster_tolerance"
-          value: 0.2
+          value: 1.5
         - name: "min_cluster_size"
           value: 5
         - name: "max_cluster_size"
@@ -179,7 +179,7 @@ launch:
         - name: "max_association_distance"
           value: 5.0
         - name: "min_tf_cluster_size"
-          value: 10
+          value: 5
 
         - name: "elevation_offset"
           value: -0.0523
@@ -230,7 +230,7 @@ launch:
         - name: "publish_rate"
           value: 10.0
         - name: "smoothing_factor"
-          value: 0.5
+          value: 0.65
 
   - node:
       pkg: "ksenos_ground"
@@ -244,10 +244,18 @@ launch:
           value: "$(var robot_name)_smooth_0"
         - name: "velocity_topic"
           value: "$(var robot_name)smooth_velocity_0"
-        - name: "process_noise"
-          value: 0.3
-        - name: "measurement_noise"
-          value: 1.0
+        - name: "filter_window_size"
+          value: 2
+        - name: "velocity_smoothing_factor"
+          value: 0.8
+        - name: "use_moving_average"
+          value: true
+        - name: "use_kalman_filter"
+          value: false
+        - name: "kalman_process_noise"
+          value: 0.01
+        - name: "kalman_measurement_noise"
+          value: 0.05
 
   # ========================================
   # Static Transform Publishers

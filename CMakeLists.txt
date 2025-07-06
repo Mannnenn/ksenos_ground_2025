@@ -82,6 +82,12 @@ target_compile_features(offset_sbus_data PUBLIC c_std_99 cxx_std_17)
 install(TARGETS offset_sbus_data
   DESTINATION lib/${PROJECT_NAME})
 
+# UDPパケット受信ノード
+ament_auto_add_executable(receive_udp_packet src/receive_udp_packet.cpp)
+target_compile_features(receive_udp_packet PUBLIC c_std_99 cxx_std_17)
+install(TARGETS receive_udp_packet
+  DESTINATION lib/${PROJECT_NAME})
+
 # Install launch files and config files
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch)
