@@ -21,7 +21,7 @@ public:
             "sbus_raw_data", 10);
 
         // シリアルポートの設定
-        const char *device_name = "/dev/ttyESP32";
+        const char *device_name = "/dev/ttyESP32S3";
         serial_fd_ = openSerial(device_name);
 
         if (serial_fd_ < 0)
