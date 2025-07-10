@@ -102,12 +102,22 @@ target_link_libraries(estimate_kalman_gain Eigen3::Eigen)
 install(TARGETS estimate_kalman_gain
   DESTINATION lib/${PROJECT_NAME})
 
-# Install launch files and config files
-install(DIRECTORY launch/
-  DESTINATION share/${PROJECT_NAME}/launch)
+# シミュレーションノード
+ament_auto_add_executable(simulate_airplane_motion src/simulate_airplane_motion.cpp)
+target_compile_features(simulate_airplane_motion PUBLIC c_std_99 cxx_std_17)
+install(TARGETS simulate_airplane_motion
+  DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY config/
-  DESTINATION share/${PROJECT_NAME}/config)
+# 動翼角度パブリッシャー
+ament_auto_add_executable(joint_publisher src/joint_publisher.cpp)
+target_compile_features(joint_publisher PUBLIC c_std_99 cxx_std_17)
+install(TARGETS joint_publisher
+  DESTINATION lib/${PROJECT_NAME})
+
+
+install(DIRECTORY config launch meshes urdf rviz
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -1,0 +1,26 @@
+launch:
+  - arg:
+      name: "packages_name"
+      default: "nokolat2024_model"
+  - arg:
+      name: "xacro_file_name"
+      default: "ksenos_model.urdf"
+  - arg:
+      name: "rviz_file_name"
+      default: "urdf.rviz"
+  - node:
+      pkg: "robot_state_publisher"
+      exec: "robot_state_publisher"
+      output: "both"
+      param:
+        - name: "robot_description"
+          value: "$(find xacro) $(find $(arg packages_name))/urdf/$(arg xacro_file_name)"
+  # 以下はコメントアウトしたrvizの設定例です
+  # - node:
+  #     pkg: "rviz2"
+  #     exec: "rviz2"
+  #     name: "rviz2"
+  #     output: "log"
+  #     param:
+  #       - name: "rviz_config_file"
+  #         value: "$(find rviz_config)/$(arg rviz_file_name)"

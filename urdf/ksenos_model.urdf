@@ -1,0 +1,149 @@
+<robot name="ksenos">
+
+    <material name="red">
+        <color rgba="1.0 0.0 0.0 1.0" />
+    </material>
+
+    <material name="cyan">
+        <color rgba="0.87 0.08 0.52 1.0" />
+    </material>
+
+
+    <material name="orange">
+        <color rgba="1.0 0.27 0.0 1.0" />
+    </material>
+
+    <link name="base_link">
+        <visual>
+            <origin xyz="0.03 0 0.07 " rpy="1.57 0 3.14 " />
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/body.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="red" />
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/body.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <link name="aileron_left">
+        <visual>
+            <origin xyz="0.14 -0.02 0.012 " rpy="0 0.21 1.64  " />
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/aileron_left.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="cyan" />
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/aileron_left.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="aileron_right">
+        <visual>
+            <origin xyz="0.14 0.02 -0.015 " rpy="-0.345 1.35 1.31 " />
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/aileron_right.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="cyan" />
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/aileron_right.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="rudder">
+        <visual>
+            <origin xyz="0.6 0 0.07  " rpy="0 0 1.57 " />
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/rudder.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="orange" />
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/rudder.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="elevator">
+        <visual>
+            <origin xyz="0 0 0  " rpy="0 0 1.57 " />
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/elevator.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="orange" />
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/elevator.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="propeller">
+        <visual>
+            <origin xyz="0 0 0  " rpy=" 1.57  0 1.57 " />
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/propeller.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://nokolat2024_model/meshes/propeller.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <joint name="joint_aileron_left" type="revolute">
+        <origin xyz="-0.11 0.03 0.07" rpy="0.203 0 -0.08" />
+        <axis xyz="0 1 0" />
+        <limit lower="-0.5" upper="1" effort="0" velocity="0" />
+        <parent link="base_link" />
+        <child link="aileron_left" />
+    </joint>
+
+
+    <joint name="joint_aileron_right" type="revolute">
+        <origin xyz="-0.11 -0.03 0.07" rpy="1.367 0 0.08" />
+        <axis xyz="0 0 1" />
+        <limit lower="-1" upper="0.5" effort="0" velocity="0" />
+        <parent link="base_link" />
+        <child link="aileron_right" />
+    </joint>
+
+    <joint name="joint_rudder" type="revolute">
+        <origin xyz="-0.57 0 0" rpy="0 0 0" />
+        <axis xyz="0 0 1" />
+        <limit lower="-0.785" upper="0.785" effort="0" velocity="0" />
+        <parent link="base_link" />
+        <child link="rudder" />
+    </joint>
+
+    <joint name="joint_elevator" type="revolute">
+        <origin xyz="-0.575 0 0.18" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="-0.75" upper="0.75" effort="0" velocity="0" />
+        <parent link="base_link" />
+        <child link="elevator" />
+    </joint>
+
+    <joint name="joint_propeller" type="continuous">
+        <origin xyz="0.03 0 0.12" rpy="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit lower="-3" upper="3" effort="0" velocity="0" />
+        <parent link="base_link" />
+        <child link="propeller" />
+    </joint>
+
+
+</robot>
