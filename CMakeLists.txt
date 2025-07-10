@@ -109,13 +109,13 @@ install(TARGETS simulate_airplane_motion
   DESTINATION lib/${PROJECT_NAME})
 
 # 動翼角度パブリッシャー
-ament_auto_add_executable(joint_publisher src/joint_publisher.cpp)
-target_compile_features(joint_publisher PUBLIC c_std_99 cxx_std_17)
-install(TARGETS joint_publisher
+ament_auto_add_executable(publish_joint_airplane src/publish_joint_airplane.cpp)
+target_compile_features(publish_joint_airplane PUBLIC c_std_99 cxx_std_17)
+install(TARGETS publish_joint_airplane
   DESTINATION lib/${PROJECT_NAME})
 
 
-install(DIRECTORY config launch meshes urdf rviz
+install(DIRECTORY config launch meshes urdf
   DESTINATION share/${PROJECT_NAME}/
 )
 

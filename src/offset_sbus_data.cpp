@@ -9,7 +9,7 @@ public:
     SbusOffsetNode() : Node("sbus_offset_node")
     {
         // パラメータ宣言
-        this->declare_parameter("calibration_duration", 3.0);
+        this->declare_parameter("calibration_duration", 1.0);
         this->declare_parameter("input_topic", "sbus_raw");
         this->declare_parameter("output_topic", "sbus_offset");
 

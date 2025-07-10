@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ksenos_ground_msgs/msg/control_input.hpp"
+#include "ksenos_ground_msgs/msg/sbus_data.hpp"
 
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -24,42 +24,42 @@ namespace Param
     // 基本定数
     constexpr double g = 9.81;
     constexpr double U0 = 3.83957;
-    constexpr double theta0 = 7.5 * M_PI / 180.0; // 初期ピッチ角（ラジアン）
+    constexpr double theta0 = 6.69947 * M_PI / 180.0; // 初期ピッチ角（ラジアン）
 
     // 縦の安定微係数: キセノス
-    constexpr double Xu = -0.087699479;
-    constexpr double Xw = 0.341508235;
-    constexpr double Zu = -1.248874066;
-    constexpr double Zw = -2.327212864;
-    constexpr double Zq = -0.34546963;
-    constexpr double Mu = -2.61726E-07;
-    constexpr double Mw = -0.007753771;
-    constexpr double Mq = -0.061801849;
+    constexpr double Xu = -0.085105763;
+    constexpr double Xw = 0.332310218;
+    constexpr double Zu = -1.214609154;
+    constexpr double Zw = -2.398803902;
+    constexpr double Zq = -0.353214251;
+    constexpr double Mu = -2.80647E-07;
+    constexpr double Mw = -0.008513734;
+    constexpr double Mq = -0.063500393;
 
-    constexpr double Xde = -0.108846485; // エレベーター
-    constexpr double Zde = -0.854986661; // エレベーター
-    constexpr double Mde = -0.367662977; // エレベーター
-    constexpr double Xdt = 1.0;          // スロットル
+    constexpr double Xde = -0.106129818; // エレベーター
+    constexpr double Zde = -0.903110858; // エレベーター
+    constexpr double Mde = -0.386900555; // エレベーター
+    constexpr double Xdt = 0.1;          // スロットル
     constexpr double Zdt = 0;            // スロットル
     constexpr double Mdt = 0;            // スロットル
 
     // 横の安定微係数: キセノス
-    constexpr double Yv = -0.019039629;
-    constexpr double Yp = -0.492539706;
-    constexpr double Yr = 0.865864124;
-    constexpr double Lv = -0.005149267;
-    constexpr double Lp = -2.979262874;
-    constexpr double Lr = 0.392339812;
-    constexpr double Nv = 0.008444299;
-    constexpr double Np = 0.045883688;
-    constexpr double Nr = -0.451461973;
+    constexpr double Yv = -0.14479;
+    constexpr double Yp = -0.055776;
+    constexpr double Yr = 0.10746;
+    constexpr double Lv = -0.083652;
+    constexpr double Lp = -0.166;
+    constexpr double Lr = 0.10719;
+    constexpr double Nv = 0.022437;
+    constexpr double Np = -0.06557;
+    constexpr double Nr = -0.023672;
 
-    constexpr double Yda = 0.438924601;  // エルロン
-    constexpr double Lda = 1.279538387;  // エルロン
-    constexpr double Nda = 0.131722297;  // エルロン
-    constexpr double Ydr = 0.305499424;  // ラダー
-    constexpr double Ldr = -0.006431848; // ラダー
-    constexpr double Ndr = -0.144339712; // ラダー
+    constexpr double Yda = 0.45311;      // エルロン
+    constexpr double Lda = 1.3608;       // エルロン
+    constexpr double Nda = 0.14392;      // エルロン
+    constexpr double Ydr = 0.322163839;  // ラダー
+    constexpr double Ldr = -0.00469461;  // ラダー
+    constexpr double Ndr = -0.152660157; // ラダー
 } // namespace Param
 
 // 回転行列 R = Rz(psi)*Ry(theta)*Rx(phi)
@@ -117,7 +117,7 @@ public:
 
     // ROS2 から更新される制御入力
     // u_long: [delta_e, delta_t], u_lat: [delta_a, delta_r]
-    void set_control_inputs(double delta_e, double delta_t, double delta_a, double delta_r)
+    void set_sbus_datas(double delta_e, double delta_t, double delta_a, double delta_r)
     {
         u_long_[0] = delta_e;
         u_long_[1] = delta_t;
@@ -202,8 +202,8 @@ public:
     {
         // 初期状態 (全要素0とする)
         state_.fill(0.0);
-        control_input_sub_ = this->create_subscription<ksenos_ground_msgs::msg::ControlInput>(
-            "/control_input", 10,
+        sbus_data_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
+            "/sbus_offset", 10,
             std::bind(&DynamicsSimulator::control_callback, this, std::placeholders::_1));
 
         // タイマコールバックでODE１ステップ実行（dt秒）
@@ -215,19 +215,19 @@ public:
     }
 
 private:
-    void control_callback(const ksenos_ground_msgs::msg::ControlInput::SharedPtr msg)
+    void control_callback(const ksenos_ground_msgs::msg::SbusData::SharedPtr msg)
     {
         // 制御入力の更新
         // twist.angular.y -> elevator (delta_e)
         // twist.linear.x  -> throttle (delta_t)
         // twist.linear.y  -> aileron (delta_a)
         // twist.angular.z -> rudder (delta_r)
-        double delta_e = msg->elevator; // elevator
-        double delta_t = msg->throttle; // throttle
-        double delta_a = msg->aileron;  // aileron
-        double delta_r = msg->rudder;   // rudder
+        double delta_e = msg->elevator;  // elevator
+        double delta_t = msg->throttle;  // throttle
+        double delta_a = msg->aileron_l; // aileron
+        double delta_r = msg->rudder;    // rudder
 
-        dynamics_.set_control_inputs(delta_e, delta_t, delta_a, delta_r);
+        dynamics_.set_sbus_datas(delta_e, delta_t, delta_a, delta_r);
     }
 
     void timer_callback()
@@ -272,7 +272,7 @@ private:
         tf_broadcaster_->sendTransform(transformStamped);
     }
 
-    rclcpp::Subscription<ksenos_ground_msgs::msg::ControlInput>::SharedPtr control_input_sub_;
+    rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_data_sub_;
     rclcpp::TimerBase::SharedPtr timer_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     AircraftDynamics dynamics_;

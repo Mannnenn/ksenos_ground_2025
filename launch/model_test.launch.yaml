@@ -1,26 +1,83 @@
 launch:
-  - arg:
-      name: "packages_name"
-      default: "nokolat2024_model"
-  - arg:
-      name: "xacro_file_name"
-      default: "ksenos_model.urdf"
-  - arg:
-      name: "rviz_file_name"
-      default: "urdf.rviz"
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/model_load.launch.py"
+
   - node:
-      pkg: "robot_state_publisher"
-      exec: "robot_state_publisher"
-      output: "both"
+      pkg: ksenos_ground
+      exec: get_sbus_raw_data
+      name: sbus_raw_data_reader
+
+  - node:
+      pkg: ksenos_ground
+      exec: proc_sbus_data
+      name: sbus_data_processor
       param:
-        - name: "robot_description"
-          value: "$(find xacro) $(find $(arg packages_name))/urdf/$(arg xacro_file_name)"
-  # 以下はコメントアウトしたrvizの設定例です
-  # - node:
-  #     pkg: "rviz2"
-  #     exec: "rviz2"
-  #     name: "rviz2"
-  #     output: "log"
-  #     param:
-  #       - name: "rviz_config_file"
-  #         value: "$(find rviz_config)/$(arg rviz_file_name)"
+        - name: "servo_min_count"
+          value: 352
+        - name: "servo_max_count"
+          value: 1696
+        - name: "servo_min_rad"
+          value: -0.174 # -10 degrees in radians
+        - name: "servo_max_rad"
+          value: 0.174 # 10 degrees in radians
+        - name: "throttle_min_count"
+          value: 352
+        - name: "throttle_max_count"
+          value: 1696
+        - name: "throttle_min_openness"
+          value: 0.0
+        - name: "throttle_max_openness"
+          value: 1.0
+        - name: "autopilot_threshold"
+          value: 1000
+        - name: "autolanding_threshold"
+          value: 1000
+        - name: "dropping_device_threshold_low"
+          value: 900
+        - name: "dropping_device_threshold_high"
+          value: 1500
+        - name: "autopilot_mode_threshold_low"
+          value: 500
+        - name: "autopilot_mode_threshold_high"
+          value: 1500
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "publish_joint_airplane"
+      name: "publish_joint_airplane"
+
+  - node:
+      pkg: ksenos_ground
+      exec: offset_sbus_data
+      name: sbus_offset_node
+      param:
+        - name: "calibration_duration"
+          value: 1.0
+        - name: "input_topic"
+          value: "sbus_data"
+        - name: "output_topic"
+          value: "sbus_offset"
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "simulate_airplane_motion"
+      name: "simulate_airplane_motion"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_aircraft_stability_axes_to_body"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0.1168 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id body"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_body_to_base_link"
+      args: "--x 0 --y 0 --z 0 --roll 3.1415 --pitch 0 --yaw 0 --frame-id body --child-frame-id base_link"
+
+  - node:
+      pkg: "rviz2"
+      exec: "rviz2"
+      name: "rviz2"
+      output: "log"
+      args: "-d $(find-pkg-share ksenos_ground)/config/Model.rviz"
