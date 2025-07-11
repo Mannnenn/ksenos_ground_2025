@@ -67,13 +67,13 @@ launch:
       pkg: "tf2_ros"
       exec: "static_transform_publisher"
       name: "static_transform_publisher_aircraft_stability_axes_to_body"
-      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0.1168 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id body"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id body"
 
   - node:
       pkg: "tf2_ros"
       exec: "static_transform_publisher"
       name: "static_transform_publisher_body_to_base_link"
-      args: "--x 0 --y 0 --z 0 --roll 3.1415 --pitch 0 --yaw 0 --frame-id body --child-frame-id base_link"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id body --child-frame-id base_link"
 
   - node:
       pkg: "rviz2"

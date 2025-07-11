@@ -24,42 +24,51 @@ namespace Param
     // 基本定数
     constexpr double g = 9.81;
     constexpr double U0 = 3.83957;
+    constexpr double W0 = 0;
     constexpr double theta0 = 6.69947 * M_PI / 180.0; // 初期ピッチ角（ラジアン）
 
     // 縦の安定微係数: キセノス
     constexpr double Xu = -0.085105763;
-    constexpr double Xw = 0.332310218;
-    constexpr double Zu = -1.214609154;
-    constexpr double Zw = -2.398803902;
-    constexpr double Zq = -0.353214251;
-    constexpr double Mu = -2.80647E-07;
-    constexpr double Mw = -0.008513734;
-    constexpr double Mq = -0.063500393;
+    constexpr double Xa = 0.332310218 * U0; // Xa = Xw * U0
+    constexpr double Xq = 0;
 
-    constexpr double Xde = -0.106129818; // エレベーター
-    constexpr double Zde = -0.903110858; // エレベーター
-    constexpr double Mde = -0.386900555; // エレベーター
-    constexpr double Xdt = 0.1;          // スロットル
-    constexpr double Zdt = 0;            // スロットル
-    constexpr double Mdt = 0;            // スロットル
+    constexpr double Zu = -1.214609154;
+    constexpr double Za = -2.398803902 * U0; // Za = Zw * U0
+    constexpr double Zq = -0.353214251;
+
+    constexpr double Mu = -2.80647E-07;
+    constexpr double Ma = -0.008513734 * U0; // Ma = Mw * U0
+    constexpr double Mq = -0.063500393;
+    constexpr double Madot = 0.0;
+
+    constexpr double X_deltat = 0.001;
+    constexpr double Z_deltat = 0;
+    constexpr double M_deltat = 0;
+
+    constexpr double X_deltae = -0.106129818;
+    constexpr double Z_deltae = -0.903110858;
+    constexpr double M_deltae = -0.386900555;
 
     // 横の安定微係数: キセノス
-    constexpr double Yv = -0.14479;
+    constexpr double Yb = -0.14479 * U0; // Yb =  Yv * U0
     constexpr double Yp = -0.055776;
     constexpr double Yr = 0.10746;
-    constexpr double Lv = -0.083652;
+
+    constexpr double Lb = -0.083652 * U0; // Lb = Lv * U0
     constexpr double Lp = -0.166;
     constexpr double Lr = 0.10719;
-    constexpr double Nv = 0.022437;
+
+    constexpr double Nb = 0.022437 * U0; // Nb = Nv * U0
     constexpr double Np = -0.06557;
     constexpr double Nr = -0.023672;
 
-    constexpr double Yda = 0.45311;      // エルロン
-    constexpr double Lda = 1.3608;       // エルロン
-    constexpr double Nda = 0.14392;      // エルロン
-    constexpr double Ydr = 0.322163839;  // ラダー
-    constexpr double Ldr = -0.00469461;  // ラダー
-    constexpr double Ndr = -0.152660157; // ラダー
+    constexpr double Y_deltar = 0.322163839;  // ラダー
+    constexpr double L_deltar = -0.00469461;  // ラダー
+    constexpr double N_deltar = -0.152660157; // ラダー
+
+    constexpr double Y_deltaa = 0.45311; // エルロン
+    constexpr double L_deltaa = 1.3608;  // エルロン
+    constexpr double N_deltaa = 0.14392; // エルロン
 } // namespace Param
 
 // 回転行列 R = Rz(psi)*Ry(theta)*Rx(phi)
@@ -86,31 +95,35 @@ public:
     {
         // A_long (4x4)
         A_long_.resize(4, 4);
-        A_long_ << Param::Xu, Param::Xw, 0, -Param::g,
-            Param::Zu, Param::Zw, Param::U0, 0,
-            Param::Mu, Param::Mw, Param::Mq, 0,
+        A_long_ << Param::Xu, Param::Xa, -Param::W0, -Param::g * std::cos(Param::theta0),
+            Param::Zu / Param::U0, Param::Za / Param::U0, 1 + Param::Zq / Param::U0, (Param::g / Param::U0) * std::sin(Param::theta0),
+            Param::Mu + Param::Madot * (Param::Zu / Param::U0),
+            Param::Ma + Param::Madot * (Param::Za / Param::U0),
+            Param::Mq + Param::Madot * (1 + Param::Zq / Param::U0),
+            (Param::Madot * Param::g / Param::U0) * std::sin(Param::theta0),
             0, 0, 1, 0;
 
         // B_long (4x2)
         B_long_.resize(4, 2);
-        B_long_ << Param::Xde, Param::Xdt,
-            Param::Zde, Param::Zdt,
-            Param::Mde, Param::Mdt,
+        B_long_ << 0, Param::X_deltat,
+            Param::Z_deltae / Param::U0, Param::Z_deltat / Param::U0,
+            Param::M_deltae + Param::Madot * (Param::Z_deltae / Param::U0),
+            Param::M_deltat + Param::Madot * (Param::Z_deltat / Param::U0),
             0, 0;
 
         // A_lat (5x5)
         A_lat_.resize(5, 5);
-        A_lat_ << Param::Yv, Param::Yp, Param::Yr - Param::U0, Param::g, 0,
-            Param::Lv, Param::Lp, Param::Lr, 0, 0,
-            Param::Nv, Param::Np, Param::Nr, 0, 0,
-            0, 1, 0, 0, 0,
-            0, 0, 1, 0, 0;
+        A_lat_ << Param::Yb / Param::U0, (Param::W0 + Param::Yp) / Param::U0, (Param::Yr / Param::U0 - 1), Param::g * std::cos(Param::theta0) / Param::U0, 0,
+            Param::Lb, Param::Lp, Param::Lr, 0, 0,
+            Param::Nb, Param::Np, Param::Nr, 0, 0,
+            0, 1, std::tan(Param::theta0), 0, 0,
+            0, 0, 1 / std::cos(Param::theta0), 0, 0;
 
         // B_lat (5x2)
         B_lat_.resize(5, 2);
-        B_lat_ << Param::Yda, Param::Ydr,
-            Param::Lda, Param::Ldr,
-            Param::Nda, Param::Ndr,
+        B_lat_ << 0, Param::Y_deltar / Param::U0,
+            Param::L_deltaa, Param::L_deltar,
+            Param::N_deltaa, Param::N_deltar,
             0, 0,
             0, 0;
     }
@@ -136,7 +149,7 @@ public:
         Eigen::Vector4d x_long;
         for (int i = 0; i < 4; i++)
         {
-            // x[0]:u,前方速度の変動, x[1]:w下降速度の変動, x[2]:q,ピッチ角速度, x[3]:θ,ピッチ角
+            // x[0]:u,前方速度の変動, x[1]:α,迎角の変動, x[2]:q,ピッチ角速度, x[3]:θ,ピッチ角
             x_long(i) = x[i];
         }
         Eigen::Vector2d u_long;
@@ -147,7 +160,7 @@ public:
         Eigen::VectorXd x_lat(5);
         for (int i = 0; i < 5; i++)
         {
-            // x[4]:β,よこすべり速度の変動, x[5]:p,ロール角速度, x[6]:r,ヨー角速度, x[7]:φ,ロール角, x[8]:ψ,ヨー角
+            // x[4]:β,よこすべりの変動, x[5]:p,ロール角速度, x[6]:r,ヨー角速度, x[7]:φ,ロール角, x[8]:ψ,ヨー角
             x_lat(i) = x[4 + i];
         }
         Eigen::Vector2d u_lat;
@@ -155,12 +168,12 @@ public:
         Eigen::VectorXd dx_lat = A_lat_ * x_lat + B_lat_ * u_lat;
 
         // 機体座標系での速度ベクトル
-        double u_b = Param::U0 + x[0]; // x[0] は前方速度の変動
-        double v_b = x[4];             // x[4] はよこすべり速度
-        double w_b = x[1];             // x[1] は上下方向の速度変動
+        double u_b = Param::U0 + x[0];
+        double v_b = u_b * std::sin(x[4]);
+        double w_b = u_b * std::tan(x[1]);
         Eigen::Vector3d vel_b(u_b, v_b, w_b);
 
-        // 機体釣り合い座標系での速度ベクトルを全体座標系に変換
+        // 全体座標系での速度ベクトル
         double phi = x[7];   // 横のφ（ロール）
         double theta = x[3]; // 縦のθ（ピッチ）
         double psi = x[8];   // 横のψ（ヨー）
@@ -203,7 +216,7 @@ public:
         // 初期状態 (全要素0とする)
         state_.fill(0.0);
         sbus_data_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
-            "/sbus_offset", 10,
+            "/sbus_data", 10,
             std::bind(&DynamicsSimulator::control_callback, this, std::placeholders::_1));
 
         // タイマコールバックでODE１ステップ実行（dt秒）
@@ -270,6 +283,18 @@ private:
         transformStamped.transform.rotation.z = q_ros.z();
         // tf ブロードキャスターによる送信
         tf_broadcaster_->sendTransform(transformStamped);
+
+        // Print States
+        RCLCPP_INFO(this->get_logger(), "Params:");
+        RCLCPP_INFO(this->get_logger(), "  x: %.2f, y: %.2f, z: %.2f", state_[10], state_[9], -state_[11]);
+        RCLCPP_INFO(this->get_logger(), "  roll: %.2f, pitch: %.2f, yaw: %.2f", state_[7], state_[3], state_[8]);
+        RCLCPP_INFO(this->get_logger(), " u: %.2f, α: %.2f, q: %.2f, θ: %.2f", state_[0], state_[1], state_[2], state_[3]);
+        RCLCPP_INFO(this->get_logger(), " β: %.2f, p: %.2f, r: %.2f, φ: %.2f, ψ: %.2f",
+                    state_[4], state_[5], state_[6], state_[7], state_[8]);
+        RCLCPP_INFO(this->get_logger(), " Velocity: u_b: %.2f, v_b: %.2f, w_b: %.2f",
+                    Param::U0 + state_[0],
+                    (Param::U0 + state_[0]) * std::sin(state_[4]),
+                    (Param::U0 + state_[0]) * std::tan(state_[1]));
     }
 
     rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_data_sub_;
