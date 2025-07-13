@@ -24,7 +24,7 @@ namespace Param
 {
     // 基本定数
     constexpr double g = 9.81;
-    constexpr double U0 = 3.83957;
+    constexpr double U0 = 8.5;
     constexpr double W0 = 0;
     constexpr double theta0 = 3.7 * M_PI / 180.0; // 初期ピッチ角（ラジアン）
 
@@ -235,6 +235,7 @@ public:
     {
         // 初期状態 (全要素0とする)
         state_.fill(0.0);
+
         sbus_data_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
             "/sbus_data", 10,
             std::bind(&DynamicsSimulator::control_callback, this, std::placeholders::_1));
@@ -307,6 +308,9 @@ private:
         // tf ブロードキャスターによる送信
         tf_broadcaster_->sendTransform(transformStamped);
 
+        // IMUデータの計算と配信
+        publish_imu_data();
+
         // Print States
         RCLCPP_INFO(this->get_logger(), "Params:");
         RCLCPP_INFO(this->get_logger(), "  x: %.2f, y: %.2f, z: %.2f", state_[10], state_[9], -state_[11]);
@@ -320,7 +324,79 @@ private:
                     state_[1]);
     }
 
+    void publish_imu_data()
+    {
+        sensor_msgs::msg::Imu imu_msg;
+
+        // Header設定
+        imu_msg.header.stamp = this->now();
+        imu_msg.header.frame_id = "aircraft_stability_axes";
+
+        // 角速度 (機体座標系): p (roll rate), q (pitch rate), r (yaw rate)
+        imu_msg.angular_velocity.x = state_[5]; // p (ロール角速度)
+        imu_msg.angular_velocity.y = state_[2]; // q (ピッチ角速度)
+        imu_msg.angular_velocity.z = state_[6]; // r (ヨー角速度)
+
+        // 角速度の共分散行列（対角成分のみ設定）
+        imu_msg.angular_velocity_covariance[0] = 0.01; // x軸
+        imu_msg.angular_velocity_covariance[4] = 0.01; // y軸
+        imu_msg.angular_velocity_covariance[8] = 0.01; // z軸
+
+        // 機体座標系での加速度を計算
+        // u_dot, v_dot, w_dotから比力を計算
+        double u_b = Param::U0 + state_[0];
+        double v_b = state_[4];
+        double w_b = state_[1];
+        double p = state_[5];
+        double q = state_[2];
+        double r = state_[6];
+
+        // 機体座標系での比力（重力加速度を除いた加速度）
+        // 回転による遠心力・コリオリ力を考慮
+        double ax = state_[0] / 0.01 - v_b * r + w_b * q; // du/dt - vr + wq
+        double ay = state_[4] / 0.01 - w_b * p + u_b * r; // dv/dt - wp + ur
+        double az = state_[1] / 0.01 - u_b * q + v_b * p; // dw/dt - uq + vp
+
+        // 重力の影響を機体座標系で計算（姿勢を考慮）
+        double phi = state_[7];   // ロール角
+        double theta = state_[3]; // ピッチ角
+
+        // 重力ベクトルを機体座標系に変換
+        double gx = -Param::g * sin(theta);
+        double gy = Param::g * cos(theta) * sin(phi);
+        double gz = Param::g * cos(theta) * cos(phi);
+
+        // IMUで測定される加速度（比力 + 重力）
+        imu_msg.linear_acceleration.x = ax + gx;
+        imu_msg.linear_acceleration.y = ay + gy;
+        imu_msg.linear_acceleration.z = az + gz;
+
+        // 加速度の共分散行列（対角成分のみ設定）
+        imu_msg.linear_acceleration_covariance[0] = 0.01; // x軸
+        imu_msg.linear_acceleration_covariance[4] = 0.01; // y軸
+        imu_msg.linear_acceleration_covariance[8] = 0.01; // z軸
+
+        // 姿勢クォータニオン（機体座標系のEuler角から計算）
+        Eigen::Quaterniond q_body = Eigen::AngleAxisd(phi, Eigen::Vector3d::UnitX()) *
+                                    Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitY()) *
+                                    Eigen::AngleAxisd(state_[8], Eigen::Vector3d::UnitZ());
+
+        imu_msg.orientation.w = q_body.w();
+        imu_msg.orientation.x = q_body.x();
+        imu_msg.orientation.y = q_body.y();
+        imu_msg.orientation.z = q_body.z();
+
+        // 姿勢の共分散行列（対角成分のみ設定）
+        imu_msg.orientation_covariance[0] = 0.01; // x軸
+        imu_msg.orientation_covariance[4] = 0.01; // y軸
+        imu_msg.orientation_covariance[8] = 0.01; // z軸
+
+        // IMUデータを配信
+        imu_pub_->publish(imu_msg);
+    }
+
     rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_data_sub_;
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     AircraftDynamics dynamics_;
