@@ -70,10 +70,10 @@ private:
         int autopilot_mode_threshold_high = this->get_parameter("autopilot_mode_threshold_high").as_int();
 
         // uint16からfloat32への変換（サーボカウント値からラジアンに変換）
-        processed_msg.aileron_r = countToRadians(msg->aileron_r, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
-        processed_msg.elevator = countToRadians(msg->elevator, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
-        processed_msg.rudder = countToRadians(msg->rudder, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
-        processed_msg.aileron_l = countToRadians(msg->aileron_l, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
+        processed_msg.aileron_r = -countToRadians(msg->aileron_r, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
+        processed_msg.elevator = -countToRadians(msg->elevator, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
+        processed_msg.rudder = -countToRadians(msg->rudder, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
+        processed_msg.aileron_l = -countToRadians(msg->aileron_l, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
 
         processed_msg.throttle = countToOpenness(msg->throttle, throttle_min_count, throttle_max_count, throttle_min_openness, throttle_max_openness);
 
