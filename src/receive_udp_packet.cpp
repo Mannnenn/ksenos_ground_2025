@@ -280,15 +280,15 @@ private:
         // IMUの座標系はZ軸が下向き、Y軸が前向き、X軸が右向き
         // ⇒ X,Y軸を入れ替え、Z軸を反転
         // 加速度の単位変換: G → m/s² (1G = 9.80665 m/s²)
-        imu_msg.linear_acceleration.x = packet.acc_y * 9.80665;
-        imu_msg.linear_acceleration.y = -packet.acc_x * 9.80665; // y軸反転
-        imu_msg.linear_acceleration.z = -packet.acc_z * 9.80665;
+        imu_msg.linear_acceleration.x = -packet.acc_y * 9.80665;
+        imu_msg.linear_acceleration.y = packet.acc_x * 9.80665; // y軸反転
+        imu_msg.linear_acceleration.z = packet.acc_z * 9.80665;
 
         // 角速度の回転方向がことなる
         // ⇒ X軸（ロール）は正の符号、Y軸（ピッチ）は負の符号、Z軸（ヨー）は正の符号
         // 角速度の単位変換: degrees/s → rad/s (π/180)
-        imu_msg.angular_velocity.x = packet.gyro_y * M_PI / 180.0;  // X軸（ロール）：正の符号
-        imu_msg.angular_velocity.y = -packet.gyro_x * M_PI / 180.0; // Y軸（ピッチ）：負の符号
+        imu_msg.angular_velocity.x = -packet.gyro_y * M_PI / 180.0; // X軸（ロール）：正の符号
+        imu_msg.angular_velocity.y = packet.gyro_x * M_PI / 180.0;  // Y軸（ピッチ）：負の符号
         imu_msg.angular_velocity.z = packet.gyro_z * M_PI / 180.0;  // Z軸（ヨー）：正の符号
 
         // 共分散行列は不明のため、すべて-1に設定
