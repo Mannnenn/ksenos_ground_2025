@@ -114,6 +114,12 @@ target_compile_features(publish_joint_airplane PUBLIC c_std_99 cxx_std_17)
 install(TARGETS publish_joint_airplane
   DESTINATION lib/${PROJECT_NAME})
 
+# 気圧による高度推定ノード
+ament_auto_add_executable(estimate_altitude_prresure src/estimate_altitude_prresure.cpp)
+target_compile_features(estimate_altitude_prresure PUBLIC c_std_99 cxx_std_17)
+install(TARGETS estimate_altitude_prresure
+  DESTINATION lib/${PROJECT_NAME})
+
 
 install(DIRECTORY config launch meshes urdf
   DESTINATION share/${PROJECT_NAME}/

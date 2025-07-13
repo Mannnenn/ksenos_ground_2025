@@ -34,6 +34,7 @@ struct SensorPacket
     float gyro_x, gyro_y, gyro_z; // 角速度 (dps、ROS2発行時にrad/sに変換)
     float tof_distance;           // ToF距離 (mm)
     float baro_pressure;          // 気圧 (hPa)
+    float temperature;            // 気温 (℃)
     float flow_rate;              // 流量 (L/min)
     uint8_t servo_enable;         // サーボ有効フラグ
     uint8_t checksum;             // チェックサム
@@ -276,24 +277,26 @@ private:
         imu_msg.header.stamp = sensor_time;
         imu_msg.header.frame_id = "imu_link";
 
+        // IMUの座標系はZ軸が下向き、Y軸が前向き、X軸が右向き
+        // ⇒ X,Y軸を入れ替え、Z軸を反転
         // 加速度の単位変換: G → m/s² (1G = 9.80665 m/s²)
-        // ICM42688P座標系からROS2座標系への変換（y軸を反転）
-        imu_msg.linear_acceleration.x = packet.acc_x * 9.80665;
-        imu_msg.linear_acceleration.y = packet.acc_y * 9.80665; // y軸反転
-        imu_msg.linear_acceleration.z = packet.acc_z * 9.80665;
+        imu_msg.linear_acceleration.x = packet.acc_y * 9.80665;
+        imu_msg.linear_acceleration.y = -packet.acc_x * 9.80665; // y軸反転
+        imu_msg.linear_acceleration.z = -packet.acc_z * 9.80665;
 
+        // 角速度の回転方向がことなる
+        // ⇒ X軸（ロール）は正の符号、Y軸（ピッチ）は負の符号、Z軸（ヨー）は正の符号
         // 角速度の単位変換: degrees/s → rad/s (π/180)
-        // ICM42688P座標系からROS2座標系への変換（y軸を反転）
-        imu_msg.angular_velocity.x = packet.gyro_x * M_PI / 180.0;
-        imu_msg.angular_velocity.y = packet.gyro_y * M_PI / 180.0; // y軸反転
-        imu_msg.angular_velocity.z = -packet.gyro_z * M_PI / 180.0;
+        imu_msg.angular_velocity.x = packet.gyro_y * M_PI / 180.0;  // X軸（ロール）：正の符号
+        imu_msg.angular_velocity.y = -packet.gyro_x * M_PI / 180.0; // Y軸（ピッチ）：負の符号
+        imu_msg.angular_velocity.z = packet.gyro_z * M_PI / 180.0;  // Z軸（ヨー）：正の符号
 
         // 共分散行列は不明のため、すべて-1に設定
         for (int i = 0; i < 9; i++)
         {
-            imu_msg.linear_acceleration_covariance[i] = -1.0;
-            imu_msg.angular_velocity_covariance[i] = -1.0;
-            imu_msg.orientation_covariance[i] = -1.0;
+            imu_msg.linear_acceleration_covariance[i] = 0.001;
+            imu_msg.angular_velocity_covariance[i] = 0.001;
+            imu_msg.orientation_covariance[i] = 0.001;
         }
 
         imu_publisher_->publish(imu_msg);
@@ -314,7 +317,8 @@ private:
         auto pressure_msg = ksenos_ground_msgs::msg::PressureData();
         pressure_msg.header.stamp = sensor_time;
         pressure_msg.header.frame_id = "pressure_link";
-        pressure_msg.pressure = packet.baro_pressure; // hPa
+        pressure_msg.pressure = packet.baro_pressure;  // hPa
+        pressure_msg.temperature = packet.temperature; // ℃
         pressure_publisher_->publish(pressure_msg);
 
         // 流量データの発行

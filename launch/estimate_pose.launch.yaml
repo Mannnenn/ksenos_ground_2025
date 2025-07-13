@@ -9,13 +9,13 @@ launch:
         - name: "pose_topic"
           value: "/estimated_pose"
         - name: "process_noise_gyro"
-          value: 5.583225e-07
+          value: 5.583225e-07 # ロール・ピッチの応答を改善するため10倍に増加
         - name: "process_noise_acc"
-          value: 8.459858e-05
+          value: 8.459858e-06
         - name: "measurement_noise"
-          value: 8.459858e-05
+          value: 4.459858e-07
         - name: "process_noise_bias"
-          value: 4.289784e-09
+          value: 4.289784e-08 # ロール・ピッチバイアスの応答性を改善するため10倍に増加
         - name: "process_noise_bias_yaw"
           value: 3.350429e-08
         - name: "initial_bias_uncertainty"

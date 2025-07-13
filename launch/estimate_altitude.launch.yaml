@@ -1,0 +1,17 @@
+launch:
+  - node:
+      pkg: "ksenos_ground"
+      exec: "estimate_altitude_prresure"
+      name: "altitude_estimator"
+      param:
+        - name: "pressure_topic"
+          value: "/sensor/pressure"
+        - name: "altitude_topic"
+          value: "/estimated_altitude"
+        - name: "calibration_duration"
+          value: 5.0 # 最初5秒間を基準高度として使用
+        - name: "filter_window_size"
+          value: 10 # 100Hzデータに対して10サンプルの移動平均（0.1秒分）
+        - name: "sea_level_pressure"
+          value: 1013.25 # 海面気圧 (hPa)
+      output: screen

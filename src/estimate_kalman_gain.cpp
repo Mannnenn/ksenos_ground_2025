@@ -143,7 +143,7 @@ private:
         process_noise_bias_ = estimate_bias_drift(gyro_x_data_, gyro_y_data_, gyro_z_data_);
 
         // 5. ヨーバイアスプロセスノイズ（Z軸ジャイロスコープの特別な処理）
-        process_noise_bias_yaw_ = calculate_variance(gyro_z_data_) * 0.1; // 保守的な推定
+        process_noise_bias_yaw_ = calculate_variance(gyro_z_data_);
 
         // 6. 初期バイアス不確実性（観測されたバイアスの標準偏差）
         double gyro_x_bias = calculate_mean(gyro_x_data_);

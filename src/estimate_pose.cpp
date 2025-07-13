@@ -28,9 +28,8 @@ public:
         this->declare_parameter("initial_bias_uncertainty", 0.1);
         this->declare_parameter("base_frame", "base_link");
         this->declare_parameter("child_frame", "imu_link");
-        this->declare_parameter("bias_calibration_time", 5.0);         // バイアス計測時間（秒）
-        this->declare_parameter("bias_calibration_samples", 300);      // 最小サンプル数
-        this->declare_parameter("bias_fixed_after_calibration", true); // 計測後にバイアスを固定するか
+        this->declare_parameter("bias_calibration_time", 5.0);    // バイアス計測時間（秒）
+        this->declare_parameter("bias_calibration_samples", 300); // 最小サンプル数
 
         // パラメータの取得
         std::string imu_topic = this->get_parameter("imu_topic").as_string();
@@ -45,7 +44,6 @@ public:
         child_frame_ = this->get_parameter("child_frame").as_string();
         bias_calibration_time_ = this->get_parameter("bias_calibration_time").as_double();
         bias_calibration_samples_ = this->get_parameter("bias_calibration_samples").as_int();
-        bias_fixed_after_calibration_ = this->get_parameter("bias_fixed_after_calibration").as_bool();
 
         // バイアス計測用変数の初期化
         gyro_bias_sum_ = Eigen::Vector3d::Zero();
@@ -182,16 +180,7 @@ private:
             // バイアスの共分散を小さくする（より確信を持つ）
             P_(4, 4) = 1e-12; // X軸バイアスの不確かさを非常に小さく
             P_(5, 5) = 1e-12; // Y軸バイアスの不確かさを非常に小さく
-            P_(6, 6) = 1e-12; // Z軸バイアスの不確かさを非常に小さく
-
-            // バイアス固定オプションが有効な場合、プロセスノイズを極小に
-            if (bias_fixed_after_calibration_)
-            {
-                Q_(4, 4) = 1e-15; // X軸バイアスのプロセスノイズを極小に
-                Q_(5, 5) = 1e-15; // Y軸バイアスのプロセスノイズを極小に
-                Q_(6, 6) = 1e-15; // Z軸バイアスのプロセスノイズを極小に
-                RCLCPP_INFO(this->get_logger(), "Bias values are now fixed (process noise minimized)");
-            }
+            P_(6, 6) = 1e-9;  // Z軸バイアスの不確かさを非常に小さく
 
             bias_calibration_complete_ = true;
 
@@ -470,7 +459,6 @@ private:
     std::string child_frame_;
     double bias_calibration_time_;
     int bias_calibration_samples_;
-    bool bias_fixed_after_calibration_;
 
     // フィルターの状態
     bool is_initialized_;
