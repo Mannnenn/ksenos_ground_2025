@@ -10,6 +10,7 @@
 
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 
 #include <Eigen/Dense>
 #include <boost/numeric/odeint.hpp>
@@ -25,50 +26,59 @@ namespace Param
     constexpr double g = 9.81;
     constexpr double U0 = 3.83957;
     constexpr double W0 = 0;
-    constexpr double theta0 = 6.69947 * M_PI / 180.0; // 初期ピッチ角（ラジアン）
+    constexpr double theta0 = 3.7 * M_PI / 180.0; // 初期ピッチ角（ラジアン）
 
     // 縦の安定微係数: キセノス
-    constexpr double Xu = -0.085105763;
-    constexpr double Xa = 0.332310218 * U0; // Xa = Xw * U0
+    constexpr double m = 0.23;
+    constexpr double Iy = 0.01253;
+    constexpr double Ixx = 0.00487;
+    constexpr double Izz = 0.01462;
+    constexpr double Ixz = 0.00354;
+
+    // 縦の有次元安定微係数:キセノス
+    constexpr double Xu = -0.013795333;
+    constexpr double Zu = -0.595793333;
+    constexpr double Mu = 6.90243E-07;
+
+    constexpr double Xw = 0.173083333;
+    constexpr double Zw = -5.2626;
+    constexpr double Mw = -0.25322;
+
     constexpr double Xq = 0;
+    constexpr double Zq = -0.84436;
+    constexpr double Mq = -0.161466667;
 
-    constexpr double Zu = -1.214609154;
-    constexpr double Za = -2.398803902 * U0; // Za = Zw * U0
-    constexpr double Zq = -0.353214251;
-
-    constexpr double Mu = -2.80647E-07;
-    constexpr double Ma = -0.008513734 * U0; // Ma = Mw * U0
-    constexpr double Mq = -0.063500393;
-    constexpr double Madot = 0.0;
-
-    constexpr double X_deltat = 0.001;
+    constexpr double X_deltat = 0;
+    constexpr double X_deltae = 0.017645;
     constexpr double Z_deltat = 0;
+    constexpr double Z_deltae = -1.4723;
     constexpr double M_deltat = 0;
-
-    constexpr double X_deltae = -0.106129818;
-    constexpr double Z_deltae = -0.903110858;
-    constexpr double M_deltae = -0.386900555;
+    constexpr double M_deltae = -0.68935;
 
     // 横の安定微係数: キセノス
-    constexpr double Yb = -0.14479 * U0; // Yb =  Yv * U0
-    constexpr double Yp = -0.055776;
-    constexpr double Yr = 0.10746;
+    constexpr double Yv = -0.283446667;
+    constexpr double Lv = -0.183086667;
+    constexpr double Nv = 0.089339667;
 
-    constexpr double Lb = -0.083652 * U0; // Lb = Lv * U0
-    constexpr double Lp = -0.166;
-    constexpr double Lr = 0.10719;
+    constexpr double Yp = -0.160266667;
+    constexpr double Lp = -0.363993333;
+    constexpr double Np = -0.027243;
 
-    constexpr double Nb = 0.022437 * U0; // Nb = Nv * U0
-    constexpr double Np = -0.06557;
-    constexpr double Nr = -0.023672;
+    constexpr double Yr = 0.155983333;
+    constexpr double Lr = 0.096492667;
+    constexpr double Nr = -0.060668667;
 
-    constexpr double Y_deltar = 0.322163839;  // ラダー
-    constexpr double L_deltar = -0.00469461;  // ラダー
-    constexpr double N_deltar = -0.152660157; // ラダー
+    constexpr double Y_dl = 1.5851;
+    constexpr double L_dl = 5.5775;
+    constexpr double N_dl = 0.52608;
 
-    constexpr double Y_deltaa = 0.45311; // エルロン
-    constexpr double L_deltaa = 1.3608;  // エルロン
-    constexpr double N_deltaa = 0.14392; // エルロン
+    constexpr double Y_dr = 1.4309;
+    constexpr double L_dr = 0.25259;
+    constexpr double N_dr = -0.73377;
+
+    constexpr double Ix_prime = (Ixx * Izz - Ixz * Ixz) / Izz;
+    constexpr double Iz_prime = (Ixx * Izz - Ixz * Ixz) / Ixx;
+    constexpr double I_zx_prime = Ixz / (Ixx * Izz - Ixz * Ixz);
 } // namespace Param
 
 // 回転行列 R = Rz(psi)*Ry(theta)*Rx(phi)
@@ -95,35 +105,45 @@ public:
     {
         // A_long (4x4)
         A_long_.resize(4, 4);
-        A_long_ << Param::Xu, Param::Xa, -Param::W0, -Param::g * std::cos(Param::theta0),
-            Param::Zu / Param::U0, Param::Za / Param::U0, 1 + Param::Zq / Param::U0, (Param::g / Param::U0) * std::sin(Param::theta0),
-            Param::Mu + Param::Madot * (Param::Zu / Param::U0),
-            Param::Ma + Param::Madot * (Param::Za / Param::U0),
-            Param::Mq + Param::Madot * (1 + Param::Zq / Param::U0),
-            (Param::Madot * Param::g / Param::U0) * std::sin(Param::theta0),
+        A_long_
+            << Param::Xu / Param::m,
+            Param::Xw / Param::m, 0, -Param::g,
+            Param::Zu / Param::m, Param::Zw / Param::m, (Param::Zq / Param::m) + Param::U0, 0,
+            Param::Mu / Param::Iy, Param::Mw / Param::Iy, Param::Mq / Param::Iy, 0,
             0, 0, 1, 0;
 
         // B_long (4x2)
         B_long_.resize(4, 2);
-        B_long_ << 0, Param::X_deltat,
-            Param::Z_deltae / Param::U0, Param::Z_deltat / Param::U0,
-            Param::M_deltae + Param::Madot * (Param::Z_deltae / Param::U0),
-            Param::M_deltat + Param::Madot * (Param::Z_deltat / Param::U0),
+        B_long_
+            << Param::X_deltae / Param::m,
+            Param::X_deltat / Param::m,
+            Param::Z_deltae / Param::m, Param::Z_deltat / Param::m,
+            Param::M_deltae / Param::Iy, Param::M_deltat / Param::Iy,
             0, 0;
 
         // A_lat (5x5)
         A_lat_.resize(5, 5);
-        A_lat_ << Param::Yb / Param::U0, (Param::W0 + Param::Yp) / Param::U0, (Param::Yr / Param::U0 - 1), Param::g * std::cos(Param::theta0) / Param::U0, 0,
-            Param::Lb, Param::Lp, Param::Lr, 0, 0,
-            Param::Nb, Param::Np, Param::Nr, 0, 0,
-            0, 1, std::tan(Param::theta0), 0, 0,
-            0, 0, 1 / std::cos(Param::theta0), 0, 0;
+        A_lat_
+            << Param::Yv / Param::m,
+            Param::Yp / Param::m, (Param::Yr / Param::m) - Param::U0, Param::g, 0,
+            Param::Lv / Param::Ix_prime + Param::I_zx_prime * Param::Nv,
+            Param::Lp / Param::Ix_prime + Param::I_zx_prime * Param::Np,
+            Param::Lr / Param::Ix_prime + Param::I_zx_prime * Param::Nr, 0, 0,
+            Param::I_zx_prime * Param::Lv + Param::Nv / Param::Iz_prime,
+            Param::I_zx_prime * Param::Lp + Param::Np / Param::Iz_prime,
+            Param::I_zx_prime * Param::Lr + Param::Nr / Param::Iz_prime, 0, 0,
+            0, 1,
+            std::tan(Param::theta0), 0, 0,
+            0, 0, 1 / std::cos(Param::theta0),
+            0, 0;
 
         // B_lat (5x2)
         B_lat_.resize(5, 2);
-        B_lat_ << 0, Param::Y_deltar / Param::U0,
-            Param::L_deltaa, Param::L_deltar,
-            Param::N_deltaa, Param::N_deltar,
+        B_lat_
+            << Param::Y_dl / Param::m,
+            Param::Y_dr / Param::m,
+            Param::Lv / Param::Ix_prime + Param::I_zx_prime * Param::N_dl, Param::Lv / Param::Ix_prime + Param::I_zx_prime * Param::N_dr,
+            Param::I_zx_prime * Param::Lv + Param::N_dl / Param::Iz_prime, Param::I_zx_prime * Param::Lv + Param::N_dr / Param::Iz_prime,
             0, 0,
             0, 0;
     }
@@ -149,7 +169,7 @@ public:
         Eigen::Vector4d x_long;
         for (int i = 0; i < 4; i++)
         {
-            // x[0]:u,前方速度の変動, x[1]:α,迎角の変動, x[2]:q,ピッチ角速度, x[3]:θ,ピッチ角
+            // x[0]:u,前方速度の変動, x[1]:w,上下方向速度の変動, x[2]:q,ピッチ角速度, x[3]:θ,ピッチ角
             x_long(i) = x[i];
         }
         Eigen::Vector2d u_long;
@@ -160,7 +180,7 @@ public:
         Eigen::VectorXd x_lat(5);
         for (int i = 0; i < 5; i++)
         {
-            // x[4]:β,よこすべりの変動, x[5]:p,ロール角速度, x[6]:r,ヨー角速度, x[7]:φ,ロール角, x[8]:ψ,ヨー角
+            // x[4]:v,横方向速度の変動, x[5]:p,ロール角速度, x[6]:r,ヨー角速度, x[7]:φ,ロール角, x[8]:ψ,ヨー角
             x_lat(i) = x[4 + i];
         }
         Eigen::Vector2d u_lat;
@@ -169,8 +189,8 @@ public:
 
         // 機体座標系での速度ベクトル
         double u_b = Param::U0 + x[0];
-        double v_b = u_b * std::sin(x[4]);
-        double w_b = u_b * std::tan(x[1]);
+        double v_b = x[4]; // 横方向速度の変動
+        double w_b = x[1]; // 上下方向速度の変動
         Eigen::Vector3d vel_b(u_b, v_b, w_b);
 
         // 全体座標系での速度ベクトル
@@ -218,6 +238,9 @@ public:
         sbus_data_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
             "/sbus_data", 10,
             std::bind(&DynamicsSimulator::control_callback, this, std::placeholders::_1));
+
+        // IMUデータのパブリッシャー
+        imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("/imu/data_raw", 10);
 
         // タイマコールバックでODE１ステップ実行（dt秒）
         timer_ = this->create_wall_timer(
@@ -288,13 +311,13 @@ private:
         RCLCPP_INFO(this->get_logger(), "Params:");
         RCLCPP_INFO(this->get_logger(), "  x: %.2f, y: %.2f, z: %.2f", state_[10], state_[9], -state_[11]);
         RCLCPP_INFO(this->get_logger(), "  roll: %.2f, pitch: %.2f, yaw: %.2f", state_[7], state_[3], state_[8]);
-        RCLCPP_INFO(this->get_logger(), " u: %.2f, α: %.2f, q: %.2f, θ: %.2f", state_[0], state_[1], state_[2], state_[3]);
-        RCLCPP_INFO(this->get_logger(), " β: %.2f, p: %.2f, r: %.2f, φ: %.2f, ψ: %.2f",
+        RCLCPP_INFO(this->get_logger(), " u: %.2f, w: %.2f, q: %.2f, θ: %.2f", state_[0], state_[1], state_[2], state_[3]);
+        RCLCPP_INFO(this->get_logger(), " v: %.2f, p: %.2f, r: %.2f, φ: %.2f, ψ: %.2f",
                     state_[4], state_[5], state_[6], state_[7], state_[8]);
         RCLCPP_INFO(this->get_logger(), " Velocity: u_b: %.2f, v_b: %.2f, w_b: %.2f",
                     Param::U0 + state_[0],
-                    (Param::U0 + state_[0]) * std::sin(state_[4]),
-                    (Param::U0 + state_[0]) * std::tan(state_[1]));
+                    state_[4],
+                    state_[1]);
     }
 
     rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_data_sub_;
