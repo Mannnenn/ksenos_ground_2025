@@ -146,6 +146,45 @@ public:
             Param::I_zx_prime * Param::Lv + Param::N_dl / Param::Iz_prime, Param::I_zx_prime * Param::Lv + Param::N_dr / Param::Iz_prime,
             0, 0,
             0, 0;
+
+        // 固有値の計算と表示
+        display_eigenvalues();
+    }
+
+    void display_eigenvalues()
+    {
+        // A_long の固有値計算
+        Eigen::EigenSolver<Eigen::Matrix<double, 4, 4>> solver_long(A_long_);
+        Eigen::VectorXcd eigenvalues_long = solver_long.eigenvalues();
+
+        std::cout << "\n=== A_long (縦運動) 固有値 ===" << std::endl;
+        for (int i = 0; i < eigenvalues_long.size(); ++i)
+        {
+            std::complex<double> val = eigenvalues_long(i);
+            std::cout << "λ" << i + 1 << " = " << val.real();
+            if (val.imag() != 0)
+            {
+                std::cout << " + " << val.imag() << "i";
+            }
+            std::cout << std::endl;
+        }
+
+        // A_lat の固有値計算
+        Eigen::EigenSolver<Eigen::Matrix<double, 5, 5>> solver_lat(A_lat_);
+        Eigen::VectorXcd eigenvalues_lat = solver_lat.eigenvalues();
+
+        std::cout << "\n=== A_lat (横運動) 固有値 ===" << std::endl;
+        for (int i = 0; i < eigenvalues_lat.size(); ++i)
+        {
+            std::complex<double> val = eigenvalues_lat(i);
+            std::cout << "λ" << i + 1 << " = " << val.real();
+            if (val.imag() != 0)
+            {
+                std::cout << " + " << val.imag() << "i";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
     }
 
     // ROS2 から更新される制御入力
