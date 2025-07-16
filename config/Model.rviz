@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Grid1/Offset1
-        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 1218
   - Class: rviz_common/Selection
@@ -132,7 +131,7 @@ Visualization Manager:
       line_width: 0.009999999776482582
     - Class: rviz_default_plugins/TF
       Enabled: true
-      Frame Timeout: 15
+      Frame Timeout: 30
       Frames:
         All Enabled: false
         aileron_left:
@@ -154,11 +153,11 @@ Visualization Manager:
         ksenos_0:
           Value: true
         ksenos_1:
-          Value: true
+          Value: false
         ksenos_2:
-          Value: true
+          Value: false
         ksenos_3:
-          Value: true
+          Value: false
         ksenos_4:
           Value: true
         ksenos_smooth_0:
@@ -177,7 +176,7 @@ Visualization Manager:
           Value: false
         rudder:
           Value: false
-      Marker Scale: 1
+      Marker Scale: 3
       Name: TF
       Show Arrows: true
       Show Axes: true
@@ -340,25 +339,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 40.32224655151367
+      Distance: 18.95274543762207
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 13.71074390411377
-        Y: 0.39394819736480713
-        Z: -5.828878879547119
+        X: 17.346567153930664
+        Y: 4.220855236053467
+        Z: -0.7583913803100586
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5997968316078186
+      Pitch: 0.9047965407371521
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.667374849319458
+      Yaw: 4.107374668121338
     Saved: ~
 Window Geometry:
   Displays:
