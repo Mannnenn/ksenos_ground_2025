@@ -1,31 +1,66 @@
 launch:
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/model_load.launch.py"
+
   - node:
-      pkg: "ksenos_ground"
-      exec: "estimate_pose"
-      name: "attitude_estimator_kf"
-      param:
-        - name: "imu_topic"
-          value: "/sensor/imu"
-        - name: "pose_topic"
-          value: "/estimated_pose"
-        - name: "process_noise_gyro"
-          value: 5.583225e-07 # ロール・ピッチの応答を改善するため10倍に増加
-        - name: "process_noise_acc"
-          value: 8.459858e-06
-        - name: "measurement_noise"
-          value: 4.459858e-07
-        - name: "process_noise_bias"
-          value: 4.289784e-08 # ロール・ピッチバイアスの応答性を改善するため10倍に増加
-        - name: "process_noise_bias_yaw"
-          value: 3.350429e-08
-        - name: "initial_bias_uncertainty"
-          value: 5.793960e-03
-        - name: "gravity"
-          value: 9.81
-      output: screen
+      pkg: ksenos_ground
+      exec: receive_udp_packet
+      name: receive_udp_packet
+
+  - node:
+      pkg: "imu_filter_madgwick"
+      exec: "imu_filter_madgwick_node"
+      name: "imu_filter_madgwick"
+      args: "--ros-args -p use_mag:=False -p world_frame:=enu -p publish_tf:=True -r imu/data_raw:=/sensor/imu"
+
+  - node:
+      pkg: ksenos_ground
+      exec: project_orientation
+      name: project_orientation
+
+  - node:
+      pkg: ksenos_ground
+      exec: pub_rpy
+      name: pub_rpy
+
+  - node:
+      pkg: ksenos_ground
+      exec: rotation_counter
+      name: rotation_counter
 
   - node:
       pkg: "tf2_ros"
       exec: "static_transform_publisher"
-      name: "map2base_link"
-      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id base_link"
+      name: "static_transform_publisher_map_lidar"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id ksenos_smooth_0"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_map_to_odom"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id ksenos_smooth_0 --child-frame-id odom"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_aircraft_stability_axes_to_body"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id body"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_body_to_base_link"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id body --child-frame-id base_link"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_imu_link_to_aircraft_stability_axes"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id imu_link --child-frame-id aircraft_stability_axes"
+
+  - node:
+      pkg: "rviz2"
+      exec: "rviz2"
+      name: "rviz2"
+      output: "log"
+      args: "-d $(find-pkg-share ksenos_ground)/config/Model.rviz"
