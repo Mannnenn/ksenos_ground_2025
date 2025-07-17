@@ -29,6 +29,17 @@ launch:
       name: rotation_counter
 
   - node:
+      pkg: ksenos_ground
+      exec: pub_area
+      name: pub_area
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_map_filed_origin"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id origin"
+
+  - node:
       pkg: "tf2_ros"
       exec: "static_transform_publisher"
       name: "static_transform_publisher_map_lidar"

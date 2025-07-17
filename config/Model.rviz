@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Grid1/Offset1
       Splitter Ratio: 0.5
     Tree Height: 1218
   - Class: rviz_common/Selection
@@ -25,46 +24,10 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
-    - Alpha: 0.800000011920929
-      Cell Size: 1
-      Class: rviz_default_plugins/Grid
-      Color: 154; 153; 150
-      Enabled: true
-      Line Style:
-        Line Width: 0.029999999329447746
-        Value: Lines
-      Name: Grid
-      Normal Cell Count: 0
-      Offset:
-        X: 20
-        Y: 0
-        Z: 0
-      Plane: XY
-      Plane Cell Count: 500
-      Reference Frame: map
-      Value: true
-    - Alpha: 0.800000011920929
-      Cell Size: 1
-      Class: rviz_default_plugins/Grid
-      Color: 160; 160; 164
-      Enabled: true
-      Line Style:
-        Line Width: 0.029999999329447746
-        Value: Lines
-      Name: Grid
-      Normal Cell Count: 0
-      Offset:
-        X: 20
-        Y: 20
-        Z: 20
-      Plane: XZ
-      Plane Cell Count: 40
-      Reference Frame: map
-      Value: true
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
@@ -121,178 +84,355 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Class: jsk_rviz_plugin/TFTrajectory
+    - Class: rviz_common/Group
+      Displays:
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 237; 51; 59
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /pole_0
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 237; 51; 59
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /pole_1
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 0; 255; 0
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_0
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 25; 255; 240
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_1
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 0; 255; 0
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_2
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 87; 227; 137
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_3
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 237; 51; 59
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_4
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 245; 194; 17
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_5
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 145; 65; 172
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_6
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 145; 65; 172
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_7
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 145; 65; 172
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_8
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 129; 61; 156
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_9
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 25; 255; 240
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_10
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 224; 27; 36
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /polygon_11
+          Value: true
+        - Alpha: 0.800000011920929
+          Cell Size: 1
+          Class: rviz_default_plugins/Grid
+          Color: 160; 160; 164
+          Enabled: false
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: Grid
+          Normal Cell Count: 0
+          Offset:
+            X: 20
+            Y: 20
+            Z: 20
+          Plane: XZ
+          Plane Cell Count: 40
+          Reference Frame: map
+          Value: false
+        - Alpha: 0.800000011920929
+          Cell Size: 1
+          Class: rviz_default_plugins/Grid
+          Color: 154; 153; 150
+          Enabled: false
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: Grid
+          Normal Cell Count: 0
+          Offset:
+            X: 20
+            Y: 0
+            Z: 0
+          Plane: XY
+          Plane Cell Count: 500
+          Reference Frame: map
+          Value: false
       Enabled: true
-      Name: TFTrajectory
-      Value: true
-      color: 25; 255; 240
-      duration: 100
-      frame: aircraft_stability_axes
-      line_width: 0.009999999776482582
-    - Class: rviz_default_plugins/TF
+      Name: Filed
+    - Class: rviz_common/Group
+      Displays:
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 254
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: PointCloud2
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /transformed_points
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/PointCloud2
+          Color: 237; 51; 59
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: PointCloud2
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /ksenos
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
       Enabled: true
-      Frame Timeout: 30
-      Frames:
-        All Enabled: false
-        aileron_left:
-          Value: false
-        aileron_right:
-          Value: false
-        aircraft_stability_axes:
+      Name: LiDAR
+    - Class: rviz_common/Group
+      Displays:
+        - Class: jsk_rviz_plugin/TFTrajectory
+          Enabled: true
+          Name: TFTrajectory
           Value: true
-        base_link:
-          Value: true
-        body:
-          Value: true
-        elevator:
-          Value: false
-        hesai_lidar:
-          Value: true
-        imu_link:
-          Value: true
-        ksenos_0:
-          Value: true
-        ksenos_1:
-          Value: false
-        ksenos_2:
-          Value: false
-        ksenos_3:
-          Value: false
-        ksenos_4:
-          Value: true
-        ksenos_smooth_0:
-          Value: true
-        lidar_center:
-          Value: true
-        map:
-          Value: true
-        motor_base:
-          Value: true
-        motor_rotating:
-          Value: true
-        odom:
-          Value: true
-        propeller:
-          Value: false
-        rudder:
-          Value: false
-      Marker Scale: 3
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: false
-      Tree:
-        map:
-          ksenos_0:
-            {}
-          ksenos_1:
-            {}
-          ksenos_2:
-            {}
-          ksenos_3:
-            {}
-          ksenos_4:
-            {}
-          ksenos_smooth_0:
+          color: 25; 255; 240
+          duration: 100
+          frame: aircraft_stability_axes
+          line_width: 0.009999999776482582
+        - Class: rviz_default_plugins/TF
+          Enabled: true
+          Frame Timeout: 30
+          Frames:
+            All Enabled: false
+            aircraft_stability_axes:
+              Value: true
+            base_link:
+              Value: true
+            body:
+              Value: true
+            imu_link:
+              Value: true
+            ksenos_smooth_0:
+              Value: true
+            map:
+              Value: true
             odom:
-              imu_link:
-                aircraft_stability_axes:
-                  body:
-                    base_link:
-                      aileron_left:
-                        {}
-                      aileron_right:
-                        {}
-                      elevator:
-                        {}
-                      propeller:
-                        {}
-                      rudder:
-                        {}
-          motor_base:
-            lidar_center:
-              {}
-            motor_rotating:
-              hesai_lidar:
+              Value: true
+            origin:
+              Value: true
+          Marker Scale: 3
+          Name: TF
+          Show Arrows: true
+          Show Axes: true
+          Show Names: false
+          Tree:
+            map:
+              ksenos_smooth_0:
+                odom:
+                  {}
+              origin:
                 {}
-      Update Interval: 0
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz_default_plugins/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 0
+          Update Interval: 0
+          Value: true
+        - Class: jsk_rviz_plugin/TFTrajectory
+          Enabled: true
+          Name: TFTrajectory
+          Value: true
+          color: 25; 255; 240
+          duration: 10
+          frame: ksenos_smooth_0
+          line_width: 0.009999999776482582
       Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 254
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /transformed_points
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz_default_plugins/PointCloud2
-      Color: 237; 51; 59
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 4096
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /ksenos
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Class: jsk_rviz_plugin/TFTrajectory
-      Enabled: true
-      Name: TFTrajectory
-      Value: true
-      color: 25; 255; 240
-      duration: 10
-      frame: ksenos_smooth_0
-      line_width: 0.009999999776482582
+      Name: TF
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -339,25 +479,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 18.95274543762207
+      Distance: 56.47705841064453
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 17.346567153930664
-        Y: 4.220855236053467
-        Z: -0.7583913803100586
+        X: 23.04457664489746
+        Y: -12.403085708618164
+        Z: -7.9052734375
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9047965407371521
+      Pitch: 1.2547962665557861
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.107374668121338
+      Yaw: 4.307384490966797
     Saved: ~
 Window Geometry:
   Displays:
