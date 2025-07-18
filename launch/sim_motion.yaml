@@ -17,9 +17,9 @@ launch:
         - name: "servo_max_count"
           value: 1696
         - name: "servo_min_rad"
-          value: -0.174 # -10 degrees in radians
+          value: -0.1 # -10 degrees in radians
         - name: "servo_max_rad"
-          value: 0.174 # 10 degrees in radians
+          value: 0.1 # 10 degrees in radians
         - name: "throttle_min_count"
           value: 352
         - name: "throttle_max_count"
@@ -67,7 +67,7 @@ launch:
       pkg: "tf2_ros"
       exec: "static_transform_publisher"
       name: "static_transform_publisher_aircraft_stability_axes_to_body"
-      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id body"
+      args: "--x 0 --y 0 --z 0 --roll 3.14 --pitch 0 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id body"
 
   - node:
       pkg: "tf2_ros"
@@ -80,4 +80,4 @@ launch:
       exec: "rviz2"
       name: "rviz2"
       output: "log"
-      args: "-d $(find-pkg-share ksenos_ground)/config/Model.rviz"
+      args: "-d $(find-pkg-share ksenos_ground)/config/Sim.rviz"
