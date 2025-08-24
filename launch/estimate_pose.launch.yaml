@@ -23,10 +23,15 @@ launch:
       exec: pub_rpy
       name: pub_rpy
 
+  #   - node:
+  #       pkg: ksenos_ground
+  #       exec: rotation_counter
+  #       name: rotation_counter
+
   - node:
       pkg: ksenos_ground
-      exec: rotation_counter
-      name: rotation_counter
+      exec: yaw_angle_serialization
+      name: yaw_angle_serialization
 
   - node:
       pkg: ksenos_ground

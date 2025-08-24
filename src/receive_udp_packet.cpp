@@ -306,10 +306,10 @@ private:
         tof_msg.header.stamp = sensor_time;
         tof_msg.header.frame_id = "tof_link";
         tof_msg.radiation_type = sensor_msgs::msg::Range::INFRARED;
-        tof_msg.field_of_view = 0.471;                // 約27度（一般的なToFセンサー）
-        tof_msg.min_range = 0.03;                     // 3cm
-        tof_msg.max_range = 4.0;                      // 4m
-        tof_msg.range = packet.tof_distance / 1000.0; // mmからmに変換
+        tof_msg.field_of_view = 0.471; // 約27度（一般的なToFセンサー）
+        tof_msg.min_range = 0.03;      // 3cm
+        tof_msg.max_range = 4.0;       // 4m
+        tof_msg.range = packet.tof_distance;
 
         tof_publisher_->publish(tof_msg);
 

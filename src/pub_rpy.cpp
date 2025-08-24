@@ -30,7 +30,7 @@ public:
 
 private:
     // 定数定義
-    static constexpr int TIMER_PERIOD_MS = 10; // 100Hz
+    static constexpr int TIMER_PERIOD_MS = 20; // 50Hz
     static constexpr double ANGULAR_VELOCITY_SCALE = 1000.0;
     static constexpr size_t HISTORY_SIZE_THRESHOLD = 3;
     static constexpr int QUEUE_SIZE = 10;

@@ -1,0 +1,51 @@
+launch:
+  - node:
+      pkg: ksenos_ground
+      exec: turningRadius_to_latAcc
+      name: lateral_acceleration_calculator
+      param:
+        - name: low_pass_filter_alpha
+          value: 0.1 # ローパスフィルターのアルファ値（0.1 = 10%の新しいデータを使用）
+
+  - node:
+      pkg: ksenos_ground
+      exec: latAcc_to_targetRollAngle
+      name: lat_acc_to_target_roll_angle_node
+      output: screen
+      param:
+        - name: max_roll_angle
+          value: 0.524 # 最大ロール角度（ラジアン）
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "aileron_control"
+      name: "aileron_control"
+      param:
+        - name: kp
+          value: 1.0 # P制御ゲイン（要調整）
+        - name: kd
+          value: 0.1 # D制御ゲイン（要調整）
+        - name: max_aileron
+          value: 0.6 # 最大エルロン値
+        - name: min_aileron
+          value: -0.6 # 最小エルロン値
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "rudder_control"
+      name: "rudder_control"
+      param:
+        - name: kp
+          value: 1.0 # P制御ゲイン（要調整）
+        - name: ki
+          value: 0.0 # I制御ゲイン（要調整）
+        - name: ff_lat_acc_gain
+          value: 0.0 # FF制御ゲイン（要調整）
+        - name: ff_aileron_gain
+          value: 0.0 # FF制御ゲイン（要調整）
+        - name: max_rudder
+          value: 0.6 # 最大ラダー値
+        - name: min_rudder
+          value: -0.6 # 最小ラダー値
+        - name: max_integral
+          value: 1.0 # 最大積分値

@@ -24,18 +24,19 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-
+# 初期スキャン地図化
 ament_auto_add_executable(init_scans src/init_scans.cpp)
 target_link_libraries(init_scans ${PCL_LIBRARIES})
 ament_target_dependencies(init_scans pcl_conversions)
 install(TARGETS init_scans
   DESTINATION lib/${PROJECT_NAME})
 
-
+# 点群モーター座標系変換
 ament_auto_add_executable(pointcloud_transform src/pointcloud_transform.cpp)
 install(TARGETS pointcloud_transform
   DESTINATION lib/${PROJECT_NAME})
 
+# 点群飛行機検出
 ament_auto_add_executable(detect_movable_objects src/detect_movable_objects.cpp)
 target_compile_features(detect_movable_objects PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_link_libraries(detect_movable_objects ${PCL_LIBRARIES})
@@ -43,6 +44,7 @@ ament_target_dependencies(detect_movable_objects pcl_conversions)
 install(TARGETS detect_movable_objects
   DESTINATION lib/${PROJECT_NAME})
 
+# 地面推定
 ament_auto_add_executable(correction_ground src/correction_ground.cpp)
 target_link_libraries(correction_ground ${PCL_LIBRARIES})
 ament_target_dependencies(correction_ground pcl_conversions)
@@ -113,9 +115,35 @@ install(TARGETS pub_rpy
 
 
 # 回転回数カウンター
-ament_auto_add_executable(rotation_counter src/rotation_counter.cpp)
-install(TARGETS rotation_counter
+# ament_auto_add_executable(rotation_counter src/rotation_counter.cpp)
+# install(TARGETS rotation_counter
+#  DESTINATION lib/${PROJECT_NAME})
+
+# 回転回数カウンター
+ament_auto_add_executable(yaw_angle_serialization src/yaw_angle_serialization.cpp)
+install(TARGETS yaw_angle_serialization
   DESTINATION lib/${PROJECT_NAME})
+
+# 旋回半径から横加速度を計算するノード
+ament_auto_add_executable(turningRadius_to_latAcc src/turningRadius_to_latAcc.cpp)
+install(TARGETS turningRadius_to_latAcc
+  DESTINATION lib/${PROJECT_NAME})
+
+# 横加速度から目標ロール角を計算するノード
+ament_auto_add_executable(latAcc_to_targetRollAngle src/latAcc_to_targetRollAngle.cpp)
+install(TARGETS latAcc_to_targetRollAngle
+  DESTINATION lib/${PROJECT_NAME})
+
+# エルロン制御ノード（PD制御）
+ament_auto_add_executable(aileron_control src/aileron_control.cpp)
+install(TARGETS aileron_control
+  DESTINATION lib/${PROJECT_NAME})
+
+# ラダー制御ノード（FF+PI制御）
+ament_auto_add_executable(rudder_control src/rudder_control.cpp)
+install(TARGETS rudder_control
+  DESTINATION lib/${PROJECT_NAME})
+
 
 install(DIRECTORY config launch meshes urdf
   DESTINATION share/${PROJECT_NAME}/
