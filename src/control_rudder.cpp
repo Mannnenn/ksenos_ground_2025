@@ -34,7 +34,7 @@ public:
 
         // サブスクライバーの作成
         lateral_acceleration_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-            "/lateral_acceleration", 10,
+            "/controller/lat/calc/lateral_acceleration", 10,
             std::bind(&RudderControl::lateralAccelerationCallback, this, std::placeholders::_1));
 
         aileron_control_sub_ = this->create_subscription<ksenos_ground_msgs::msg::ControlInput>(

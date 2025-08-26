@@ -135,13 +135,50 @@ install(TARGETS latAcc_to_targetRollAngle
   DESTINATION lib/${PROJECT_NAME})
 
 # エルロン制御ノード（PD制御）
-ament_auto_add_executable(aileron_control src/aileron_control.cpp)
-install(TARGETS aileron_control
+ament_auto_add_executable(control_aileron src/control_aileron.cpp)
+install(TARGETS control_aileron
   DESTINATION lib/${PROJECT_NAME})
 
 # ラダー制御ノード（FF+PI制御）
-ament_auto_add_executable(rudder_control src/rudder_control.cpp)
-install(TARGETS rudder_control
+ament_auto_add_executable(control_rudder src/control_rudder.cpp)
+install(TARGETS control_rudder
+  DESTINATION lib/${PROJECT_NAME})
+
+# スロットル制御ノード（PI制御）
+ament_auto_add_executable(control_throttle src/control_throttle.cpp)
+install(TARGETS control_throttle
+  DESTINATION lib/${PROJECT_NAME})
+
+# エレベーター制御ノード
+ament_auto_add_executable(control_elevator src/control_elevator.cpp)
+install(TARGETS control_elevator
+  DESTINATION lib/${PROJECT_NAME})
+
+
+
+# エネルギー計算ノード
+ament_auto_add_executable(calc_energy src/calc_energy.cpp)
+install(TARGETS calc_energy
+  DESTINATION lib/${PROJECT_NAME})
+
+# 高度計算ノード（ToF傾き補正）
+ament_auto_add_executable(calc_altitude_imu src/calc_altitude_imu.cpp)
+install(TARGETS calc_altitude_imu
+  DESTINATION lib/${PROJECT_NAME})
+
+# 高度計算ノード（LiDAR）
+ament_auto_add_executable(calc_altitude_lidar src/calc_altitude_lidar.cpp)
+install(TARGETS calc_altitude_lidar
+  DESTINATION lib/${PROJECT_NAME})
+
+# 平均高度・速度計算ノード
+ament_auto_add_executable(calc_average_altitude_velocity src/calc_average_altitude_velocity.cpp)
+install(TARGETS calc_average_altitude_velocity
+  DESTINATION lib/${PROJECT_NAME})
+
+# Unity制御入力統合ノード
+ament_auto_add_executable(unity_control_input src/unity_control_input.cpp)
+install(TARGETS unity_control_input
   DESTINATION lib/${PROJECT_NAME})
 
 

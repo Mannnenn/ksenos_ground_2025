@@ -53,11 +53,6 @@ launch:
           value: 1500
 
   - node:
-      pkg: "ksenos_ground"
-      exec: "publish_joint_airplane"
-      name: "publish_joint_airplane"
-
-  - node:
       pkg: ksenos_ground
       exec: offset_sbus_data
       name: sbus_offset_node
@@ -68,6 +63,11 @@ launch:
           value: "sbus_data"
         - name: "output_topic"
           value: "sbus_offset"
+
+  - node:
+      pkg: "ksenos_ground"
+      exec: "publish_joint_airplane"
+      name: "publish_joint_airplane"
 
   # - node:
   #     pkg: "ksenos_ground"

@@ -18,7 +18,7 @@ public:
 
         // サブスクライバーの初期化
         flow_rate_sub_ = this->create_subscription<ksenos_ground_msgs::msg::FlowRateData>(
-            "flow_rate_data", 10,
+            "/average/flow_rate", 10,
             std::bind(&LateralAccelerationCalculator::flowRateCallback, this, std::placeholders::_1));
 
         turning_radius_sub_ = this->create_subscription<std_msgs::msg::Float32>(

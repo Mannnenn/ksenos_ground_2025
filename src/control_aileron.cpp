@@ -24,7 +24,7 @@ public:
 
         // サブスクライバーの作成
         target_roll_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-            "/target_roll_angle", 10,
+            "/controller/lat/calc/target_roll_angle", 10,
             std::bind(&AileronControl::target_roll_callback, this, std::placeholders::_1));
 
         rpy_sub_ = this->create_subscription<ksenos_ground_msgs::msg::Rpy>(

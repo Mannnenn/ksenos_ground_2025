@@ -1,0 +1,134 @@
+launch:
+  - group:
+      - push-ros-namespace:
+          namespace: "controller"
+
+      - group:
+          - push-ros-namespace:
+              namespace: "long"
+
+          - group:
+              - push-ros-namespace:
+                  namespace: "calc"
+
+              - node:
+                  pkg: ksenos_ground
+                  exec: calc_average_altitude_velocity
+                  name: calc_average_altitude_velocity_node
+                  output: screen
+                  remap:
+                    - from: "/average/altitude_imu"
+                      to: "/controller/long/calc/altitude_imu"
+                    - from: "/average/flow_rate"
+                      to: "/controller/long/calc/flow_rate"
+
+              - node:
+                  pkg: ksenos_ground
+                  exec: calc_energy
+                  name: calc_energy_reference
+                  param:
+                    - name: mass
+                      value: 0.23
+                    - name: gravity
+                      value: 9.81
+                    - name: velocity_topic
+                      value: "/average/flow_rate"
+                    - name: altitude_topic
+                      value: "/average/altitude_imu"
+                    - name: energy_topic
+                      value: "/airplane/reference_energy"
+                  remap:
+                    - from: "/average/altitude_imu"
+                      to: "/controller/long/calc/altitude_imu"
+                    - from: "/average/flow_rate"
+                      to: "/controller/long/calc/flow_rate"
+                    - from: "/airplane/reference_energy"
+                      to: "/controller/long/reference_energy"
+
+              - node:
+                  pkg: ksenos_ground
+                  exec: calc_energy
+                  name: calc_energy_current
+                  param:
+                    - name: mass
+                      value: 0.23
+                    - name: gravity
+                      value: 9.81
+                    - name: velocity_topic
+                      value: "/airplane/velocity"
+                    - name: altitude_topic
+                      # value: "/airplane/altitude_lidar"
+                      value: "/airplane/altitude_imu"
+                    - name: energy_topic
+                      value: "/airplane/current_energy"
+                  remap:
+                    - from: "/airplane/current_energy"
+                      to: "/controller/long/current_energy"
+
+          - group:
+              - push-ros-namespace:
+                  namespace: "control"
+
+              - node:
+                  pkg: ksenos_ground
+                  exec: control_throttle
+                  name: throttle_control_node
+                  param:
+                    - name: "kp"
+                      value: 0.5
+                    - name: "ki"
+                      value: 0.0
+                    - name: "max_throttle"
+                      value: 1.0
+                    - name: "min_throttle"
+                      value: 0.0
+                    - name: "steady_throttle"
+                      value: 0.4
+                    - name: "max_integral"
+                      value: 0.5
+                    - name: "control_rate"
+                      value: 20.0
+                  remap:
+                    - from: "/throttle_input"
+                      to: "/controller/long/throttle_input"
+                    - from: "/airplane/reference_energy"
+                      to: "/controller/long/reference_energy"
+                    - from: "/airplane/current_energy"
+                      to: "/controller/long/current_energy"
+
+              - node:
+                  pkg: ksenos_ground
+                  exec: control_elevator
+                  name: elevator_control_node
+                  param:
+                    - name: "k_energy_gain"
+                      value: 0.5
+                    - name: "kd_pitch_angle"
+                      value: 0.0
+                    - name: "kd_pitch_rate"
+                      value: 0.0
+                    - name: "max_elevator"
+                      value: 0.6
+                    - name: "min_elevator"
+                      value: -0.6
+                  remap:
+                    - from: "/elevator_input"
+                      to: "/controller/long/elevator_input"
+                    - from: "/airplane/reference_energy"
+                      to: "/controller/long/reference_energy"
+                    - from: "/airplane/current_energy"
+                      to: "/controller/long/current_energy"
+
+      - node:
+          pkg: ksenos_ground
+          exec: unity_control_input
+          name: unity_control_input_node
+          remap:
+            - from: "/throttle_input"
+              to: "/controller/long/throttle_input"
+            - from: "/elevator_input"
+              to: "/controller/long/elevator_input"
+            - from: "/aileron_input"
+              to: "/controller/lat/aileron_input"
+            - from: "/rudder_input"
+              to: "/controller/lat/rudder_input"
