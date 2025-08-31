@@ -92,11 +92,6 @@ ament_auto_add_executable(publish_joint_airplane src/publish_joint_airplane.cpp)
 install(TARGETS publish_joint_airplane
   DESTINATION lib/${PROJECT_NAME})
 
-# 気圧による高度推定ノード
-ament_auto_add_executable(estimate_altitude_prresure src/estimate_altitude_prresure.cpp)
-install(TARGETS estimate_altitude_prresure
-  DESTINATION lib/${PROJECT_NAME})
-
 # フィールド図面パブリッシャー
 ament_auto_add_executable(pub_area src/pub_area.cpp)
 install(TARGETS pub_area
@@ -169,6 +164,11 @@ install(TARGETS calc_altitude_imu
 # 高度計算ノード（LiDAR）
 ament_auto_add_executable(calc_altitude_lidar src/calc_altitude_lidar.cpp)
 install(TARGETS calc_altitude_lidar
+  DESTINATION lib/${PROJECT_NAME})
+
+# 高度計算ノード（気圧計）
+ament_auto_add_executable(calc_altitude_pressure src/calc_altitude_pressure.cpp)
+install(TARGETS calc_altitude_pressure
   DESTINATION lib/${PROJECT_NAME})
 
 # 平均高度・速度計算ノード

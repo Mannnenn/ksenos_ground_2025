@@ -1,6 +1,11 @@
 launch:
   - node:
       pkg: ksenos_ground
+      exec: get_sbus_raw_data
+      name: sbus_raw_data_reader
+
+  - node:
+      pkg: ksenos_ground
       exec: proc_sbus_data
       name: sbus_data_processor
       param:
@@ -32,11 +37,6 @@ launch:
           value: 500
         - name: "autopilot_mode_threshold_high"
           value: 1500
-
-  - node:
-      pkg: ksenos_ground
-      exec: get_sbus_raw_data
-      name: sbus_raw_data_reader
 
   - node:
       pkg: ksenos_ground

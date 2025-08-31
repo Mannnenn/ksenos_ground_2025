@@ -81,6 +81,25 @@ launch:
 
   - node:
       pkg: "ksenos_ground"
+      exec: "pointcloud_transform"
+      name: "pointcloud_transform"
+      output: "log"
+      param:
+        - name: "input_topic"
+          value: "$(var lidar_pointcloud_topic_name)"
+        - name: "output_topic"
+          value: "$(var lidar_pointcloud_transformed_topic_name)"
+        - name: "target_frame"
+          value: "$(var motor_base_frame)"
+        - name: "source_frame"
+          value: "$(var lidar_frame)"
+        - name: "timeout_seconds"
+          value: 0.1
+        - name: "queue_size"
+          value: 10
+
+  - node:
+      pkg: "ksenos_ground"
       exec: "init_scans"
       name: "init_scans"
       output: "log"
@@ -103,25 +122,6 @@ launch:
           value: 0.1
         - name: "timer_period_ms"
           value: 100
-
-  - node:
-      pkg: "ksenos_ground"
-      exec: "pointcloud_transform"
-      name: "pointcloud_transform"
-      output: "log"
-      param:
-        - name: "input_topic"
-          value: "$(var lidar_pointcloud_topic_name)"
-        - name: "output_topic"
-          value: "$(var lidar_pointcloud_transformed_topic_name)"
-        - name: "target_frame"
-          value: "$(var motor_base_frame)"
-        - name: "source_frame"
-          value: "$(var lidar_frame)"
-        - name: "timeout_seconds"
-          value: 0.1
-        - name: "queue_size"
-          value: 10
 
   - node:
       pkg: "ksenos_ground"
@@ -277,6 +277,12 @@ launch:
       exec: "static_transform_publisher"
       name: "static_transform_publisher_map_filed_origin"
       args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id origin"
+
+  # - node:
+  #     pkg: "tf2_ros"
+  #     exec: "static_transform_publisher"
+  #     name: "static_transform_publisher_origin_to_motor_base"
+  #     args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id origin --child-frame-id $(var motor_base_frame)"
 
   - node:
       pkg: "tf2_ros"

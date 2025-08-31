@@ -37,8 +37,8 @@ public:
         this->declare_parameter<double>("scan_duration", 10.0);
         this->declare_parameter<double>("lower_limit_rad", -M_PI / 2.0);
         this->declare_parameter<double>("upper_limit_rad", M_PI / 2.0);
-        this->declare_parameter<double>("init_angle_rad", M_PI / 12.0);
-        this->declare_parameter<double>("voxel_leaf_size", 0.15);
+        this->declare_parameter<double>("init_angle_rad", 0.0);
+        this->declare_parameter<double>("voxel_leaf_size", 0.1);
         this->declare_parameter<int>("timer_period_ms", 100);
         // トピック名のパラメータを追加
         this->declare_parameter<std::string>("angle_topic", "target_pitch_angle");
@@ -62,8 +62,10 @@ public:
         pointcloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
             input_pointcloud_topic, 10,
             std::bind(&LidarScanNode::pointCloudCallback, this, std::placeholders::_1));
-        // publisher: フィルタ後のポイントクラウド出力用
-        filtered_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(output_pointcloud_topic, 10);
+
+        // publisher: フィルタ後のポイントクラウド出力用 (信頼性の高いQoSプロファイルを使用)
+        auto qos = rclcpp::QoS(10).reliability(rclcpp::ReliabilityPolicy::Reliable).durability(rclcpp::DurabilityPolicy::TransientLocal);
+        filtered_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(output_pointcloud_topic, qos);
 
         start_time_ = this->now();
         // scan期間中に定期的に角度制御を行うタイマー

@@ -59,11 +59,11 @@ public:
         // double publish_rate = this->get_parameter("publish_rate").as_double();
 
         // パブリッシャーの作成
-        imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("sensor/imu", 10);
-        tof_publisher_ = this->create_publisher<sensor_msgs::msg::Range>("sensor/tof", 10);
-        pressure_publisher_ = this->create_publisher<ksenos_ground_msgs::msg::PressureData>("sensor/pressure", 10);
-        flow_rate_publisher_ = this->create_publisher<ksenos_ground_msgs::msg::FlowRateData>("sensor/flow_rate", 10);
-        servo_enable_publisher_ = this->create_publisher<std_msgs::msg::Bool>("sensor/servo_enable", 10);
+        imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
+        tof_publisher_ = this->create_publisher<sensor_msgs::msg::Range>("tof", 10);
+        pressure_publisher_ = this->create_publisher<ksenos_ground_msgs::msg::PressureData>("pressure", 10);
+        flow_rate_publisher_ = this->create_publisher<ksenos_ground_msgs::msg::FlowRateData>("flow_rate", 10);
+        servo_enable_publisher_ = this->create_publisher<std_msgs::msg::Bool>("servo_enable", 10);
 
         // 統計変数の初期化
         packet_count_ = 0;
