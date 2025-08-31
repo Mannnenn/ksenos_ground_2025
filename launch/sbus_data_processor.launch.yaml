@@ -90,6 +90,7 @@ launch:
               name: sbus_offset_apply_node_to_aircraft_node
               param:
                 - name: "input_topic"
+                  # value: "/sbus/manual/sbus_data"
                   value: "/control_input"
                 - name: "offset_topic"
                   value: "/sbus/sbus_offset_amount"

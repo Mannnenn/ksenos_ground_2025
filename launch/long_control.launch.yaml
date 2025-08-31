@@ -71,7 +71,7 @@ launch:
                   name: throttle_control_node
                   param:
                     - name: "kp"
-                      value: 0.5
+                      value: 0.01
                     - name: "ki"
                       value: 0.0
                     - name: "max_throttle"
@@ -79,11 +79,11 @@ launch:
                     - name: "min_throttle"
                       value: 0.0
                     - name: "steady_throttle"
-                      value: 0.4
+                      value: 0.45
                     - name: "max_integral"
                       value: 0.5
                     - name: "control_rate"
-                      value: 20.0
+                      value: 50.0
                   remap:
                     - from: "/throttle_input"
                       to: "/controller/long/throttle_input"
@@ -98,7 +98,7 @@ launch:
                   name: elevator_control_node
                   param:
                     - name: "k_energy_gain"
-                      value: 0.5
+                      value: 0.01
                     - name: "kd_pitch_angle"
                       value: 0.0
                     - name: "kd_pitch_rate"

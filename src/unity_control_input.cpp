@@ -1,5 +1,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "ksenos_ground_msgs/msg/control_input.hpp"
+#include "ksenos_ground_msgs/msg/sbus_data.hpp"
 #include <memory>
 
 class UnityControlInputNode : public rclcpp::Node
@@ -31,7 +32,7 @@ public:
             std::bind(&UnityControlInputNode::throttleCallback, this, std::placeholders::_1));
 
         // パブリッシャーの作成
-        control_input_pub_ = this->create_publisher<ksenos_ground_msgs::msg::ControlInput>(
+        control_input_pub_ = this->create_publisher<ksenos_ground_msgs::msg::SbusData>(
             "/control_input", 10);
 
         // 20Hzタイマーの作成
@@ -69,14 +70,15 @@ private:
 
     void publishControlInput()
     {
-        auto control_msg = ksenos_ground_msgs::msg::ControlInput();
+        auto control_msg = ksenos_ground_msgs::msg::SbusData();
 
         // ヘッダー情報を設定
         control_msg.header.stamp = this->get_clock()->now();
         control_msg.header.frame_id = "base_link";
 
         // 最新の制御値を設定（データが揃っていなくても過去の値を使用）
-        control_msg.aileron = latest_aileron_;
+        control_msg.aileron_l = latest_aileron_;
+        control_msg.aileron_r = latest_aileron_;
         control_msg.elevator = latest_elevator_;
         control_msg.rudder = latest_rudder_;
         control_msg.throttle = latest_throttle_;
@@ -86,7 +88,7 @@ private:
 
         RCLCPP_DEBUG(this->get_logger(),
                      "Published control input - Aileron: %.3f, Elevator: %.3f, Rudder: %.3f, Throttle: %.3f",
-                     control_msg.aileron, control_msg.elevator, control_msg.rudder, control_msg.throttle);
+                     control_msg.aileron_l, control_msg.elevator, control_msg.rudder, control_msg.throttle);
     }
 
     // サブスクライバー
@@ -96,7 +98,7 @@ private:
     rclcpp::Subscription<ksenos_ground_msgs::msg::ControlInput>::SharedPtr throttle_sub_;
 
     // パブリッシャー
-    rclcpp::Publisher<ksenos_ground_msgs::msg::ControlInput>::SharedPtr control_input_pub_;
+    rclcpp::Publisher<ksenos_ground_msgs::msg::SbusData>::SharedPtr control_input_pub_;
 
     // タイマー
     rclcpp::TimerBase::SharedPtr timer_;
