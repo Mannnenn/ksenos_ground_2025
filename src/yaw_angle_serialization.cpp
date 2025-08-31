@@ -34,7 +34,7 @@ private:
     static constexpr double BEYOND_BOUNDARY_CRITERIA = 0.1;
     static constexpr double LAP_JUDGMENT_CRITERIA = 0.1;
     static constexpr double COUNT_DUPLICATION_TIME_CRITERIA = 1.0;
-    static constexpr size_t YAW_SPEED_HISTORY_SIZE = 10;
+    static constexpr size_t YAW_SPEED_HISTORY_SIZE = 50;
 
     void setupParameters()
     {

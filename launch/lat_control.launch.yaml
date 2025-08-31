@@ -58,6 +58,8 @@ launch:
                       to: "/controller/lat/aileron_input"
                     - from: "/controller/lat/calc/target_roll_angle"
                       to: "/controller/lat/target_roll_angle"
+                    - from: "/rpy"
+                      to: "/sensor/orientation/euler_angles"
 
               - node:
                   pkg: "ksenos_ground"

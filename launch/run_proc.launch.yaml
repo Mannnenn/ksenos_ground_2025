@@ -1,6 +1,12 @@
 launch:
   - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/model_load.launch.py"
+
+  - include:
       file: "$(find-pkg-share ksenos_ground)/launch/long_control.launch.yaml"
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/lat_control.launch.yaml"
+
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation.launch.yaml"

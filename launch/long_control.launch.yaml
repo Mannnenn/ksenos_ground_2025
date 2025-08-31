@@ -21,6 +21,10 @@ launch:
                       to: "/controller/long/calc/altitude_imu"
                     - from: "/average/flow_rate"
                       to: "/controller/long/calc/flow_rate"
+                    - from: "/sensor/altitude_imu"
+                      to: "/sensor/altitude/altitude_imu"
+                    - from: "/sensor/altitude_lidar"
+                      to: "/sensor/altitude/altitude_lidar"
 
               - node:
                   pkg: ksenos_ground
@@ -32,18 +36,11 @@ launch:
                     - name: gravity
                       value: 9.81
                     - name: velocity_topic
-                      value: "/average/flow_rate"
+                      value: "/controller/long/calc/flow_rate"
                     - name: altitude_topic
-                      value: "/average/altitude_imu"
+                      value: "/controller/long/calc/altitude_imu"
                     - name: energy_topic
-                      value: "/airplane/reference_energy"
-                  remap:
-                    - from: "/average/altitude_imu"
-                      to: "/controller/long/calc/altitude_imu"
-                    - from: "/average/flow_rate"
-                      to: "/controller/long/calc/flow_rate"
-                    - from: "/airplane/reference_energy"
-                      to: "/controller/long/reference_energy"
+                      value: "/controller/long/reference_energy"
 
               - node:
                   pkg: ksenos_ground
@@ -55,15 +52,12 @@ launch:
                     - name: gravity
                       value: 9.81
                     - name: velocity_topic
-                      value: "/airplane/velocity"
+                      value: "/sensor/flow_rate"
                     - name: altitude_topic
                       # value: "/airplane/altitude_lidar"
-                      value: "/airplane/altitude_imu"
+                      value: "/sensor/altitude/altitude_imu"
                     - name: energy_topic
-                      value: "/airplane/current_energy"
-                  remap:
-                    - from: "/airplane/current_energy"
-                      to: "/controller/long/current_energy"
+                      value: "/controller/long/current_energy"
 
           - group:
               - push-ros-namespace:
@@ -118,6 +112,8 @@ launch:
                       to: "/controller/long/reference_energy"
                     - from: "/airplane/current_energy"
                       to: "/controller/long/current_energy"
+                    - from: "/rpy"
+                      to: "/sensor/orientation/euler_angles"
 
       - node:
           pkg: ksenos_ground
