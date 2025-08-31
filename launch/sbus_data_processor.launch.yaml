@@ -124,3 +124,18 @@ launch:
                   to: "sbus_radian_format"
                 - from: "sbus_raw_data"
                   to: "sbus_raw_format_input"
+
+          - node:
+              pkg: ksenos_ground
+              exec: sbus_send_raw_data
+              name: sbus_udp_sender
+              param:
+                - name: udp_ip
+                  value: "10.42.0.2" # ArduinoのIPアドレス
+                - name: udp_port
+                  value: 9999 # Arduinoの受信ポート
+              remap:
+                - from: sbus_raw_data
+                  to: sbus_raw_format_input
+                - from: sbus_manual
+                  to: /sbus/manual/sbus_data

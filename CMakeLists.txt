@@ -191,6 +191,11 @@ ament_auto_add_executable(unity_control_input src/unity_control_input.cpp)
 install(TARGETS unity_control_input
   DESTINATION lib/${PROJECT_NAME})
 
+# SBUS UDP送信ノード
+ament_auto_add_executable(sbus_send_raw_data src/sbus_send_raw_data.cpp)
+install(TARGETS sbus_send_raw_data
+  DESTINATION lib/${PROJECT_NAME})
+
 
 install(DIRECTORY config launch meshes urdf
   DESTINATION share/${PROJECT_NAME}/
