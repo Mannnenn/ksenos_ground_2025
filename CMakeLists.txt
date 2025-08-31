@@ -63,18 +63,28 @@ install(TARGETS tf_smoother
   DESTINATION lib/${PROJECT_NAME})
 
 # S.BUS生データ読み出しノード
-ament_auto_add_executable(get_sbus_raw_data src/get_sbus_raw_data.cpp)
-install(TARGETS get_sbus_raw_data
+ament_auto_add_executable(sbus_get_raw_data src/sbus_get_raw_data.cpp)
+install(TARGETS sbus_get_raw_data
   DESTINATION lib/${PROJECT_NAME})
 
-# S.BUSデータ処理ノード
-ament_auto_add_executable(proc_sbus_data src/proc_sbus_data.cpp)
-install(TARGETS proc_sbus_data
+# S.BUSデータ処理ノード（Raw to Rad）
+ament_auto_add_executable(sbus_format_data_to_radian src/sbus_format_data_to_radian.cpp)
+install(TARGETS sbus_format_data_to_radian
   DESTINATION lib/${PROJECT_NAME})
 
-# S.BUSデータオフセットノード
-ament_auto_add_executable(offset_sbus_data src/offset_sbus_data.cpp)
-install(TARGETS offset_sbus_data
+# S.BUSデータ処理ノード（Rad To Raw）
+ament_auto_add_executable(sbus_format_data_to_raw src/sbus_format_data_to_raw.cpp)
+install(TARGETS sbus_format_data_to_raw
+  DESTINATION lib/${PROJECT_NAME})
+
+# S.BUSキャリブレーションノード
+ament_auto_add_executable(sbus_calibration_node src/sbus_calibration_node.cpp)
+install(TARGETS sbus_calibration_node
+  DESTINATION lib/${PROJECT_NAME})
+
+# S.BUSオフセット適用ノード
+ament_auto_add_executable(sbus_offset_apply_node src/sbus_offset_apply_node.cpp)
+install(TARGETS sbus_offset_apply_node
   DESTINATION lib/${PROJECT_NAME})
 
 # UDPパケット受信ノード

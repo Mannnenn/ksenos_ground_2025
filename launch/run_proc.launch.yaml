@@ -10,3 +10,6 @@ launch:
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation.launch.yaml"
+
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/sbus_data_processor.launch.yaml"

@@ -25,6 +25,8 @@ launch:
                       to: "/sensor/altitude/altitude_imu"
                     - from: "/sensor/altitude_lidar"
                       to: "/sensor/altitude/altitude_lidar"
+                    - from: "/sbus_data"
+                      to: "/sbus/manual/sbus_data"
 
               - node:
                   pkg: ksenos_ground
