@@ -11,11 +11,12 @@ public:
     ElevatorControl() : Node("elevator_control")
     {
         // パラメータの宣言
-        this->declare_parameter("k_energy_gain", 1.0);  // エネルギー制御ゲイン
-        this->declare_parameter("kd_pitch_angle", 0.1); // ピッチ角D制御ゲイン
-        this->declare_parameter("kd_pitch", 0.1);       // ピッチ角速度D制御ゲイン
-        this->declare_parameter("max_elevator", 0.6);   // 最大エレベータ値
-        this->declare_parameter("min_elevator", -0.6);  // 最小エレベータ値
+        this->declare_parameter("k_energy_gain", 1.0);         // エネルギー制御ゲイン
+        this->declare_parameter("kd_pitch_angle", 0.1);        // ピッチ角D制御ゲイン
+        this->declare_parameter("kd_pitch", 0.1);              // ピッチ角速度D制御ゲイン
+        this->declare_parameter("max_elevator", 0.6);          // 最大エレベータ値
+        this->declare_parameter("min_elevator", -0.6);         // 最小エレベータ値
+        this->declare_parameter("balanced_flight_pitch", 0.0); // バランス飛行時のピッチ角
 
         // パラメータの取得
         k_energy_gain_ = this->get_parameter("k_energy_gain").as_double();
@@ -23,6 +24,7 @@ public:
         kd_pitch_rate_ = this->get_parameter("kd_pitch").as_double();
         max_elevator_ = this->get_parameter("max_elevator").as_double();
         min_elevator_ = this->get_parameter("min_elevator").as_double();
+        balanced_flight_pitch_ = this->get_parameter("balanced_flight_pitch").as_double();
 
         // エネルギー関連のサブスクライバー
         current_energy_sub_ = this->create_subscription<ksenos_ground_msgs::msg::PlaneEnergy>(
@@ -121,7 +123,8 @@ private:
         double elevator_base = k_energy_gain_ * (kinetic_error - potential_error);
 
         // D制御：ピッチ角速度を使用して振動を抑制（負の符号で安定化）
-        double d_term = -kd_pitch_angle_ * current_pitch_ - kd_pitch_rate_ * pitch_rate_;
+        double pitch_error = balanced_flight_pitch_ - current_pitch_;
+        double d_term = -kd_pitch_angle_ * pitch_error - kd_pitch_rate_ * pitch_rate_;
 
         // 最終的なエレベータ操作量
         double elevator_output = elevator_base + d_term;
@@ -162,11 +165,12 @@ private:
     rclcpp::TimerBase::SharedPtr control_timer_;
 
     // 制御パラメータ
-    double k_energy_gain_;  // エネルギー制御ゲイン
-    double kd_pitch_angle_; // ピッチ角度D制御ゲイン
-    double kd_pitch_rate_;  // ピッチ角速度D制御ゲイン
-    double max_elevator_;   // 最大エレベータ値
-    double min_elevator_;   // 最小エレベータ値
+    double k_energy_gain_;         // エネルギー制御ゲイン
+    double kd_pitch_angle_;        // ピッチ角度D制御ゲイン
+    double kd_pitch_rate_;         // ピッチ角速度D制御ゲイン
+    double max_elevator_;          // 最大エレベータ値
+    double min_elevator_;          // 最小エレベータ値
+    double balanced_flight_pitch_; // バランス飛行時のピッチ角
 
     // エネルギー状態変数
     float current_kinetic_energy_;

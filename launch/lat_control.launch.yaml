@@ -19,6 +19,8 @@ launch:
                     - name: low_pass_filter_alpha
                       value: 0.1 # ローパスフィルターのアルファ値（0.1 = 10%の新しいデータを使用）
                   remap:
+                    - from: "/average/flow_rate"
+                      to: "/controller/long/calc/flow_rate"
                     - from: "/controller/lat/calc/lateral_acceleration"
                       to: "/controller/lat/lateral_acceleration"
 
@@ -46,7 +48,7 @@ launch:
                   name: "control_aileron_node"
                   param:
                     - name: kp
-                      value: -0.6 # P制御ゲイン（要調整）
+                      value: -0.5 # P制御ゲイン（要調整）
                     - name: kd
                       value: 0.1 # D制御ゲイン（要調整）
                     - name: max_aileron
@@ -67,19 +69,19 @@ launch:
                   name: "control_rudder_node"
                   param:
                     - name: kp
-                      value: 0.01 # P制御ゲイン（要調整）
+                      value: 0.00 # P制御ゲイン（要調整）
                     - name: ki
-                      value: 0.0 # I制御ゲイン（要調整）
+                      value: 0.00 # I制御ゲイン（要調整）
                     - name: ff_lat_acc_gain
-                      value: 0.0 # FF制御ゲイン（要調整）
+                      value: 0.075 # FF制御ゲイン（要調整）
                     - name: ff_aileron_gain
-                      value: 0.0 # FF制御ゲイン（要調整）
+                      value: 0.01 # FF制御ゲイン（要調整）
                     - name: max_rudder
                       value: 0.6 # 最大ラダー値
                     - name: min_rudder
                       value: -0.6 # 最小ラダー値
                     - name: max_integral
-                      value: 1.0 # 最大積分値
+                      value: 0.1 # 最大積分値
                   remap:
                     - from: "/aileron_input"
                       to: "/controller/lat/aileron_input"
