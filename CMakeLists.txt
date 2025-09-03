@@ -159,7 +159,20 @@ ament_auto_add_executable(control_elevator src/control_elevator.cpp)
 install(TARGETS control_elevator
   DESTINATION lib/${PROJECT_NAME})
 
+# 飛行距離計測ノード
+ament_auto_add_executable(calc_flight_distance src/calc_flight_distance.cpp)
+install(TARGETS calc_flight_distance
+  DESTINATION lib/${PROJECT_NAME})
 
+# 自動旋回モードノード
+ament_auto_add_executable(mode_auto_turning src/mode_auto_turning.cpp)
+install(TARGETS mode_auto_turning
+  DESTINATION lib/${PROJECT_NAME})
+
+# 8の字旋回モードノード
+ament_auto_add_executable(mode_eight_turning src/mode_eight_turning.cpp)
+install(TARGETS mode_eight_turning
+  DESTINATION lib/${PROJECT_NAME})
 
 # エネルギー計算ノード
 ament_auto_add_executable(calc_energy src/calc_energy.cpp)
@@ -186,7 +199,7 @@ ament_auto_add_executable(calc_average_altitude_velocity src/calc_average_altitu
 install(TARGETS calc_average_altitude_velocity
   DESTINATION lib/${PROJECT_NAME})
 
-# Unity制御入力統合ノード
+# 制御入力統合ノード
 ament_auto_add_executable(unity_control_input src/unity_control_input.cpp)
 install(TARGETS unity_control_input
   DESTINATION lib/${PROJECT_NAME})

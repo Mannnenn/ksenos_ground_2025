@@ -99,8 +99,6 @@ launch:
               param:
                 - name: input_angular_topic_name
                   value: /sensor/orientation/euler_angles
-                - name: input_angular_velocity_topic_name
-                  value: /sensor/imu
                 - name: input_counter_reset_topic_name
                   value: /sensor/counter/reset
                 - name: output_serialized_yaw_angle_topic_name

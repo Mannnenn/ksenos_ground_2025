@@ -51,7 +51,7 @@ public:
 
         // 制御ループタイマー
         control_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(20), // 50Hz
+            std::chrono::milliseconds(20), // 20Hz
             std::bind(&RudderControl::controlLoop, this));
 
         RCLCPP_INFO(this->get_logger(), "Rudder Control node initialized");

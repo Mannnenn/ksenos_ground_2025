@@ -27,7 +27,7 @@ public:
 
         // 初期値の設定
         filtered_velocity_ = 0.0f;
-        current_turning_radius_ = 0.0f;
+        current_turning_radius_ = 5.0f;
         is_first_flow_rate_ = true;
 
         RCLCPP_INFO(this->get_logger(), "Lateral Acceleration Calculator node started");

@@ -1,0 +1,51 @@
+launch:
+  - group:
+      - push-ros-namespace:
+          namespace: "controller"
+
+      - group:
+          - push-ros-namespace:
+              namespace: "mode_selector"
+
+          - node:
+              pkg: ksenos_ground
+              exec: mode_auto_turning
+              name: auto_turning_node
+              param:
+                - name: target_radius
+                  value: 5.0
+              remap:
+                - from: "sbus_data"
+                  to: "/sbus/manual/sbus_data"
+                - from: "target_turning_radius"
+                  to: "/controller/lat/calc/turning_radius"
+
+          - node:
+              pkg: ksenos_ground
+              exec: calc_flight_distance
+              name: calc_flight_distance_node
+              param:
+                - name: target_turning_radius
+                  value: 5.0
+              remap:
+                - from: "sbus_data"
+                  to: "/sbus/manual/sbus_data"
+                - from: "flow_rate_data"
+                  to: "/sensor/flow_rate"
+                - from: "flight_distance"
+                  to: "/controller/mode_selector/flight_distance"
+
+          # - node:
+          #     pkg: ksenos_ground
+          #     exec: mode_eight_turning
+          #     name: eight_turning_node
+          #     param:
+          #       - name: target_turning_radius
+          #         value: 5.0
+          #     remap:
+          #       - from: "sbus_data"
+          #         to: "/sbus/manual/sbus_data"
+          #       - from: "flight_distance"
+          #         to: "/controller/mode_selector/flight_distance"
+          #       - from: "turn_radius"
+          #         to: "/controller/lat/calc/turning_radius"

@@ -17,7 +17,6 @@ public:
         this->declare_parameter("min_throttle", 0.0);
         this->declare_parameter("steady_throttle", 0.4);
         this->declare_parameter("max_integral", 0.5);
-        this->declare_parameter("control_rate", 20.0);
 
         kp_ = this->get_parameter("kp").as_double();
         ki_ = this->get_parameter("ki").as_double();
@@ -25,7 +24,6 @@ public:
         min_throttle_ = this->get_parameter("min_throttle").as_double();
         steady_throttle_ = this->get_parameter("steady_throttle").as_double();
         max_integral_ = this->get_parameter("max_integral").as_double();
-        control_rate_ = this->get_parameter("control_rate").as_double();
 
         // サブスクライバーの作成
         reference_energy_sub_ = this->create_subscription<ksenos_ground_msgs::msg::PlaneEnergy>(
@@ -41,9 +39,10 @@ public:
             "/throttle_input", 10);
 
         // 制御タイマーの作成
-        auto control_period = std::chrono::milliseconds(static_cast<int>(1000.0 / control_rate_));
         control_timer_ = this->create_wall_timer(
-            control_period, std::bind(&ThrottleControl::control_loop, this));
+            std::chrono::milliseconds(20) // 20Hz
+            ,
+            std::bind(&ThrottleControl::control_loop, this));
 
         // 初期化
         reference_energy_ = 0.0;
@@ -61,7 +60,6 @@ public:
         RCLCPP_INFO(this->get_logger(), "  min_throttle: %.3f", min_throttle_);
         RCLCPP_INFO(this->get_logger(), "  steady_throttle: %.3f", steady_throttle_);
         RCLCPP_INFO(this->get_logger(), "  max_integral: %.3f", max_integral_);
-        RCLCPP_INFO(this->get_logger(), "  control_rate: %.1f Hz", control_rate_);
     }
 
 private:
@@ -147,7 +145,6 @@ private:
     double min_throttle_;    // 最小throttle値
     double steady_throttle_; // 定常スロットル量
     double max_integral_;    // 積分項の最大値（アンチワインドアップ）
-    double control_rate_;    // 制御周期[Hz]
 
     // 状態変数
     double reference_energy_;

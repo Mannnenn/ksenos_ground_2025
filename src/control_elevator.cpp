@@ -51,7 +51,7 @@ public:
 
         // 制御ループのタイマー（20Hz）
         control_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(50),
+            std::chrono::milliseconds(20),
             std::bind(&ElevatorControl::control_loop, this));
 
         // 変数の初期化
@@ -124,7 +124,7 @@ private:
 
         // D制御：ピッチ角速度を使用して振動を抑制（負の符号で安定化）
         double pitch_error = balanced_flight_pitch_ - current_pitch_;
-        double d_term = -kd_pitch_angle_ * pitch_error - kd_pitch_rate_ * pitch_rate_;
+        double d_term = kd_pitch_angle_ * pitch_error - kd_pitch_rate_ * pitch_rate_;
 
         // 最終的なエレベータ操作量
         double elevator_output = elevator_base + d_term;
