@@ -40,8 +40,7 @@ public:
 
         // 制御タイマーの作成
         control_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(20) // 20Hz
-            ,
+            std::chrono::milliseconds(50),
             std::bind(&ThrottleControl::control_loop, this));
 
         // 初期化

@@ -80,17 +80,29 @@ launch:
                 - name: use_sim_time
                   value: $(var use_sim_time)
 
+          # - node:
+          #     pkg: ksenos_ground
+          #     exec: pub_rpy
+          #     name: pub_rpy
+          #     param:
+          #       - name: use_sim_time
+          #         value: $(var use_sim_time)
+          #       - name: output_angular_topic_name
+          #         value: /sensor/orientation/euler_angles
+          #       - name: output_angular_velocity_topic_name
+          #         value: /sensor/orientation/angular_velocity
+
           - node:
               pkg: ksenos_ground
-              exec: pub_rpy
-              name: pub_rpy
+              exec: calc_rpy_from_quat
+              name: calc_rpy_from_quat_node
               param:
                 - name: use_sim_time
                   value: $(var use_sim_time)
-                - name: output_angular_topic_name
+                - name: input_topic
+                  value: /sensor/orientation/imu/data
+                - name: output_topic
                   value: /sensor/orientation/euler_angles
-                - name: output_angular_velocity_topic_name
-                  value: /sensor/orientation/angular_velocity
 
           - node:
               pkg: ksenos_ground

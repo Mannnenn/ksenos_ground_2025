@@ -37,7 +37,7 @@ public:
 
         // 20Hzタイマーの作成
         timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(20), // 50ms = 20Hz
+            std::chrono::milliseconds(50), // 50ms = 20Hz
             std::bind(&UnityControlInputNode::publishControlInput, this));
 
         RCLCPP_INFO(this->get_logger(), "Unity Control Input Node started");

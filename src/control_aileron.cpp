@@ -41,7 +41,7 @@ public:
 
         // 制御ループのタイマー（50Hz）
         control_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(20),
+            std::chrono::milliseconds(50),
             std::bind(&AileronControl::control_loop, this));
 
         // 変数の初期化
@@ -116,9 +116,9 @@ private:
         control_input_pub_->publish(control_msg);
 
         // デバッグ情報の出力
-        RCLCPP_DEBUG(this->get_logger(),
-                     "Target: %.3f, Current: %.3f, Error: %.3f, Roll Rate: %.3f, Aileron: %.3f",
-                     target_roll_, current_roll_, error, roll_rate_, aileron_output);
+        // RCLCPP_DEBUG(this->get_logger(),
+        //              "Target: %.3f, Current: %.3f, Error: %.3f, Roll Rate: %.3f, Aileron: %.3f",
+        //              target_roll_, current_roll_, error, roll_rate_, aileron_output);
 
         // 時刻の更新
         last_time_ = current_time;

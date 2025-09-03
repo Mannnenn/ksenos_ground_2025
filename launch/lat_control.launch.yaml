@@ -48,7 +48,7 @@ launch:
                   name: "control_aileron_node"
                   param:
                     - name: kp
-                      value: -0.5 # P制御ゲイン（要調整）
+                      value: -0.20 # P制御ゲイン（要調整）
                     - name: kd
                       value: 0.1 # D制御ゲイン（要調整）
                     - name: max_aileron
@@ -73,7 +73,7 @@ launch:
                     - name: ki
                       value: 0.00 # I制御ゲイン（要調整）
                     - name: ff_lat_acc_gain
-                      value: 0.075 # FF制御ゲイン（要調整）
+                      value: 0.025 # FF制御ゲイン（要調整）
                     - name: ff_aileron_gain
                       value: 0.01 # FF制御ゲイン（要調整）
                     - name: max_rudder

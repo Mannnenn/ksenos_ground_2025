@@ -75,16 +75,16 @@ private:
 
         // flow_rateデータを追加
         flow_rate_data_.push_back(msg->flow_rate);
-        if (flow_rate_data_.size() > QUEUE_SIZE)
+        if (flow_rate_data_.size() > QUEUE_SIZE_HIGH_RATE)
         {
             flow_rate_data_.pop_front();
         }
 
         // 10個のデータが揃った場合に平均を計算・パブリッシュ
-        if (flow_rate_data_.size() == QUEUE_SIZE)
+        if (flow_rate_data_.size() == QUEUE_SIZE_HIGH_RATE)
         {
             // flow_rateの平均を計算・パブリッシュ
-            float avg_flow_rate = std::accumulate(flow_rate_data_.begin(), flow_rate_data_.end(), 0.0f) / QUEUE_SIZE;
+            float avg_flow_rate = std::accumulate(flow_rate_data_.begin(), flow_rate_data_.end(), 0.0f) / QUEUE_SIZE_HIGH_RATE;
             auto flow_rate_msg = ksenos_ground_msgs::msg::FlowRateData();
             flow_rate_msg.flow_rate = avg_flow_rate;
             avg_flow_rate_publisher_->publish(flow_rate_msg);
@@ -101,16 +101,16 @@ private:
 
         // altitude_imuデータを追加
         altitude_imu_data_.push_back(msg->data);
-        if (altitude_imu_data_.size() > QUEUE_SIZE)
+        if (altitude_imu_data_.size() > QUEUE_SIZE_HIGH_RATE)
         {
             altitude_imu_data_.pop_front();
         }
 
         // 10個のデータが揃った場合に平均を計算・パブリッシュ
-        if (altitude_imu_data_.size() == QUEUE_SIZE)
+        if (altitude_imu_data_.size() == QUEUE_SIZE_HIGH_RATE)
         {
             // altitude_imuの平均を計算・パブリッシュ
-            float avg_altitude_imu = std::accumulate(altitude_imu_data_.begin(), altitude_imu_data_.end(), 0.0f) / QUEUE_SIZE;
+            float avg_altitude_imu = std::accumulate(altitude_imu_data_.begin(), altitude_imu_data_.end(), 0.0f) / QUEUE_SIZE_HIGH_RATE;
             auto altitude_imu_msg = std_msgs::msg::Float32();
             altitude_imu_msg.data = avg_altitude_imu;
             avg_altitude_imu_publisher_->publish(altitude_imu_msg);
@@ -131,16 +131,16 @@ private:
 
         // altitude_lidarデータを追加
         altitude_lidar_data_.push_back(msg->data);
-        if (altitude_lidar_data_.size() > QUEUE_SIZE)
+        if (altitude_lidar_data_.size() > QUEUE_SIZE_LOW_RATE)
         {
             altitude_lidar_data_.pop_front();
         }
 
         // 10個のデータが揃った場合に平均を計算・パブリッシュ
-        if (altitude_lidar_data_.size() == QUEUE_SIZE)
+        if (altitude_lidar_data_.size() == QUEUE_SIZE_LOW_RATE)
         {
             // altitude_lidarの平均を計算・パブリッシュ
-            float avg_altitude_lidar = std::accumulate(altitude_lidar_data_.begin(), altitude_lidar_data_.end(), 0.0f) / QUEUE_SIZE;
+            float avg_altitude_lidar = std::accumulate(altitude_lidar_data_.begin(), altitude_lidar_data_.end(), 0.0f) / QUEUE_SIZE_LOW_RATE;
             auto altitude_lidar_msg = std_msgs::msg::Float32();
             altitude_lidar_msg.data = avg_altitude_lidar;
             avg_altitude_lidar_publisher_->publish(altitude_lidar_msg);
@@ -168,7 +168,8 @@ private:
 
     // 状態管理
     bool is_manual_mode_;
-    const size_t QUEUE_SIZE = 10;
+    const size_t QUEUE_SIZE_LOW_RATE = 10;
+    const size_t QUEUE_SIZE_HIGH_RATE = 100;
 };
 
 int main(int argc, char *argv[])

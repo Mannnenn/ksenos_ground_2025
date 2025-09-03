@@ -8,7 +8,7 @@ public:
     ModeAutoTurning() : Node("mode_auto_turning")
     {
         // パラメータの宣言と初期値設定
-        this->declare_parameter<float>("target_radius", 5.0f);
+        this->declare_parameter<float>("target_radius", 1000.0f);
 
         // パラメータコールバックの設定
         parameter_callback_handle_ = this->add_on_set_parameters_callback(

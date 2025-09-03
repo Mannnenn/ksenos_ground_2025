@@ -4,6 +4,7 @@
 #include <ksenos_ground_msgs/msg/control_input.hpp>
 #include <chrono>
 #include <memory>
+#include <cmath>
 
 class RudderControl : public rclcpp::Node
 {
@@ -11,13 +12,14 @@ public:
     RudderControl() : Node("rudder_control")
     {
         // パラメータの宣言
-        this->declare_parameter<double>("kp", 0.5);              // PI制御の比例ゲイン
-        this->declare_parameter<double>("ki", 0.1);              // PI制御の積分ゲイン
-        this->declare_parameter<double>("ff_lat_acc_gain", 1.0); // FF制御ゲイン
-        this->declare_parameter<double>("ff_aileron_gain", 1.0); // FF制御ゲイン
-        this->declare_parameter<double>("max_rudder", 1.0);      // 最大ラダー値
-        this->declare_parameter<double>("min_rudder", -1.0);     // 最小ラダー値
-        this->declare_parameter<double>("max_integral", 10.0);   // 積分項の最大値
+        this->declare_parameter<double>("kp", 0.5);                   // PI制御の比例ゲイン
+        this->declare_parameter<double>("ki", 0.1);                   // PI制御の積分ゲイン
+        this->declare_parameter<double>("ff_lat_acc_gain", 1.0);      // FF制御ゲイン
+        this->declare_parameter<double>("ff_aileron_gain", 1.0);      // FF制御ゲイン
+        this->declare_parameter<double>("max_rudder", 1.0);           // 最大ラダー値
+        this->declare_parameter<double>("min_rudder", -1.0);          // 最小ラダー値
+        this->declare_parameter<double>("max_integral", 10.0);        // 積分項の最大値
+        this->declare_parameter<double>("lowpass_cutoff_freq", 10.0); // ローパスフィルターのカットオフ周波数 [Hz]
 
         // パラメータの取得
         kp_ = this->get_parameter("kp").as_double();
@@ -27,10 +29,21 @@ public:
         max_rudder_ = this->get_parameter("max_rudder").as_double();
         min_rudder_ = this->get_parameter("min_rudder").as_double();
         max_integral_ = this->get_parameter("max_integral").as_double();
+        lowpass_cutoff_freq_ = this->get_parameter("lowpass_cutoff_freq").as_double();
 
         // 制御変数の初期化
         integral_error_ = 0.0;
         previous_time_ = this->now();
+
+        // ローパスフィルター時刻の初期化
+        previous_lat_acc_filter_time_ = this->now();
+        previous_aileron_filter_time_ = this->now();
+        previous_imu_filter_time_ = this->now();
+
+        // ローパスフィルター変数の初期化
+        filtered_reference_lateral_acceleration_ = 0.0;
+        filtered_current_aileron_angle_ = 0.0;
+        filtered_actual_lateral_acceleration_ = 0.0;
 
         // サブスクライバーの作成
         lateral_acceleration_sub_ = this->create_subscription<std_msgs::msg::Float32>(
@@ -51,31 +64,62 @@ public:
 
         // 制御ループタイマー
         control_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(20), // 20Hz
+            std::chrono::milliseconds(50),
             std::bind(&RudderControl::controlLoop, this));
 
         RCLCPP_INFO(this->get_logger(), "Rudder Control node initialized");
-        RCLCPP_INFO(this->get_logger(), "Parameters - kp: %.3f, ki: %.3f, ff_lat_acc_gain: %.3f, ff_aileron_gain: %.3f",
-                    kp_, ki_, ff_lat_acc_gain_, ff_aileron_gain_);
+        RCLCPP_INFO(this->get_logger(), "Parameters - kp: %.3f, ki: %.3f, ff_lat_acc_gain: %.3f, ff_aileron_gain: %.3f, lowpass_cutoff: %.1f Hz",
+                    kp_, ki_, ff_lat_acc_gain_, ff_aileron_gain_, lowpass_cutoff_freq_);
     }
 
 private:
+    // ローパスフィルターの実装（1次ローパスフィルター）
+    double applyLowpassFilter(double input, double &filtered_value, double dt)
+    {
+        if (dt <= 0.0)
+            return filtered_value; // dtが無効な場合は前の値を返す
+
+        double alpha = dt / (dt + 1.0 / (2.0 * M_PI * lowpass_cutoff_freq_));
+        filtered_value = alpha * input + (1.0 - alpha) * filtered_value;
+        return filtered_value;
+    }
     void lateralAccelerationCallback(const std_msgs::msg::Float32::SharedPtr msg)
     {
+        auto current_time = this->now();
+        double dt = (current_time - previous_lat_acc_filter_time_).seconds();
+
         reference_lateral_acceleration_ = msg->data;
+        filtered_reference_lateral_acceleration_ = applyLowpassFilter(
+            reference_lateral_acceleration_, filtered_reference_lateral_acceleration_, dt);
+
+        previous_lat_acc_filter_time_ = current_time;
         target_received_ = true;
     }
 
     void aileronControlCallback(const ksenos_ground_msgs::msg::ControlInput::SharedPtr msg)
     {
+        auto current_time = this->now();
+        double dt = (current_time - previous_aileron_filter_time_).seconds();
+
         current_aileron_angle_ = msg->aileron;
+        filtered_current_aileron_angle_ = applyLowpassFilter(
+            current_aileron_angle_, filtered_current_aileron_angle_, dt);
+
+        previous_aileron_filter_time_ = current_time;
         aileron_received_ = true;
     }
 
     void imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg)
     {
+        auto current_time = this->now();
+        double dt = (current_time - previous_imu_filter_time_).seconds();
+
         // IMUの線形加速度から横方向加速度を取得（y軸方向）
         actual_lateral_acceleration_ = msg->linear_acceleration.y;
+        filtered_actual_lateral_acceleration_ = applyLowpassFilter(
+            actual_lateral_acceleration_, filtered_actual_lateral_acceleration_, dt);
+
+        previous_imu_filter_time_ = current_time;
         imu_received_ = true;
     }
 
@@ -93,11 +137,12 @@ private:
         if (dt <= 0.0)
             return;
 
-        // FF制御の計算（目標横加速度に基づく）
-        double ff_output = ff_lat_acc_gain_ * reference_lateral_acceleration_ + ff_aileron_gain_ * current_aileron_angle_;
+        // FF制御の計算（フィルター済みの値を使用）
+        double ff_output = ff_lat_acc_gain_ * filtered_reference_lateral_acceleration_ +
+                           ff_aileron_gain_ * filtered_current_aileron_angle_;
 
-        // エラーの計算（目標値 - 実際値）
-        double error = target_lateral_acceleration_ - actual_lateral_acceleration_;
+        // エラーの計算（目標値 - 実際値、フィルター済みの値を使用）
+        double error = target_lateral_acceleration_ - filtered_actual_lateral_acceleration_;
 
         // PI制御の計算
         // 積分項の更新（アンチワインドアップ付き）
@@ -148,9 +193,9 @@ private:
         if (++log_counter % 50 == 0)
         { // 1秒に1回
             RCLCPP_DEBUG(this->get_logger(),
-                         "Target: %.3f, Actual: %.3f, Error: %.3f, FF: %.3f, PI: %.3f, Total: %.3f",
+                         "Target: %.3f, Actual: %.3f (filtered: %.3f), Error: %.3f, FF: %.3f, PI: %.3f, Total: %.3f",
                          target_lateral_acceleration_, actual_lateral_acceleration_,
-                         error, ff_output, pi_output, total_output);
+                         filtered_actual_lateral_acceleration_, error, ff_output, pi_output, total_output);
         }
     }
 
@@ -173,6 +218,7 @@ private:
     double max_rudder_;
     double min_rudder_;
     double max_integral_;
+    double lowpass_cutoff_freq_;
 
     // 制御変数
     const double target_lateral_acceleration_ = 0.0;
@@ -181,6 +227,16 @@ private:
     double current_aileron_angle_ = 0.0;
     double integral_error_ = 0.0;
     rclcpp::Time previous_time_;
+
+    // ローパスフィルター用時刻変数（各コールバック独立）
+    rclcpp::Time previous_lat_acc_filter_time_;
+    rclcpp::Time previous_aileron_filter_time_;
+    rclcpp::Time previous_imu_filter_time_;
+
+    // ローパスフィルター済み変数
+    double filtered_reference_lateral_acceleration_;
+    double filtered_actual_lateral_acceleration_;
+    double filtered_current_aileron_angle_;
 
     // データ受信フラグ
     bool target_received_ = false;

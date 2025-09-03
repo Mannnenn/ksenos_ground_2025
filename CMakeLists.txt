@@ -118,6 +118,10 @@ ament_auto_add_executable(pub_rpy src/pub_rpy.cpp)
 install(TARGETS pub_rpy
   DESTINATION lib/${PROJECT_NAME})
 
+# クォータニオンからRPY計算ノード
+ament_auto_add_executable(calc_rpy_from_quat src/calc_rpy_from_quat.cpp)
+install(TARGETS calc_rpy_from_quat
+  DESTINATION lib/${PROJECT_NAME})
 
 # 回転回数カウンター
 # ament_auto_add_executable(rotation_counter src/rotation_counter.cpp)
