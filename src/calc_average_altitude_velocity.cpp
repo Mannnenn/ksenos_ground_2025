@@ -169,7 +169,7 @@ private:
     // 状態管理
     bool is_manual_mode_;
     const size_t QUEUE_SIZE_LOW_RATE = 10;
-    const size_t QUEUE_SIZE_HIGH_RATE = 100;
+    const size_t QUEUE_SIZE_HIGH_RATE = 10;
 };
 
 int main(int argc, char *argv[])
