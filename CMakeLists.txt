@@ -183,6 +183,11 @@ ament_auto_add_executable(mode_eight_turning src/mode_eight_turning.cpp)
 install(TARGETS mode_eight_turning
   DESTINATION lib/${PROJECT_NAME})
 
+# 8の字旋回（角度基準）モードノード
+ament_auto_add_executable(mode_eight_turning_angle src/mode_eight_turning_angle.cpp)
+install(TARGETS mode_eight_turning_angle
+  DESTINATION lib/${PROJECT_NAME})
+
 # 上昇旋回モード
 ament_auto_add_executable(mode_rise_turning src/mode_rise_turning.cpp)
 install(TARGETS mode_rise_turning

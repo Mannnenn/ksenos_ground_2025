@@ -32,18 +32,33 @@ launch:
                 - from: "flight_distance"
                   to: "/controller/mode_selector/flight_distance"
 
+          # - node:
+          #     pkg: ksenos_ground
+          #     exec: mode_eight_turning
+          #     name: eight_turning_node
+          #     param:
+          #       - name: target_turning_radius
+          #         value: 5.0
+          #     remap:
+          #       - from: "sbus_data"
+          #         to: "/sbus/manual/sbus_data"
+          #       - from: "flight_distance"
+          #         to: "/controller/mode_selector/flight_distance"
+          #       - from: "turn_radius"
+          #         to: "/controller/lat/calc/turning_radius"
+
           - node:
               pkg: ksenos_ground
-              exec: mode_eight_turning
+              exec: mode_eight_turning_angle
               name: eight_turning_node
               param:
-                - name: target_turning_radius
-                  value: 5.0
+                - name: lobe_span_deg
+                  value: 270.0
               remap:
                 - from: "sbus_data"
                   to: "/sbus/manual/sbus_data"
-                - from: "flight_distance"
-                  to: "/controller/mode_selector/flight_distance"
+                - from: "serialized_yaw"
+                  to: "/sensor/serialized_yaw_angle"
                 - from: "turn_radius"
                   to: "/controller/lat/calc/turning_radius"
 
@@ -52,14 +67,12 @@ launch:
               exec: mode_rise_turning
               name: rise_turning_node
               param:
-                - name: target_turning_radius
-                  value: 5.0
                 - name: altitude_offset
-                  value: 3.5
+                  value: 2.0
                 - name: lap_count_initial
-                  value: 3
-                - name: lap_count_transition
                   value: 2
+                - name: lap_count_transition
+                  value: 3
                 - name: target_radius
                   value: -5.0
               remap:

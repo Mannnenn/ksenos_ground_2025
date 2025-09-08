@@ -14,8 +14,8 @@ public:
         this->declare_parameter<float>("altitude_offset", 3.5f);
         this->declare_parameter<int>("lap_count_initial", 3);
         this->declare_parameter<int>("lap_count_transition", 2);
-        // 旋回半径パラメータ
-        this->declare_parameter<float>("target_radius", -5.0f);
+        // 旋回半径パラメータ（検証条件に合わせて正の初期値）
+        this->declare_parameter<float>("target_radius", 5.0f);
 
         // パラメータコールバック
         parameter_callback_handle_ = this->add_on_set_parameters_callback(
@@ -67,8 +67,18 @@ public:
 private:
     void sbus_callback(const ksenos_ground_msgs::msg::SbusData::SharedPtr msg)
     {
-        // autopilot_modeが"rise_turning"の場合のみ動作
-        is_rise_turning_mode_ = (msg->autopilot_mode == "rise_turning");
+        // 新しいモード状態を取得
+        bool new_mode = (msg->autopilot_mode == "rise_turning");
+
+        // モード離脱のエッジでのみリセット（毎回の不要リセットを防止）
+        if (is_rise_turning_mode_ && !new_mode)
+        {
+            reset_state_();
+            RCLCPP_DEBUG(this->get_logger(), "RiseTurning mode exited; state reset");
+        }
+
+        // 現在のモード状態を更新
+        is_rise_turning_mode_ = new_mode;
 
         if (is_rise_turning_mode_)
         {
@@ -148,6 +158,16 @@ private:
         msg.data = target_altitude_;
         target_altitude_publisher_->publish(msg);
         RCLCPP_DEBUG(this->get_logger(), "Published target altitude: %.2f (lap: %d)", target_altitude_, lap_count_);
+    }
+
+    // モード離脱時の状態リセットを一箇所に集約
+    void reset_state_()
+    {
+        received_yaw_ = false;
+        total_yaw_ = 0.0f;
+        lap_count_ = 0;
+        received_altitude_ = false; // 古い高度でのpublishを防止
+        // last_yaw_はreceived_yaw_がfalseのため次回受信時に更新される
     }
 
     // パラメータ更新時の検証

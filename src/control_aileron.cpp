@@ -104,9 +104,9 @@ private:
         double d_term = -kd_ * roll_rate_;
 
         // 方向別Pゲイン（右ロール/左ロールで効きを調整）
-        // errorの符号で方向を判定（error>0 を "右ロール方向" と仮定）。
+        // errorの符号で方向を判定（error<0 を "右ロール方向" と仮定）。
         // 誤差符号の定義は機体の座標系に依存するため、必要ならスケール値で微調整してください。
-        const double kp_eff = kp_ * ((error >= 0.0) ? kp_right_scale_ : kp_left_scale_);
+        const double kp_eff = kp_ * ((error <= 0.0) ? kp_right_scale_ : kp_left_scale_);
 
         // PD制御の計算
         double aileron_output = kp_eff * error + d_term;

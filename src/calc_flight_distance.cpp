@@ -2,6 +2,7 @@
 #include <ksenos_ground_msgs/msg/flow_rate_data.hpp>
 #include <ksenos_ground_msgs/msg/sbus_data.hpp>
 #include <std_msgs/msg/float32.hpp>
+#include <string>
 
 class CalcFlightDistance : public rclcpp::Node
 {
@@ -21,9 +22,9 @@ public:
         flight_distance_pub_ = this->create_publisher<std_msgs::msg::Float32>("flight_distance", 10);
 
         // 初期化
-        is_manual_mode_ = false;
         total_distance_ = 0.0;
         last_timestamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
+        current_mode_.clear();
 
         RCLCPP_INFO(this->get_logger(), "Flight distance calculator node started");
     }
@@ -31,11 +32,6 @@ public:
 private:
     void flow_rate_callback(const ksenos_ground_msgs::msg::FlowRateData::SharedPtr msg)
     {
-        if (!is_manual_mode_)
-        {
-            return; // マニュアルモードでない場合は処理しない
-        }
-
         rclcpp::Time current_time = rclcpp::Time(msg->header.stamp);
 
         // 初回データまたはタイムスタンプが逆行した場合は時間差分を計算しない
@@ -67,35 +63,22 @@ private:
         last_timestamp_ = current_time;
 
         RCLCPP_DEBUG(this->get_logger(),
-                     "Flow rate: %.3f m/s, dt: %.3f s, Total distance: %.3f m",
-                     msg->flow_rate, dt, total_distance_);
+                     "Flow rate: %.3f m/s, dt: %.3f s, Total distance: %.3f m (mode: %s)",
+                     msg->flow_rate, dt, total_distance_, current_mode_.c_str());
     }
 
     void sbus_callback(const ksenos_ground_msgs::msg::SbusData::SharedPtr msg)
     {
-        bool previous_manual_mode = is_manual_mode_;
+        const std::string new_mode = msg->autopilot_mode;
 
-        // autopilot_modeが"manual"の場合のみ動作
-        is_manual_mode_ = (msg->autopilot_mode == "manual");
-
-        // モードが変更された場合
-        if (previous_manual_mode != is_manual_mode_)
+        // モードが変更された場合は毎回リセット
+        if (new_mode != current_mode_)
         {
-            if (is_manual_mode_)
-            {
-                RCLCPP_INFO(this->get_logger(), "Manual mode detected. Starting distance calculation.");
-                // マニュアルモードに入った時は積算値をリセット
-                total_distance_ = 0.0;
-                last_timestamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
-            }
-            else
-            {
-                RCLCPP_INFO(this->get_logger(), "Not in manual mode (current: %s). Distance calculation stopped.",
-                            msg->autopilot_mode.c_str());
-                // 非マニュアルモードに入った時も積算値をリセット
-                total_distance_ = 0.0;
-                last_timestamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
-            }
+            RCLCPP_INFO(this->get_logger(), "Autopilot mode changed: '%s' -> '%s'. Resetting distance counter.",
+                        current_mode_.empty() ? "(none)" : current_mode_.c_str(), new_mode.c_str());
+            total_distance_ = 0.0;
+            last_timestamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
+            current_mode_ = new_mode;
         }
     }
 
@@ -107,9 +90,9 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr flight_distance_pub_;
 
     // State variables
-    bool is_manual_mode_;
     double total_distance_;
     rclcpp::Time last_timestamp_;
+    std::string current_mode_;
 };
 
 int main(int argc, char **argv)
