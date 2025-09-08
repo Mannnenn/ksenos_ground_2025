@@ -153,6 +153,11 @@ ament_auto_add_executable(control_rudder src/control_rudder.cpp)
 install(TARGETS control_rudder
   DESTINATION lib/${PROJECT_NAME})
 
+# 速度ターゲット生成ノード（位置xに応じて速度指令とYZ平面マーカーを出力）
+ament_auto_add_executable(control_speed src/control_speed.cpp)
+install(TARGETS control_speed
+  DESTINATION lib/${PROJECT_NAME})
+
 # スロットル制御ノード（PI制御）
 ament_auto_add_executable(control_throttle src/control_throttle.cpp)
 install(TARGETS control_throttle
@@ -207,6 +212,21 @@ install(TARGETS calc_altitude_pressure
 # 平均高度・速度計算ノード
 ament_auto_add_executable(calc_average_altitude_velocity src/calc_average_altitude_velocity.cpp)
 install(TARGETS calc_average_altitude_velocity
+  DESTINATION lib/${PROJECT_NAME})
+
+# 経路生成ノード
+ament_auto_add_executable(path_generator src/path_generator.cpp)
+install(TARGETS path_generator
+  DESTINATION lib/${PROJECT_NAME})
+
+# L1 path following (eta/markers/optional lateral acceleration)
+ament_auto_add_executable(control_L1_law src/control_L1_law.cpp)
+install(TARGETS control_L1_law
+  DESTINATION lib/${PROJECT_NAME})
+
+# L1 path following (eta/markers/optional lateral acceleration)
+ament_auto_add_executable(test_path_follow_with_joy src/test_path_follow_with_joy.cpp)
+install(TARGETS test_path_follow_with_joy
   DESTINATION lib/${PROJECT_NAME})
 
 # 制御入力統合ノード

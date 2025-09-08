@@ -1,0 +1,135 @@
+launch:
+  - node:
+      pkg: "ksenos_ground"
+      exec: "path_generator"
+      name: "path_generator"
+
+  - node:
+      pkg: ksenos_ground
+      exec: pub_area
+      name: pub_area
+
+  - node:
+      pkg: joy
+      exec: joy_node
+      name: joy_node
+
+  - node:
+      pkg: ksenos_ground
+      exec: control_L1_law
+      name: control_L1_law
+
+  - node:
+      pkg: ksenos_ground
+      exec: control_speed
+      name: control_speed
+
+  - node:
+      pkg: ksenos_ground
+      exec: test_path_follow_with_joy
+      name: test_path_follow_with_joy
+
+  # ========================================
+  # Visualization
+  # ========================================
+
+  - node:
+      pkg: "rviz2"
+      exec: "rviz2"
+      name: "rviz2"
+      output: "log"
+      args: "-d $(find-pkg-share ksenos_ground)/config/path.rviz"
+
+  # # ========================================
+  # # Waypoints (static TFs)
+  # # ========================================
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "map_to_waypoint_0"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id start_point --child-frame-id waypoint_0"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_0_to_waypoint_1"
+      output: "screen"
+      args: "--x 6 --y 0 --z 0.25 --roll 0 --pitch -0.15 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_1"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_1_to_waypoint_2"
+      output: "screen"
+      args: "--x 13 --y 0 --z 2 --roll 0 --pitch -0.1 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_2"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_2_to_waypoint_3"
+      output: "screen"
+      args: "--x 14 --y 0 --z 2 --roll 0 --pitch 0 --yaw -0.2 --frame-id waypoint_0 --child-frame-id waypoint_3"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_0_to_waypoint_4"
+      output: "screen"
+      args: "--x 17 --y -1 --z 2 --roll 0 --pitch 0 --yaw -0.3 --frame-id waypoint_0 --child-frame-id waypoint_4"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_4_to_waypoint_5"
+      output: "screen"
+      args: "--x 20 --y -1.95 --z 2 --roll 0 --pitch 0 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_5"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_5_to_waypoint_6"
+      output: "screen"
+      args: "--x 21 --y -1.95 --z 2 --roll 0 --pitch -0.05 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_6"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_6_to_waypoint_7"
+      output: "screen"
+      args: "--x 27 --y -1.95 --z 0.5 --roll 0 --pitch -0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_7"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_7_to_waypoint_8"
+      output: "screen"
+      args: "--x 32 --y -1.95 --z 0 --roll 0 --pitch -0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_8"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_1_to_drop_point"
+      output: "screen"
+      args: "--x 13 --y 0 --z 2 --roll 0 --pitch 0 --yaw 0 --frame-id waypoint_0 --child-frame-id drop_point"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "waypoint_5_to_throttle_off_point"
+      output: "screen"
+      args: "--x 21 --y -1.95 --z 1.5 --roll 0 --pitch 0 --yaw 0 --frame-id waypoint_0 --child-frame-id throttle_off_point"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "map_origin"
+      output: "screen"
+      args: "--x -1 --y 14.5 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id origin"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "map_start_point"
+      output: "screen"
+      args: "--x 37 --y -1.95 --z 0 --roll 0 --pitch 0 --yaw 3.14 --frame-id map --child-frame-id start_point"

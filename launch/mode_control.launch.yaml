@@ -13,7 +13,7 @@ launch:
               name: auto_turning_node
               param:
                 - name: target_radius
-                  value: -5.0
+                  value: 5.0
               remap:
                 - from: "sbus_data"
                   to: "/sbus/manual/sbus_data"
