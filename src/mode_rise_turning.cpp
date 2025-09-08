@@ -1,6 +1,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include "ksenos_ground_msgs/msg/sbus_data.hpp"
+// for parameter callback result
+#include "rcl_interfaces/msg/set_parameters_result.hpp"
 
 class ModeRiseTurning : public rclcpp::Node
 {
@@ -12,6 +14,12 @@ public:
         this->declare_parameter<float>("altitude_offset", 3.5f);
         this->declare_parameter<int>("lap_count_initial", 3);
         this->declare_parameter<int>("lap_count_transition", 2);
+        // 旋回半径パラメータ
+        this->declare_parameter<float>("target_radius", -5.0f);
+
+        // パラメータコールバック
+        parameter_callback_handle_ = this->add_on_set_parameters_callback(
+            std::bind(&ModeRiseTurning::parameter_callback, this, std::placeholders::_1));
 
         // サブスクライバー
         sbus_subscriber_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
@@ -27,6 +35,8 @@ public:
         // パブリッシャー
         target_altitude_publisher_ = this->create_publisher<std_msgs::msg::Float32>(
             "target_altitude_rise_turning", 10);
+        target_radius_publisher_ = this->create_publisher<std_msgs::msg::Float32>(
+            "target_turning_radius", 10);
 
         // 初期化
         is_rise_turning_mode_ = false;
@@ -39,6 +49,9 @@ public:
         transition_end_lap_ = 0;
         received_yaw_ = false;
         received_altitude_ = false;
+
+        // 初期値取得
+        target_radius_ = this->get_parameter("target_radius").as_double();
 
         // パラメータ取得
         yaw_per_lap_ = this->get_parameter("yaw_per_lap").as_double();
@@ -56,6 +69,16 @@ private:
     {
         // autopilot_modeが"rise_turn"の場合のみ動作
         is_rise_turning_mode_ = (msg->autopilot_mode == "rise_turn");
+
+        if (is_rise_turning_mode_)
+        {
+            // 現在のパラメータ値を取得してパブリッシュ
+            target_radius_ = this->get_parameter("target_radius").as_double();
+            std_msgs::msg::Float32 radius_msg;
+            radius_msg.data = target_radius_;
+            target_radius_publisher_->publish(radius_msg);
+            RCLCPP_DEBUG(this->get_logger(), "Published target turning radius: %.2f meters", target_radius_);
+        }
     }
 
     void yaw_callback(const std_msgs::msg::Float32::SharedPtr msg)
@@ -127,11 +150,48 @@ private:
         RCLCPP_DEBUG(this->get_logger(), "Published target altitude: %.2f (lap: %d)", target_altitude_, lap_count_);
     }
 
+    // パラメータ更新時の検証
+    rcl_interfaces::msg::SetParametersResult parameter_callback(
+        const std::vector<rclcpp::Parameter> &parameters)
+    {
+        rcl_interfaces::msg::SetParametersResult result;
+        result.successful = true;
+        for (const auto &param : parameters)
+        {
+            if (param.get_name() == "target_radius")
+            {
+                if (param.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
+                {
+                    float new_radius = param.as_double();
+                    if (new_radius > 0.0f)
+                    {
+                        target_radius_ = new_radius;
+                        RCLCPP_INFO(this->get_logger(), "Target radius updated to: %.2f meters", target_radius_);
+                    }
+                    else
+                    {
+                        result.successful = false;
+                        result.reason = "Target radius must be greater than 0";
+                        RCLCPP_WARN(this->get_logger(), "Invalid target radius: %.2f. Must be > 0", new_radius);
+                    }
+                }
+                else
+                {
+                    result.successful = false;
+                    result.reason = "Target radius parameter must be a float/double";
+                }
+            }
+        }
+        return result;
+    }
+
     // メンバ変数
     rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr target_altitude_publisher_;
+    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr target_radius_publisher_;
     rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_subscriber_;
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr serialized_yaw_subscriber_;
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr average_altitude_subscriber_;
+    rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_callback_handle_;
 
     bool is_rise_turning_mode_;
     int lap_count_;
@@ -139,6 +199,7 @@ private:
     float total_yaw_;
     float average_altitude_;
     float target_altitude_;
+    float target_radius_;
     int transition_start_lap_;
     int transition_end_lap_;
     float yaw_per_lap_;

@@ -30,6 +30,21 @@ launch:
 
               - node:
                   pkg: ksenos_ground
+                  exec: mode_target_altitude_selector
+                  name: mode_target_altitude_selector_node
+                  output: screen
+                  remap:
+                    - from: "sbus_data"
+                      to: "/sbus/manual/sbus_data"
+                    - from: "average_altitude"
+                      to: "/controller/long/calc/average_altitude_imu"
+                    - from: "altitude_dynamic"
+                      to: "/controller/long/calc/dynamic_altitude"
+                    - from: "altitude_target"
+                      to: "/controller/long/calc/target_altitude"
+
+              - node:
+                  pkg: ksenos_ground
                   exec: calc_energy
                   name: calc_energy_reference
                   param:
@@ -40,7 +55,7 @@ launch:
                     - name: velocity_topic
                       value: "/controller/long/calc/average_flow_rate"
                     - name: altitude_topic
-                      value: "/controller/long/calc/average_altitude_imu"
+                      value: "/controller/long/calc/target_altitude"
                     - name: energy_topic
                       value: "/controller/long/reference_energy"
 

@@ -188,6 +188,18 @@ ament_auto_add_executable(mode_rise_turning src/mode_rise_turning.cpp)
 install(TARGETS mode_rise_turning
   DESTINATION lib/${PROJECT_NAME})
 
+# モード別目標横加速度セレクター
+ament_auto_add_executable(mode_target_lat_acc_selector src/mode_target_lat_acc_selector.cpp)
+install(TARGETS mode_target_lat_acc_selector
+  DESTINATION lib/${PROJECT_NAME})
+
+
+# モード別目標高度セレクター
+ament_auto_add_executable(mode_target_altitude_selector src/mode_target_altitude_selector.cpp)
+install(TARGETS mode_target_altitude_selector
+  DESTINATION lib/${PROJECT_NAME})
+
+
 
 # エネルギー計算ノード
 ament_auto_add_executable(calc_energy src/calc_energy.cpp)
