@@ -54,7 +54,7 @@ private:
         average_altitude_available_ = true;
 
         // auto_turningまたはeight_turningモードの場合はパブリッシュ
-        if (current_mode_ == "horizontal rotation" || current_mode_ == "eight_turning")
+        if (current_mode_ == "horizontal_turning" || current_mode_ == "eight_turning")
         {
             publish_altitude_target();
         }
@@ -67,8 +67,8 @@ private:
         latest_altitude_dynamic_ = msg->data;
         altitude_dynamic_available_ = true;
 
-        // rise_turningまたはauto_pilotモードの場合はパブリッシュ
-        if (current_mode_ == "rise_turn" || current_mode_ == "auto_pilot")
+        // rise_turningまたはauto_landingモードの場合はパブリッシュ
+        if (current_mode_ == "rise_turning" || current_mode_ == "auto_landing")
         {
             publish_altitude_target();
         }
@@ -82,7 +82,7 @@ private:
         bool should_publish = false;
         std::string source = "";
 
-        if (current_mode_ == "horizontal rotation" || current_mode_ == "eight_turning")
+        if (current_mode_ == "horizontal_turning" || current_mode_ == "eight_turning")
         {
             // auto_turningまたはeight_turningモードの場合: average_altitudeを使用
             if (average_altitude_available_)
@@ -97,9 +97,9 @@ private:
                                      "Mode %s requires average_altitude, but it's not available", current_mode_.c_str());
             }
         }
-        else if (current_mode_ == "rise_turn" || current_mode_ == "auto_pilot")
+        else if (current_mode_ == "rise_turning" || current_mode_ == "auto_landing")
         {
-            // rise_turningまたはauto_pilotモードの場合: altitude_dynamicを使用
+            // rise_turningまたはauto_landingモードの場合: altitude_dynamicを使用
             if (altitude_dynamic_available_)
             {
                 target_msg.data = latest_altitude_dynamic_;

@@ -1,6 +1,6 @@
 // 目標横加速度のソースをモードで切り替えるノード
-// auto_pilot:   /l1_acc (Float32)
-// その他 (horizontal rotation, eight_turning, rise_turn): /target_acc (Float32)
+// auto_landing:   /l1_acc (Float32)
+// その他 (horizontal_turning, eight_turning, rise_turning): /target_acc (Float32)
 
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float32.hpp>
@@ -56,7 +56,7 @@ private:
         latest_l1_acc_ = msg->data;
         l1_acc_available_ = true;
 
-        if (current_mode_ == "auto_pilot")
+        if (current_mode_ == "auto_landing")
         {
             publish_lat_acc_target();
         }
@@ -64,15 +64,15 @@ private:
         RCLCPP_DEBUG(this->get_logger(), "L1 acc updated: %.3f", latest_l1_acc_);
     }
 
-    // 目標横加速度入力（非 auto_pilot 時に使用）
+    // 目標横加速度入力（非 auto_landing 時に使用）
     void target_acc_callback(const std_msgs::msg::Float32::SharedPtr msg)
     {
         latest_target_acc_ = msg->data;
         target_acc_available_ = true;
 
-        if (current_mode_ == "horizontal rotation" ||
+        if (current_mode_ == "horizontal_turning" ||
             current_mode_ == "eight_turning" ||
-            current_mode_ == "rise_turn")
+            current_mode_ == "rise_turning")
         {
             publish_lat_acc_target();
         }
@@ -86,7 +86,7 @@ private:
         bool should_publish = false;
         std::string source;
 
-        if (current_mode_ == "auto_pilot")
+        if (current_mode_ == "auto_landing")
         {
             if (l1_acc_available_)
             {
@@ -100,9 +100,9 @@ private:
                                      "Mode %s requires l1_acc, but it's not available", current_mode_.c_str());
             }
         }
-        else if (current_mode_ == "horizontal rotation" ||
+        else if (current_mode_ == "horizontal_turning" ||
                  current_mode_ == "eight_turning" ||
-                 current_mode_ == "rise_turn")
+                 current_mode_ == "rise_turning")
         {
             if (target_acc_available_)
             {

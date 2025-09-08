@@ -67,8 +67,8 @@ public:
 private:
     void sbus_callback(const ksenos_ground_msgs::msg::SbusData::SharedPtr msg)
     {
-        // autopilot_modeが"rise_turn"の場合のみ動作
-        is_rise_turning_mode_ = (msg->autopilot_mode == "rise_turn");
+        // autopilot_modeが"rise_turning"の場合のみ動作
+        is_rise_turning_mode_ = (msg->autopilot_mode == "rise_turning");
 
         if (is_rise_turning_mode_)
         {

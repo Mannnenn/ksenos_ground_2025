@@ -106,21 +106,21 @@ private:
         {
             if (is_autolanding_enabled)
             {
-                processed_msg.autopilot_mode = "autolanding";
+                processed_msg.autopilot_mode = "auto_landing";
             }
             else
             {
                 if (msg->turning_mode <= autopilot_mode_threshold_low)
                 {
-                    processed_msg.autopilot_mode = "horizontal rotation";
+                    processed_msg.autopilot_mode = "horizontal_turning";
                 }
                 else if (msg->turning_mode <= autopilot_mode_threshold_high)
                 {
-                    processed_msg.autopilot_mode = "ascending turn";
+                    processed_msg.autopilot_mode = "rise_turning";
                 }
                 else
                 {
-                    processed_msg.autopilot_mode = "eight turn";
+                    processed_msg.autopilot_mode = "eight_turning";
                 }
             }
         }

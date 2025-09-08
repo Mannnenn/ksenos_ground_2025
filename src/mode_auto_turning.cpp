@@ -36,7 +36,7 @@ private:
     void sbus_callback(const ksenos_ground_msgs::msg::SbusData::SharedPtr msg)
     {
         // autopilot_modeが"auto_turning"の場合のみ動作
-        is_auto_turning_mode_ = (msg->autopilot_mode == "horizontal rotation");
+        is_auto_turning_mode_ = (msg->autopilot_mode == "horizontal_turning");
 
         if (is_auto_turning_mode_)
         {

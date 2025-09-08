@@ -191,7 +191,7 @@ SBUS（S.BUS）生データを処理し、実際のフライトコントロー�
 - **投下装置制御**: 2 つのしきい値による 0,1,2 の状態判定
 - **自動着陸判定**: しきい値による有効/無効の判定
 - **フライトモード判定**:
-  - "horizontal rotation" (水平回転)
+  - "horizontal_turning" (水平回転)
   - "ascending turn" (上昇旋回)
   - "eight turn" (8 の字旋回)
   - "autolanding" (自動着陸)

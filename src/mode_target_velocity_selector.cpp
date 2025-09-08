@@ -54,9 +54,9 @@ private:
         average_velocity_available_ = true;
 
         // auto_turning、eight_turning、rise_turningモードの場合はパブリッシュ
-        if (current_mode_ == "horizontal rotation" ||
+        if (current_mode_ == "horizontal_turning" ||
             current_mode_ == "eight_turning" ||
-            current_mode_ == "rise_turn")
+            current_mode_ == "rise_turning")
         {
             publish_velocity_target();
         }
@@ -69,8 +69,8 @@ private:
         latest_dynamic_velocity_ = msg->data;
         dynamic_velocity_available_ = true;
 
-        // auto_pilotモードの場合はパブリッシュ
-        if (current_mode_ == "auto_pilot")
+        // auto_landingモードの場合はパブリッシュ
+        if (current_mode_ == "auto_landing")
         {
             publish_velocity_target();
         }
@@ -84,9 +84,9 @@ private:
         bool should_publish = false;
         std::string source = "";
 
-        if (current_mode_ == "horizontal rotation" ||
+        if (current_mode_ == "horizontal_turning" ||
             current_mode_ == "eight_turning" ||
-            current_mode_ == "rise_turn")
+            current_mode_ == "rise_turning")
         {
             // auto_turning、eight_turning、rise_turningモードの場合: average_velocityを使用
             if (average_velocity_available_)
@@ -101,9 +101,9 @@ private:
                                      "Mode %s requires average_velocity, but it's not available", current_mode_.c_str());
             }
         }
-        else if (current_mode_ == "auto_pilot")
+        else if (current_mode_ == "auto_landing")
         {
-            // auto_pilotモードの場合: dynamic_velocityを使用
+            // auto_landingモードの場合: dynamic_velocityを使用
             if (dynamic_velocity_available_)
             {
                 target_msg.data = latest_dynamic_velocity_;
