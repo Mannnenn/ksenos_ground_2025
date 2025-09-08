@@ -18,9 +18,9 @@ launch:
                   output: screen
                   remap:
                     - from: "/average/altitude_imu"
-                      to: "/controller/long/calc/altitude_imu"
+                      to: "/controller/long/calc/average_altitude_imu"
                     - from: "/average/flow_rate"
-                      to: "/controller/long/calc/flow_rate"
+                      to: "/controller/long/calc/average_flow_rate"
                     - from: "/sensor/altitude_imu"
                       to: "/sensor/altitude/altitude_imu"
                     - from: "/sensor/altitude_lidar"
@@ -38,9 +38,9 @@ launch:
                     - name: gravity
                       value: 9.81
                     - name: velocity_topic
-                      value: "/controller/long/calc/flow_rate"
+                      value: "/controller/long/calc/average_flow_rate"
                     - name: altitude_topic
-                      value: "/controller/long/calc/altitude_imu"
+                      value: "/controller/long/calc/average_altitude_imu"
                     - name: energy_topic
                       value: "/controller/long/reference_energy"
 

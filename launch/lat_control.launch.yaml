@@ -20,7 +20,7 @@ launch:
                       value: 0.1 # ローパスフィルターのアルファ値（0.1 = 10%の新しいデータを使用）
                   remap:
                     - from: "/average/flow_rate"
-                      to: "/controller/long/calc/flow_rate"
+                      to: "/sensor/flow_rate"
                     - from: "/controller/lat/calc/lateral_acceleration"
                       to: "/controller/lat/lateral_acceleration"
 
