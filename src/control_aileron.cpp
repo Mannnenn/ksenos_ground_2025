@@ -15,12 +15,17 @@ public:
         this->declare_parameter("kd", 0.1);
         this->declare_parameter("max_aileron", 0.6);
         this->declare_parameter("min_aileron", -0.6);
+        // 左右で異なるPゲインを適用するためのスケール（1.0で従来と同等）
+        this->declare_parameter("kp_right_scale", 1.0);
+        this->declare_parameter("kp_left_scale", 1.0);
 
         // パラメータの取得
         kp_ = this->get_parameter("kp").as_double();
         kd_ = this->get_parameter("kd").as_double();
         max_aileron_ = this->get_parameter("max_aileron").as_double();
         min_aileron_ = this->get_parameter("min_aileron").as_double();
+        kp_right_scale_ = this->get_parameter("kp_right_scale").as_double();
+        kp_left_scale_ = this->get_parameter("kp_left_scale").as_double();
 
         // サブスクライバーの作成
         target_roll_sub_ = this->create_subscription<std_msgs::msg::Float32>(
@@ -52,7 +57,8 @@ public:
         last_time_ = this->now();
 
         RCLCPP_INFO(this->get_logger(), "Aileron Control Node Started");
-        RCLCPP_INFO(this->get_logger(), "Kp: %.3f, Kd: %.3f", kp_, kd_);
+        RCLCPP_INFO(this->get_logger(), "Kp: %.3f (right_scale: %.3f, left_scale: %.3f), Kd: %.3f",
+                    kp_, kp_right_scale_, kp_left_scale_, kd_);
     }
 
 private:
@@ -97,8 +103,13 @@ private:
         // D制御：角速度を使用（負の符号で安定化）
         double d_term = -kd_ * roll_rate_;
 
+        // 方向別Pゲイン（右ロール/左ロールで効きを調整）
+        // errorの符号で方向を判定（error>0 を "右ロール方向" と仮定）。
+        // 誤差符号の定義は機体の座標系に依存するため、必要ならスケール値で微調整してください。
+        const double kp_eff = kp_ * ((error >= 0.0) ? kp_right_scale_ : kp_left_scale_);
+
         // PD制御の計算
-        double aileron_output = kp_ * error + d_term;
+        double aileron_output = kp_eff * error + d_term;
 
         // 出力の制限
         aileron_output = std::max(min_aileron_, std::min(max_aileron_, aileron_output));
@@ -137,10 +148,12 @@ private:
     rclcpp::TimerBase::SharedPtr control_timer_;
 
     // 制御パラメータ
-    double kp_;          // P制御ゲイン
-    double kd_;          // D制御ゲイン
-    double max_aileron_; // 最大aileron値
-    double min_aileron_; // 最小aileron値
+    double kp_;             // P制御ゲイン
+    double kd_;             // D制御ゲイン
+    double max_aileron_;    // 最大aileron値
+    double min_aileron_;    // 最小aileron値
+    double kp_right_scale_; // 右ロール方向用のPゲインスケール
+    double kp_left_scale_;  // 左ロール方向用のPゲインスケール
 
     // 状態変数
     double target_roll_;

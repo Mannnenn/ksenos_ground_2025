@@ -56,6 +56,10 @@ launch:
                       value: 0.6 # 最大エルロン値
                     - name: min_aileron
                       value: -0.6 # 最小エルロン値
+                    - name: kp_right_scale
+                      value: 1.07 # 右ロール方向用のPゲインスケール(0.75/0.7)
+                    - name: kp_left_scale
+                      value: 1.0 # 左ロール方向用のPゲインスケール
                   remap:
                     - from: "/aileron_input"
                       to: "/controller/lat/aileron_input"
