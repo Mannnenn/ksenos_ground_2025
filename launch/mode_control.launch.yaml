@@ -13,7 +13,7 @@ launch:
               name: auto_turning_node
               param:
                 - name: target_radius
-                  value: 5.0
+                  value: -5.0
               remap:
                 - from: "sbus_data"
                   to: "/sbus/manual/sbus_data"
@@ -68,13 +68,13 @@ launch:
               name: rise_turning_node
               param:
                 - name: altitude_offset
-                  value: 2.0
+                  value: 3.5
                 - name: lap_count_initial
-                  value: 2
+                  value: 3
                 - name: lap_count_transition
                   value: 3
                 - name: target_radius
-                  value: -5.0
+                  value: 5.0
               remap:
                 - from: "sbus_data"
                   to: "/sbus/manual/sbus_data"

@@ -93,6 +93,9 @@ private:
 
     void yaw_callback(const std_msgs::msg::Float32::SharedPtr msg)
     {
+        if (!is_rise_turning_mode_)
+            return;
+
         float yaw = msg->data;
         if (!received_yaw_)
         {
@@ -123,7 +126,6 @@ private:
     {
         average_altitude_ = msg->data;
         received_altitude_ = true;
-        publish_target_altitude();
     }
 
     void publish_target_altitude()
@@ -166,8 +168,10 @@ private:
         received_yaw_ = false;
         total_yaw_ = 0.0f;
         lap_count_ = 0;
+        last_yaw_ = 0.0f;
+        average_altitude_ = 0.0f;
         received_altitude_ = false; // 古い高度でのpublishを防止
-        // last_yaw_はreceived_yaw_がfalseのため次回受信時に更新される
+        received_yaw_ = false;
     }
 
     // パラメータ更新時の検証
