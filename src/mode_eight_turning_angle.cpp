@@ -9,13 +9,18 @@ class ModeEightTurningAngleNode : public rclcpp::Node
 public:
     ModeEightTurningAngleNode() : Node("mode_eight_turning_angle")
     {
-        // パラメータの初期化
-        turn_mode_ = TurnMode::LEFT; // 左旋回から開始
+        // パラメータ宣言
+        this->declare_parameter<double>("max_turn_radius", 15.0);
+        this->declare_parameter<double>("min_turn_radius", 4.5);
+
+        // パラメータ取得
+        max_radius_ = this->get_parameter("max_turn_radius").as_double();
+        min_radius_ = this->get_parameter("min_turn_radius").as_double();
+
+        turn_mode_ = TurnMode::RIGHT; // 左旋回から開始
         reference_yaw_ = 0.0;
         is_initialized_ = false;
         is_eight_turning_mode_ = false;
-        max_radius_ = 40.0; // 最大旋回半径 [m]
-        min_radius_ = 4.5;  // 最小旋回半径 [m]
 
         // サブスクライバーとパブリッシャーの設定
         yaw_subscriber_ = this->create_subscription<std_msgs::msg::Float32>(
@@ -30,6 +35,7 @@ public:
         mode_publisher_ = this->create_publisher<std_msgs::msg::Int32>("turn_mode", 10);
 
         RCLCPP_INFO(this->get_logger(), "Mode Eight Turning Angle Node has been started");
+        RCLCPP_INFO(this->get_logger(), "max_turn_radius: %.2f, min_turn_radius: %.2f", max_radius_, min_radius_);
     }
 
 private:
@@ -188,21 +194,11 @@ private:
         }
     }
 
-    float normalize_angle(float angle)
-    {
-        // 角度を-π〜πの範囲に正規化
-        while (angle > M_PI)
-            angle -= 2.0 * M_PI;
-        while (angle < -M_PI)
-            angle += 2.0 * M_PI;
-        return angle;
-    }
-
     void reset_state_()
     {
         is_initialized_ = false;
         reference_yaw_ = 0.0;
-        turn_mode_ = TurnMode::LEFT; // 左旋回から再開
+        turn_mode_ = TurnMode::RIGHT; // 左旋回から再開
         RCLCPP_INFO(this->get_logger(), "State reset - ready for new eight turning cycle");
     }
 

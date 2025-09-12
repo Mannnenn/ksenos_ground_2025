@@ -20,6 +20,9 @@ public:
         this->declare_parameter<double>("min_rudder", -1.0);          // 最小ラダー値
         this->declare_parameter<double>("max_integral", 10.0);        // 積分項の最大値
         this->declare_parameter<double>("lowpass_cutoff_freq", 10.0); // ローパスフィルターのカットオフ周波数 [Hz]
+        // 左右で異なるFF横方向加速度ゲインを適用するためのスケール（1.0で従来と同等）
+        this->declare_parameter<double>("ff_lat_acc_right_scale", 1.0);
+        this->declare_parameter<double>("ff_lat_acc_left_scale", 1.0);
 
         // パラメータの取得
         kp_ = this->get_parameter("kp").as_double();
@@ -30,6 +33,8 @@ public:
         min_rudder_ = this->get_parameter("min_rudder").as_double();
         max_integral_ = this->get_parameter("max_integral").as_double();
         lowpass_cutoff_freq_ = this->get_parameter("lowpass_cutoff_freq").as_double();
+        ff_lat_acc_right_scale_ = this->get_parameter("ff_lat_acc_right_scale").as_double();
+        ff_lat_acc_left_scale_ = this->get_parameter("ff_lat_acc_left_scale").as_double();
 
         // 制御変数の初期化
         integral_error_ = 0.0;
@@ -68,8 +73,8 @@ public:
             std::bind(&RudderControl::controlLoop, this));
 
         RCLCPP_INFO(this->get_logger(), "Rudder Control node initialized");
-        RCLCPP_INFO(this->get_logger(), "Parameters - kp: %.3f, ki: %.3f, ff_lat_acc_gain: %.3f, ff_aileron_gain: %.3f, lowpass_cutoff: %.1f Hz",
-                    kp_, ki_, ff_lat_acc_gain_, ff_aileron_gain_, lowpass_cutoff_freq_);
+        RCLCPP_INFO(this->get_logger(), "Parameters - kp: %.3f, ki: %.3f, ff_lat_acc_gain: %.3f (right_scale: %.3f, left_scale: %.3f), ff_aileron_gain: %.3f, lowpass_cutoff: %.1f Hz",
+                    kp_, ki_, ff_lat_acc_gain_, ff_lat_acc_right_scale_, ff_lat_acc_left_scale_, ff_aileron_gain_, lowpass_cutoff_freq_);
     }
 
 private:
@@ -138,7 +143,10 @@ private:
             return;
 
         // FF制御の計算（フィルター済みの値を使用）
-        double ff_output = ff_lat_acc_gain_ * filtered_reference_lateral_acceleration_ +
+        // 方向別FF横方向加速度ゲイン（正の場合を "左" 方向と定義）
+        const double ff_lat_acc_eff = ff_lat_acc_gain_ * ((filtered_reference_lateral_acceleration_ >= 0.0) ? ff_lat_acc_left_scale_ : ff_lat_acc_right_scale_);
+
+        double ff_output = ff_lat_acc_eff * filtered_reference_lateral_acceleration_ +
                            ff_aileron_gain_ * filtered_current_aileron_angle_;
 
         // エラーの計算（目標値 - 実際値、フィルター済みの値を使用）
@@ -219,6 +227,8 @@ private:
     double min_rudder_;
     double max_integral_;
     double lowpass_cutoff_freq_;
+    double ff_lat_acc_right_scale_; // 右方向用のFF横方向加速度ゲインスケール
+    double ff_lat_acc_left_scale_;  // 左方向用のFF横方向加速度ゲインスケール
 
     // 制御変数
     const double target_lateral_acceleration_ = 0.0;
