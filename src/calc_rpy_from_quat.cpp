@@ -1,4 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "ksenos_ground_msgs/msg/rpy.hpp"
 #include "tf2/LinearMath/Quaternion.h"
@@ -7,7 +8,7 @@
 class CalcRpyFromQuat : public rclcpp::Node
 {
 public:
-    CalcRpyFromQuat() : Node("calc_rpy_from_quat")
+    CalcRpyFromQuat(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("calc_rpy_from_quat", options)
     {
         // パラメータの宣言
         this->declare_parameter("input_topic", "/imu/data");
@@ -69,10 +70,5 @@ private:
     std::string frame_id_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<CalcRpyFromQuat>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(CalcRpyFromQuat)

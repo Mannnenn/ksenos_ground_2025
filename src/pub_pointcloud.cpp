@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -13,12 +14,36 @@ int frameItem = 0;
 class PointCloudPublisher : public rclcpp::Node
 {
 public:
-    PointCloudPublisher() : Node("pointcloud_publisher")
+    PointCloudPublisher(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("pointcloud_publisher", options)
     {
         // PointCloud2パブリッシャーを作成
         publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("lidar_points", 10);
 
+        // LiDARの初期化
+        pandar_general_ = std::make_unique<PandarGeneralSDK>(
+            std::string("192.168.1.201"), 2368, 0, 10110,
+            std::bind(&PointCloudPublisher::lidarCallbackWrapper, this,
+                      std::placeholders::_1, std::placeholders::_2),
+            std::bind(&PointCloudPublisher::lidarAlgorithmCallbackWrapper, this,
+                      std::placeholders::_1),
+            std::bind(&PointCloudPublisher::gpsCallbackWrapper, this,
+                      std::placeholders::_1),
+            0, 0, 0,
+            std::string("Pandar40P"), std::string("frame_id"),
+            "", "", "", false);
+
+        pandar_general_->Start();
+
         RCLCPP_INFO(this->get_logger(), "PointCloud Publisher node has been started.");
+    }
+
+    ~PointCloudPublisher()
+    {
+        if (pandar_general_)
+        {
+            // LiDARの停止処理があれば実行
+        }
     }
 
     void publishPointCloud(const std::vector<pcl::PointXYZI> &points, double timestamp)
@@ -42,95 +67,41 @@ public:
 
         // パブリッシュ
         publisher_->publish(cloud_msg);
+    }
 
-#ifdef PRINT_FLAG
-        RCLCPP_INFO(this->get_logger(), "Published pointcloud with %zu points at timestamp: %lf",
-                    points.size(), timestamp);
-#endif
+    void gpsCallbackWrapper(int timestamp)
+    {
+        // 空実装
+    }
+
+    void lidarCallbackWrapper(boost::shared_ptr<PPointCloud> cld, double timestamp)
+    {
+
+        // SDK の点群データ構造体から PCL PointXYZI 形式に変換
+        std::vector<pcl::PointXYZI> points;
+        for (const auto &pt : cld->points)
+        {
+            pcl::PointXYZI p;
+            p.x = pt.x;
+            p.y = pt.y;
+            p.z = pt.z;
+            p.intensity = pt.intensity; // 反射強度を設定
+            points.push_back(p);
+        }
+
+        // ROS2でポイントクラウドをパブリッシュ
+        publishPointCloud(points, timestamp);
+    }
+
+    void lidarAlgorithmCallbackWrapper(HS_Object3D_Object_List *object_t)
+    {
+        HS_Object3D_Object *object;
     }
 
 private:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
+    std::unique_ptr<PandarGeneralSDK> pandar_general_;
 };
 
-// グローバルなパブリッシャーノードのポインタ
-std::shared_ptr<PointCloudPublisher> g_publisher_node = nullptr;
-
-void gpsCallback(int timestamp)
-{
-}
-
-void lidarCallback(boost::shared_ptr<PPointCloud> cld, double timestamp)
-{
-#ifdef PRINT_FLAG
-    printf("timestamp: %lf, point_size: %ld\n", timestamp, cld->points.size());
-#endif
-
-    // SDK の点群データ構造体から PCL PointXYZI 形式に変換
-    std::vector<pcl::PointXYZI> points;
-    for (const auto &pt : cld->points)
-    {
-        pcl::PointXYZI p;
-        p.x = pt.x;
-        p.y = pt.y;
-        p.z = pt.z;
-        p.intensity = pt.intensity; // 反射強度を設定
-        points.push_back(p);
-    }
-
-    // ROS2でポイントクラウドをパブリッシュ
-    if (g_publisher_node != nullptr)
-    {
-        g_publisher_node->publishPointCloud(points, timestamp);
-    }
-}
-
-void lidarAlgorithmCallback(HS_Object3D_Object_List *object_t)
-{
-    HS_Object3D_Object *object;
-#ifdef PRINT_FLAG
-    printf("----------------------\n");
-    printf("total objects: %d\n", object_t->valid_size);
-    for (size_t i = 0; i < object_t->valid_size; i++)
-    {
-        object = &object_t->data[i];
-        printf("id: %u, type: %u\n", object->data.id, object->type);
-    }
-    printf("----------------------\n");
-#endif
-}
-
-int main(int argc, char **argv)
-{
-    // ROS2の初期化
-    rclcpp::init(argc, argv);
-
-    // パブリッシャーノードを作成
-    g_publisher_node = std::make_shared<PointCloudPublisher>();
-
-    // LiDARの初期化
-    PandarGeneralSDK pandarGeneral(std::string("192.168.1.201"), 2368, 0, 10110,
-                                   lidarCallback, lidarAlgorithmCallback, gpsCallback, 0, 0, 0,
-                                   std::string("Pandar40P"), std::string("frame_id"),
-                                   "", "", "", false);
-    pandarGeneral.Start();
-
-    // ROS2のスピンループを別スレッドで実行
-    std::thread spin_thread([&]()
-                            { rclcpp::spin(g_publisher_node); });
-
-    // メインループ（LiDARデータの取得を継続）
-    while (rclcpp::ok())
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    // 終了処理
-    rclcpp::shutdown();
-    if (spin_thread.joinable())
-    {
-        spin_thread.join();
-    }
-
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(PointCloudPublisher)

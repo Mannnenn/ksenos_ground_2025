@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <cmath>
 
 #include "sensor_msgs/msg/imu.hpp"
@@ -9,8 +10,8 @@
 class RotationCounterNode : public rclcpp::Node
 {
 public:
-    RotationCounterNode()
-        : Node("yaw_angle_serialization_node"),
+    RotationCounterNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("yaw_angle_serialization_node", options),
           previous_yaw_(0.0),
           total_rotation_(0.0),
           is_first_measurement_(true)
@@ -111,10 +112,5 @@ private:
     bool is_first_measurement_; // 初回測定フラグ
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<RotationCounterNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(RotationCounterNode)

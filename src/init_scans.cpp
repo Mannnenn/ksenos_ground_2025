@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 #include "std_msgs/msg/float32.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
@@ -30,8 +31,8 @@ using namespace std::chrono_literals;
 class LidarScanNode : public rclcpp::Node
 {
 public:
-    LidarScanNode()
-        : Node("lidar_scan_node")
+    LidarScanNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("lidar_scan_node", options)
     {
         // パラメータの宣言とデフォルト値の設定
         this->declare_parameter<double>("scan_duration", 10.0);
@@ -167,10 +168,9 @@ private:
             {
                 RCLCPP_WARN(this->get_logger(), "No pointcloud data received");
             }
-            // タイマー停止・ノード終了
+            // タイマー停止
             timer_->cancel();
-            RCLCPP_INFO(this->get_logger(), "Scan finished. Shutting down node.");
-            rclcpp::shutdown();
+            RCLCPP_INFO(this->get_logger(), "Scan finished. Node remains active.");
         }
     }
 
@@ -192,11 +192,5 @@ private:
     std_msgs::msg::Header cloud_header_;
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<LidarScanNode>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(LidarScanNode)

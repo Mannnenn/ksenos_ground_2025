@@ -30,6 +30,7 @@
 #include <chrono>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "std_msgs/msg/float32.hpp"
@@ -91,7 +92,8 @@ struct TrackedObject
 class MovableObjectDetector : public rclcpp::Node
 {
 public:
-    MovableObjectDetector() : Node("movable_object_detector")
+    MovableObjectDetector(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("movable_object_detector", options)
     {
         // トピック関連パラメータの宣言
         this->declare_parameter("map_topic", "/map_points");
@@ -871,11 +873,5 @@ private:
     }
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<MovableObjectDetector>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(MovableObjectDetector)

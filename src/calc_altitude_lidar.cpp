@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
@@ -8,7 +9,7 @@
 class AltitudeLidarNode : public rclcpp::Node
 {
 public:
-    AltitudeLidarNode() : Node("calc_altitude_lidar")
+    AltitudeLidarNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("calc_altitude_lidar", options)
     {
         // TF2バッファとリスナーを初期化
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -64,10 +65,5 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<AltitudeLidarNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(AltitudeLidarNode)

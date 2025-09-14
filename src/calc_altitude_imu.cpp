@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/range.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
@@ -10,7 +11,7 @@
 class CalcAltitudeNode : public rclcpp::Node
 {
 public:
-    CalcAltitudeNode() : Node("calc_altitude_node")
+    CalcAltitudeNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("calc_altitude_node", options)
     {
         // ToFセンサーのレンジデータを購読
         tof_subscription_ = this->create_subscription<sensor_msgs::msg::Range>(
@@ -113,10 +114,5 @@ private:
     bool has_tof_data_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<CalcAltitudeNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(CalcAltitudeNode)

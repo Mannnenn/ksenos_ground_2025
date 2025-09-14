@@ -1,5 +1,6 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -15,8 +16,8 @@ private:
     static constexpr int WAIT_SLEEP_MS = 1000;
 
 public:
-    TfProjectionNode()
-        : Node("tf_projection_node")
+    TfProjectionNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("tf_projection_node", options)
     {
         initializeTransforms();
         initializeTimer();
@@ -155,10 +156,6 @@ private:
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 };
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<TfProjectionNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(TfProjectionNode)

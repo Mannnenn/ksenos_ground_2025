@@ -18,6 +18,7 @@ find_package(PCL REQUIRED COMPONENTS common filters segmentation search)
 find_package(pcl_conversions REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
+find_package(rclcpp_components REQUIRED)
 
 # LiDAR SDKのサブディレクトリを追加
 # HesaiLidar_General_SDKでは特定のwarningを無視する
@@ -35,30 +36,42 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # 初期スキャン地図化
-ament_auto_add_executable(init_scans src/init_scans.cpp)
-target_link_libraries(init_scans ${PCL_LIBRARIES})
-ament_target_dependencies(init_scans pcl_conversions)
-install(TARGETS init_scans
+# コンポーネント版
+ament_auto_add_library(init_scans_component SHARED src/init_scans.cpp)
+target_link_libraries(init_scans_component ${PCL_LIBRARIES})
+ament_target_dependencies(init_scans_component pcl_conversions)
+rclcpp_components_register_nodes(init_scans_component "LidarScanNode")
+
+install(TARGETS init_scans_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 点群モーター座標系変換
-ament_auto_add_executable(pointcloud_transform src/pointcloud_transform.cpp)
-install(TARGETS pointcloud_transform
+# コンポーネント版
+ament_auto_add_library(pointcloud_transform_component SHARED src/pointcloud_transform.cpp)
+rclcpp_components_register_nodes(pointcloud_transform_component "PointCloudTransformer")
+
+install(TARGETS pointcloud_transform_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 点群飛行機検出
-ament_auto_add_executable(detect_movable_objects src/detect_movable_objects.cpp)
-target_compile_features(detect_movable_objects PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_link_libraries(detect_movable_objects ${PCL_LIBRARIES})
-ament_target_dependencies(detect_movable_objects pcl_conversions)
-install(TARGETS detect_movable_objects
+# コンポーネント版
+ament_auto_add_library(detect_movable_objects_component SHARED src/detect_movable_objects.cpp)
+target_compile_features(detect_movable_objects_component PUBLIC c_std_99 cxx_std_17)
+target_link_libraries(detect_movable_objects_component ${PCL_LIBRARIES})
+ament_target_dependencies(detect_movable_objects_component pcl_conversions)
+rclcpp_components_register_nodes(detect_movable_objects_component "MovableObjectDetector")
+
+install(TARGETS detect_movable_objects_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 地面推定
-ament_auto_add_executable(correction_ground src/correction_ground.cpp)
-target_link_libraries(correction_ground ${PCL_LIBRARIES})
-ament_target_dependencies(correction_ground pcl_conversions)
-install(TARGETS correction_ground
+# コンポーネント版
+ament_auto_add_library(correction_ground_component SHARED src/correction_ground.cpp)
+target_link_libraries(correction_ground_component ${PCL_LIBRARIES})
+ament_target_dependencies(correction_ground_component pcl_conversions)
+rclcpp_components_register_nodes(correction_ground_component "GroundCorrectionNode")
+
+install(TARGETS correction_ground_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 速度推定ノード
@@ -98,8 +111,11 @@ install(TARGETS sbus_offset_apply_node
   DESTINATION lib/${PROJECT_NAME})
 
 # UDPパケット受信ノード
-ament_auto_add_executable(receive_udp_packet src/receive_udp_packet.cpp)
-install(TARGETS receive_udp_packet
+# コンポーネント版
+ament_auto_add_library(receive_udp_packet_component SHARED src/receive_udp_packet.cpp)
+rclcpp_components_register_nodes(receive_udp_packet_component "UDPReceiver")
+
+install(TARGETS receive_udp_packet_component
   DESTINATION lib/${PROJECT_NAME})
 
 # シミュレーションノード
@@ -118,8 +134,11 @@ install(TARGETS pub_area
   DESTINATION lib/${PROJECT_NAME})
 
 # 角度投影パブリッシャー
-ament_auto_add_executable(project_orientation src/project_orientation.cpp)
-install(TARGETS project_orientation
+# コンポーネント版
+ament_auto_add_library(project_orientation_component SHARED src/project_orientation.cpp)
+rclcpp_components_register_nodes(project_orientation_component "TfProjectionNode")
+
+install(TARGETS project_orientation_component
   DESTINATION lib/${PROJECT_NAME})
 
 
@@ -129,21 +148,51 @@ install(TARGETS pub_rpy
   DESTINATION lib/${PROJECT_NAME})
 
 # ポイントクラウドパブリッシャー
-ament_auto_add_executable(pub_pointcloud src/pub_pointcloud.cpp)
-target_compile_features(pub_pointcloud PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_link_libraries(pub_pointcloud ${PCL_LIBRARIES} PandarGeneralSDK ${Boost_LIBRARIES})
-ament_target_dependencies(pub_pointcloud pcl_conversions)
-# Set RPATH for pub_pointcloud to find the PandarGeneralSDK library
-set_target_properties(pub_pointcloud PROPERTIES
+# コンポーネント版
+ament_auto_add_library(pub_pointcloud_component SHARED src/pub_pointcloud.cpp)
+target_compile_features(pub_pointcloud_component PUBLIC c_std_99 cxx_std_17)
+target_link_libraries(pub_pointcloud_component ${PCL_LIBRARIES} PandarGeneralSDK ${Boost_LIBRARIES})
+ament_target_dependencies(pub_pointcloud_component pcl_conversions)
+set_target_properties(pub_pointcloud_component PROPERTIES
     BUILD_RPATH "${CMAKE_BINARY_DIR}/include/pcd_proc_cpp/HesaiLidar_General_SDK"
     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
 )
-install(TARGETS pub_pointcloud
+rclcpp_components_register_nodes(pub_pointcloud_component "PointCloudPublisher")
+
+install(TARGETS pub_pointcloud_component
+  DESTINATION lib/${PROJECT_NAME})
+
+# 統合コンポーネントコンテナー
+ament_auto_add_executable(pointcloud_pipeline_container src/pointcloud_pipeline_container.cpp)
+target_link_libraries(pointcloud_pipeline_container 
+  init_scans_component
+  pointcloud_transform_component  
+  detect_movable_objects_component
+  correction_ground_component
+  pub_pointcloud_component
+)
+install(TARGETS pointcloud_pipeline_container
+  DESTINATION lib/${PROJECT_NAME})
+
+# 姿勢推定コンポーネントコンテナー
+ament_auto_add_executable(pose_estimation_container src/pose_estimation_container.cpp)
+target_link_libraries(pose_estimation_container 
+  receive_udp_packet_component
+  calc_altitude_imu_component
+  calc_altitude_lidar_component
+  project_orientation_component
+  calc_rpy_from_quat_component
+  yaw_angle_serialization_component
+)
+install(TARGETS pose_estimation_container
   DESTINATION lib/${PROJECT_NAME})
 
 # クォータニオンからRPY計算ノード
-ament_auto_add_executable(calc_rpy_from_quat src/calc_rpy_from_quat.cpp)
-install(TARGETS calc_rpy_from_quat
+# コンポーネント版
+ament_auto_add_library(calc_rpy_from_quat_component SHARED src/calc_rpy_from_quat.cpp)
+rclcpp_components_register_nodes(calc_rpy_from_quat_component "CalcRpyFromQuat")
+
+install(TARGETS calc_rpy_from_quat_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 回転回数カウンター
@@ -152,8 +201,11 @@ install(TARGETS calc_rpy_from_quat
 #  DESTINATION lib/${PROJECT_NAME})
 
 # 回転回数カウンター
-ament_auto_add_executable(yaw_angle_serialization src/yaw_angle_serialization.cpp)
-install(TARGETS yaw_angle_serialization
+# コンポーネント版
+ament_auto_add_library(yaw_angle_serialization_component SHARED src/yaw_angle_serialization.cpp)
+rclcpp_components_register_nodes(yaw_angle_serialization_component "RotationCounterNode")
+
+install(TARGETS yaw_angle_serialization_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 旋回半径から横加速度を計算するノード
@@ -235,13 +287,19 @@ install(TARGETS calc_energy
   DESTINATION lib/${PROJECT_NAME})
 
 # 高度計算ノード（ToF傾き補正）
-ament_auto_add_executable(calc_altitude_imu src/calc_altitude_imu.cpp)
-install(TARGETS calc_altitude_imu
+# コンポーネント版
+ament_auto_add_library(calc_altitude_imu_component SHARED src/calc_altitude_imu.cpp)
+rclcpp_components_register_nodes(calc_altitude_imu_component "CalcAltitudeNode")
+
+install(TARGETS calc_altitude_imu_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 高度計算ノード（LiDAR）
-ament_auto_add_executable(calc_altitude_lidar src/calc_altitude_lidar.cpp)
-install(TARGETS calc_altitude_lidar
+# コンポーネント版
+ament_auto_add_library(calc_altitude_lidar_component SHARED src/calc_altitude_lidar.cpp)
+rclcpp_components_register_nodes(calc_altitude_lidar_component "AltitudeLidarNode")
+
+install(TARGETS calc_altitude_lidar_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 高度計算ノード（気圧計）
@@ -291,5 +349,21 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+# コンポーネントライブラリのエクスポート
+ament_export_targets(${PROJECT_NAME}_targetsHook HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+  std_msgs
+  geometry_msgs
+  visualization_msgs
+  tf2_ros
+  tf2_geometry_msgs
+  pcl_conversions
+  PCL
+  Eigen3
+  Boost
+)
 
 ament_auto_package()

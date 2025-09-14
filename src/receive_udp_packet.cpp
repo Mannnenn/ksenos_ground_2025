@@ -4,6 +4,7 @@
  */
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/range.hpp>
 
@@ -44,7 +45,7 @@ struct SensorPacket
 class UDPReceiver : public rclcpp::Node
 {
 public:
-    UDPReceiver() : Node("udp_sensor_receiver")
+    UDPReceiver(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("udp_sensor_receiver", options)
     {
         // パラメータの宣言
         // this->declare_parameter("local_ip", "192.168.11.2");
@@ -371,28 +372,5 @@ private:
     bool is_first_packet_;
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-
-    RCLCPP_INFO(rclcpp::get_logger("main"), "ESP32 センサーデータ UDP受信プログラム（C++/ROS2版）");
-    RCLCPP_INFO(rclcpp::get_logger("main"), "パフォーマンス最適化:");
-    RCLCPP_INFO(rclcpp::get_logger("main"), "  - 非ブロッキングUDP受信");
-    RCLCPP_INFO(rclcpp::get_logger("main"), "  - ソケットバッファサイズ拡張");
-    RCLCPP_INFO(rclcpp::get_logger("main"), "  - 処理時間監視");
-    RCLCPP_INFO(rclcpp::get_logger("main"), "  - ROS2メッセージ発行");
-
-    auto node = std::make_shared<UDPReceiver>();
-
-    try
-    {
-        rclcpp::spin(node);
-    }
-    catch (const std::exception &e)
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("main"), "Error: %s", e.what());
-    }
-
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(UDPReceiver)

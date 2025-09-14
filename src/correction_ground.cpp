@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
@@ -20,7 +21,8 @@
 class GroundCorrectionNode : public rclcpp::Node
 {
 public:
-    GroundCorrectionNode() : Node("ground_correction_node")
+    GroundCorrectionNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("ground_correction_node", options)
     {
         // パラメータの宣言と取得
         this->declare_parameter("input_topic", "/input_pointcloud");
@@ -248,22 +250,5 @@ private:
     bool static_transform_published_ = false;
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<GroundCorrectionNode>();
-
-    RCLCPP_INFO(node->get_logger(), "Starting ground correction node...");
-
-    try
-    {
-        rclcpp::spin(node);
-    }
-    catch (const std::exception &e)
-    {
-        RCLCPP_ERROR(node->get_logger(), "Node crashed: %s", e.what());
-    }
-
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(GroundCorrectionNode)

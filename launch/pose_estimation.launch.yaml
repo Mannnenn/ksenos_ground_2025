@@ -42,20 +42,6 @@ launch:
                 - from: "/altitude_lidar"
                   to: "/sensor/altitude/altitude_lidar"
 
-          # - node:
-          #     pkg: ksenos_ground
-          #     exec: calc_altitude_pressure
-          #     name: calc_altitude_pressure_node
-          #     output: screen
-          #     param:
-          #       - name: calibration_duration
-          #         value: 5.0
-          #       - name: use_sim_time
-          #         value: $(var use_sim_time)
-          #     remap:
-          #       - from: "/estimated_altitude"
-          #         to: "/sensor/altitude/altitude_pressure"
-
       - group:
           - push-ros-namespace:
               namespace: "orientation"
@@ -132,20 +118,3 @@ launch:
           param:
             - name: use_sim_time
               value: $(var use_sim_time)
-
-    # - node:
-    #     pkg: "tf2_ros"
-    #     exec: "static_transform_publisher"
-    #     name: "static_transform_publisher_aircraft_stability_axes_to_body"
-    #     args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id body"
-    # - node:
-    #     pkg: "tf2_ros"
-    #     exec: "static_transform_publisher"
-    #     name: "static_transform_publisher_body_to_base_link"
-    #     args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id body --child-frame-id base_link"
-    # - node:
-    #     pkg: "rviz2"
-    #     exec: "rviz2"
-    #     name: "rviz2"
-    #     output: "log"
-    #     args: "-d $(find-pkg-share ksenos_ground)/config/Model.rviz"

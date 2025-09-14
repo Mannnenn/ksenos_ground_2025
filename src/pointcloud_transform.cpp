@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
@@ -22,8 +23,8 @@
 class PointCloudTransformer : public rclcpp::Node
 {
 public:
-    PointCloudTransformer()
-        : Node("pointcloud_transform_node"),
+    PointCloudTransformer(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("pointcloud_transform_node", options),
           tf_buffer_(this->get_clock()),
           tf_listener_(tf_buffer_)
     {
@@ -91,11 +92,5 @@ private:
     double timeout_seconds_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<PointCloudTransformer>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントの登録
+RCLCPP_COMPONENTS_REGISTER_NODE(PointCloudTransformer)
