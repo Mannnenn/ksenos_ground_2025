@@ -1,120 +1,27 @@
 launch:
-  - arg:
-      name: use_sim_time
-      default: "false"
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_map_lidar"
+      args: "--x 10 --y 20 --z 5 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id ksenos_smooth_0"
+      param:
+        - name: use_sim_time
+          value: $(var use_sim_time)
 
-  - group:
-      - push-ros-namespace:
-          namespace: "sensor"
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_map_to_odom"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id ksenos_smooth_0 --child-frame-id odom"
+      param:
+        - name: use_sim_time
+          value: $(var use_sim_time)
 
-      - node:
-          pkg: ksenos_ground
-          exec: receive_udp_packet
-          name: receive_udp_packet
-
-      - group:
-          - push-ros-namespace:
-              namespace: "altitude"
-
-          - node:
-              pkg: ksenos_ground
-              exec: calc_altitude_imu
-              name: calc_altitude_imu_node
-              output: screen
-              param:
-                - name: use_sim_time
-                  value: $(var use_sim_time)
-              remap:
-                - from: "/imu/data"
-                  to: "/sensor/orientation/imu/data"
-                - from: "/altitude_imu"
-                  to: "/sensor/altitude/altitude_imu"
-
-          - node:
-              pkg: ksenos_ground
-              exec: calc_altitude_lidar
-              name: calc_altitude_lidar_node
-              output: screen
-              param:
-                - name: use_sim_time
-                  value: $(var use_sim_time)
-              remap:
-                - from: "/altitude_lidar"
-                  to: "/sensor/altitude/altitude_lidar"
-
-      - group:
-          - push-ros-namespace:
-              namespace: "orientation"
-
-          - node:
-              pkg: "imu_filter_madgwick"
-              exec: "imu_filter_madgwick_node"
-              name: "imu_filter_madgwick"
-              args: "--ros-args -p use_mag:=False -p world_frame:=enu -p publish_tf:=True -r imu/data_raw:=/sensor/imu"
-              param:
-                - name: use_sim_time
-                  value: $(var use_sim_time)
-              remap:
-                - from: "/imu/data"
-                  to: "/sensor/imu/data"
-
-          - node:
-              pkg: ksenos_ground
-              exec: project_orientation
-              name: project_orientation
-              param:
-                - name: use_sim_time
-                  value: $(var use_sim_time)
-
-          - node:
-              pkg: ksenos_ground
-              exec: calc_rpy_from_quat
-              name: calc_rpy_from_quat_node
-              param:
-                - name: use_sim_time
-                  value: $(var use_sim_time)
-                - name: input_topic
-                  value: /sensor/orientation/imu/data
-                - name: output_topic
-                  value: /sensor/orientation/euler_angles
-
-          - node:
-              pkg: ksenos_ground
-              exec: yaw_angle_serialization
-              name: yaw_angle_serialization
-              param:
-                - name: input_angular_topic_name
-                  value: /sensor/orientation/euler_angles
-                - name: input_counter_reset_topic_name
-                  value: /sensor/counter/reset
-                - name: output_serialized_yaw_angle_topic_name
-                  value: /sensor/serialized_yaw_angle
-                - name: use_sim_time
-                  value: $(var use_sim_time)
-
-      - node:
-          pkg: "tf2_ros"
-          exec: "static_transform_publisher"
-          name: "static_transform_publisher_map_lidar"
-          args: "--x 10 --y 20 --z 5 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id ksenos_smooth_0"
-          param:
-            - name: use_sim_time
-              value: $(var use_sim_time)
-
-      - node:
-          pkg: "tf2_ros"
-          exec: "static_transform_publisher"
-          name: "static_transform_publisher_map_to_odom"
-          args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id ksenos_smooth_0 --child-frame-id odom"
-          param:
-            - name: use_sim_time
-              value: $(var use_sim_time)
-
-      - node:
-          pkg: "tf2_ros"
-          exec: "static_transform_publisher"
-          name: "static_transform_publisher_imu_link_to_aircraft_stability_axes"
-          args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id imu_link --child-frame-id aircraft_stability_axes"
-          param:
-            - name: use_sim_time
-              value: $(var use_sim_time)
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_imu_link_to_aircraft_stability_axes"
+      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id imu_link --child-frame-id aircraft_stability_axes"
+      param:
+        - name: use_sim_time
+          value: $(var use_sim_time)
