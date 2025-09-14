@@ -1,0 +1,3 @@
+[submodule "include/pcd_proc_cpp/HesaiLidar_General_SDK"]
+	path = include/pcd_proc_cpp/HesaiLidar_General_SDK
+	url = https://github.com/HesaiTechnology/HesaiLidar_General_SDK.git
