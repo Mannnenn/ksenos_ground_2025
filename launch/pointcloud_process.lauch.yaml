@@ -272,11 +272,11 @@ launch:
   #     name: "static_transform_publisher_sensorBase2motorBase"
   #     args: "--x 0 --y -$(var lidar_motor_horizontal_offset) --z $(var lidar_motor_vertical_offset) --roll 0 --pitch 0 --yaw 0 --frame-id $(var sensor_base_frame) --child-frame-id $(var motor_base_frame)"
 
-  - node:
-      pkg: "tf2_ros"
-      exec: "static_transform_publisher"
-      name: "static_transform_publisher_map_filed_origin"
-      args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id origin"
+  # - node:
+  #     pkg: "tf2_ros"
+  #     exec: "static_transform_publisher"
+  #     name: "static_transform_publisher_map_filed_origin"
+  #     args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id origin"
 
   # - node:
   #     pkg: "tf2_ros"

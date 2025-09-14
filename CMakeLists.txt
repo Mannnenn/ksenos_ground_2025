@@ -17,10 +17,20 @@ ament_auto_find_build_dependencies()
 find_package(PCL REQUIRED COMPONENTS common filters segmentation search)
 find_package(pcl_conversions REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
+
+# LiDAR SDKのサブディレクトリを追加
+# HesaiLidar_General_SDKでは特定のwarningを無視する
+set(CMAKE_CXX_FLAGS_BACKUP ${CMAKE_CXX_FLAGS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare -Wno-unused-variable -Wno-missing-field-initializers")
+add_subdirectory(include/pcd_proc_cpp/HesaiLidar_General_SDK)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_BACKUP})
 
 
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(include/pcd_proc_cpp/HesaiLidar_General_SDK/include)
+include_directories(include/pcd_proc_cpp/HesaiLidar_General_SDK/src/PandarGeneralRaw/include)
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
@@ -116,6 +126,19 @@ install(TARGETS project_orientation
 # Roll Pitch Yawパブリッシャー
 ament_auto_add_executable(pub_rpy src/pub_rpy.cpp)
 install(TARGETS pub_rpy
+  DESTINATION lib/${PROJECT_NAME})
+
+# ポイントクラウドパブリッシャー
+ament_auto_add_executable(pub_pointcloud src/pub_pointcloud.cpp)
+target_compile_features(pub_pointcloud PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_link_libraries(pub_pointcloud ${PCL_LIBRARIES} PandarGeneralSDK ${Boost_LIBRARIES})
+ament_target_dependencies(pub_pointcloud pcl_conversions)
+# Set RPATH for pub_pointcloud to find the PandarGeneralSDK library
+set_target_properties(pub_pointcloud PROPERTIES
+    BUILD_RPATH "${CMAKE_BINARY_DIR}/include/pcd_proc_cpp/HesaiLidar_General_SDK"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
+)
+install(TARGETS pub_pointcloud
   DESTINATION lib/${PROJECT_NAME})
 
 # クォータニオンからRPY計算ノード

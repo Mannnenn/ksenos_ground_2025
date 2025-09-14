@@ -55,9 +55,9 @@ launch:
                 - name: lobe_span_deg
                   value: 270.0
                 - name: max_turn_radius
-                  value: 7.0
+                  value: 6.0
                 - name: min_turn_radius
-                  value: 3.0
+                  value: 2.5
               remap:
                 - from: "sbus_data"
                   to: "/sbus/manual/sbus_data"
