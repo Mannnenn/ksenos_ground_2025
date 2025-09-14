@@ -1,21 +1,17 @@
 launch:
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/model_load.launch.py"
-
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/long_control_components.launch.py"
-
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/lat_control_components.launch.py"
-
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation_components.launch.py"
 
   - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation.launch.yaml"
-
-  - include:
       file: "$(find-pkg-share ksenos_ground)/launch/sbus_data_processor_components.launch.py"
-
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/mode_control_components.launch.py"
+
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation.launch.yaml"
