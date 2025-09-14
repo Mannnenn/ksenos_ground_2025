@@ -20,8 +20,8 @@ def generate_launch_description():
 
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
-        name=LaunchConfiguration('container_name'),
-        namespace=LaunchConfiguration('namespace'),
+        name="lat_control_container",
+        namespace="",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -37,7 +37,8 @@ def generate_launch_description():
                 remappings=[
                     ('/controller/lat/calc/lateral_acceleration', '/controller/lat/lateral_acceleration'),
                     ('/average/flow_rate', '/sensor/flow_rate'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 横加速度から目標ロール角を計算するノード
@@ -52,7 +53,8 @@ def generate_launch_description():
                 remappings=[
                     ('/controller/lat/calc/lateral_acceleration', '/controller/lat/lateral_acceleration'),
                     ('/controller/lat/calc/target_roll_angle', '/controller/lat/target_roll_angle'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # エルロン制御ノード（PD制御）
@@ -73,7 +75,8 @@ def generate_launch_description():
                     ('/controller/lat/calc/target_roll_angle', '/controller/lat/target_roll_angle'),
                     ('/rpy', '/sensor/orientation/euler_angles'),
                     ('/aileron_input', '/controller/lat/aileron_input'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # ラダー制御ノード（FF+PI制御）
@@ -97,7 +100,8 @@ def generate_launch_description():
                     ('/aileron_input', '/controller/lat/aileron_input'),
                     ('/controller/lat/calc/lateral_acceleration', '/controller/lat/lateral_acceleration'),
                     ('/rudder_input', '/controller/lat/rudder_input'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
         ],
         output='both',

@@ -20,8 +20,8 @@ def generate_launch_description():
 
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
-        name=LaunchConfiguration('container_name'),
-        namespace=LaunchConfiguration('namespace'),
+        name="long_control_container",
+        namespace="",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -38,7 +38,8 @@ def generate_launch_description():
                     ('/sensor/altitude_imu', '/sensor/altitude/altitude_imu'),
                     ('/sensor/altitude_lidar', '/sensor/altitude/altitude_lidar'),
                     ('/sbus_data', '/sbus/manual/sbus_data'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 目標高度セレクターノード
@@ -53,7 +54,8 @@ def generate_launch_description():
                     ('average_altitude', '/controller/long/calc/average_altitude_imu'),
                     ('altitude_dynamic', '/controller/long/calc/dynamic_altitude'),
                     ('altitude_target', '/controller/long/calc/target_altitude'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 基準エネルギー計算ノード
@@ -69,6 +71,7 @@ def generate_launch_description():
                     'altitude_topic': '/controller/long/calc/target_altitude',
                     'energy_topic': '/controller/long/reference_energy',
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 現在エネルギー計算ノード
@@ -84,6 +87,7 @@ def generate_launch_description():
                     'altitude_topic': '/sensor/altitude/altitude_imu',
                     'energy_topic': '/controller/long/current_energy',
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # スロットル制御ノード
@@ -104,7 +108,8 @@ def generate_launch_description():
                     ('/throttle_input', '/controller/long/throttle_input'),
                     ('/airplane/reference_energy', '/controller/long/reference_energy'),
                     ('/airplane/current_energy', '/controller/long/current_energy'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # エレベーター制御ノード
@@ -126,7 +131,8 @@ def generate_launch_description():
                     ('/airplane/reference_energy', '/controller/long/reference_energy'),
                     ('/airplane/current_energy', '/controller/long/current_energy'),
                     ('/rpy', '/sensor/orientation/euler_angles'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 制御入力統合ノード
@@ -141,7 +147,8 @@ def generate_launch_description():
                     ('/elevator_input', '/controller/long/elevator_input'),
                     ('/aileron_input', '/controller/lat/aileron_input'),
                     ('/rudder_input', '/controller/lat/rudder_input'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
         ],
         output='both',

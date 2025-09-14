@@ -14,4 +14,6 @@ launch:
       file: "$(find-pkg-share ksenos_ground)/launch/mode_control_components.launch.py"
 
   - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation.launch.yaml"
+      file: "$(find-pkg-share ksenos_ground)/launch/pointcloud_pipeline_components.launch.py"
+#   - include:
+#       file: "$(find-pkg-share ksenos_ground)/launch/pointcloud_process.launch.yaml"

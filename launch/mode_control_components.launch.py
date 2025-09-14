@@ -20,8 +20,8 @@ def generate_launch_description():
 
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
-        name=LaunchConfiguration('container_name'),
-        namespace=LaunchConfiguration('namespace'),
+        name="mode_control_container",
+        namespace="",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -37,7 +37,8 @@ def generate_launch_description():
                 remappings=[
                     ('sbus_data', '/sbus/manual/sbus_data'),
                     ('target_turning_radius', '/controller/lat/calc/turning_radius'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # Eight Turning Mode ノード
@@ -55,7 +56,8 @@ def generate_launch_description():
                     ('sbus_data', '/sbus/manual/sbus_data'),
                     ('serialized_yaw', '/sensor/serialized_yaw_angle'),
                     ('turn_radius', '/controller/lat/calc/turning_radius'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # Rise Turning Mode ノード
@@ -76,7 +78,8 @@ def generate_launch_description():
                     ('average_altitude', '/controller/long/calc/average_altitude_imu'),
                     ('target_altitude_rise_turning', '/controller/long/calc/dynamic_altitude'),
                     ('target_turning_radius', '/controller/lat/calc/turning_radius'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
         ],
         output='both',

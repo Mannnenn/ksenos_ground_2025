@@ -20,8 +20,8 @@ def generate_launch_description():
 
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
-        name=LaunchConfiguration('container_name'),
-        namespace=LaunchConfiguration('namespace'),
+        name="pose_estimation_container",
+        namespace="",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -42,7 +42,8 @@ def generate_launch_description():
                     ('pressure', '/sensor/pressure'),
                     ('flow_rate', '/sensor/flow_rate'),
                     ('servo_enable', '/sensor/servo_enable'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # IMU高度計算ノード
@@ -56,7 +57,8 @@ def generate_launch_description():
                     ('/sensor/tof', '/sensor/tof'),
                     ('/imu/data', '/sensor/orientation/imu/data'),
                     ('/altitude_imu', '/sensor/altitude/altitude_imu'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # LiDAR高度計算ノード
@@ -68,7 +70,8 @@ def generate_launch_description():
                 parameters=[],
                 remappings=[
                     ('/altitude_lidar', '/sensor/altitude/altitude_lidar'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # # 姿勢投影ノード
@@ -89,6 +92,7 @@ def generate_launch_description():
                     'input_topic': '/sensor/orientation/imu/data',
                     'output_topic': '/sensor/orientation/euler_angles',
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # ヨー角連続化ノード
@@ -102,6 +106,7 @@ def generate_launch_description():
                     'input_counter_reset_topic_name': '/sensor/counter/reset',
                     'output_serialized_yaw_angle_topic_name': '/sensor/serialized_yaw_angle',
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # IMUフィルタ（Madgwick）- 外部コンポーネント
@@ -125,7 +130,8 @@ def generate_launch_description():
                 remappings=[
                     ('imu/data_raw', '/sensor/imu'),
                     ('imu/data', '/sensor/imu/data'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
         ],
         output='both',

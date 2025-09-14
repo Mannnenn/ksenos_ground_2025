@@ -20,8 +20,8 @@ def generate_launch_description():
 
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
-        name=LaunchConfiguration('container_name'),
-        namespace=LaunchConfiguration('namespace'),
+        name="sbus_data_processor_container",
+        namespace="",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -35,7 +35,8 @@ def generate_launch_description():
                 parameters=[],
                 remappings=[
                     ('sbus_raw_data', 'sbus_raw'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # SBUSデータをラジアン形式に変換
@@ -63,7 +64,8 @@ def generate_launch_description():
                 remappings=[
                     ('sbus_raw_data', 'sbus_raw'),
                     ('sbus_data', 'sbus_radian_format'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # SBUSキャリブレーションノード
@@ -77,6 +79,7 @@ def generate_launch_description():
                     'input_topic': 'sbus_radian_format',
                     'offset_topic': '/sbus/sbus_offset_amount',
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # SBUSオフセット適用ノード（コントロール用）
@@ -91,6 +94,7 @@ def generate_launch_description():
                     'output_topic': 'sbus_data',
                     'offset_operation': 'subtract',  # オフセットを引く→サーボ中立位置に補正
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # Auto SBUS処理グループ
@@ -106,6 +110,7 @@ def generate_launch_description():
                     'output_topic': 'sbus_radian_format',
                     'offset_operation': 'add',  # オフセットを足す
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # SBUSデータを生形式に変換
@@ -127,7 +132,8 @@ def generate_launch_description():
                 remappings=[
                     ('sbus_data', 'sbus_radian_format'),
                     ('sbus_raw_data', 'sbus_raw_format_input'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # SBUS生データ送信ノード
@@ -143,7 +149,8 @@ def generate_launch_description():
                 remappings=[
                     ('sbus_raw_data', 'sbus_raw_format_input'),
                     ('sbus_manual', '/sbus/manual/sbus_data'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
         ],
         output='both',

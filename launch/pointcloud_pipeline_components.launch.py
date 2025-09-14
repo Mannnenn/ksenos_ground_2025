@@ -42,8 +42,8 @@ def generate_launch_description():
 
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
-        name=LaunchConfiguration('container_name'),
-        namespace=LaunchConfiguration('namespace'),
+        name="pointcloud_pipeline_container",
+        namespace="",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -57,7 +57,8 @@ def generate_launch_description():
                 }],
                 remappings=[
                     ('lidar_points', '/lidar_points'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 点群座標変換
@@ -76,7 +77,8 @@ def generate_launch_description():
                 remappings=[
                     ('lidar_points', '/lidar_points'),
                     ('transformed_points', '/transformed_points'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 地面補正ノード
@@ -97,7 +99,8 @@ def generate_launch_description():
                 }],
                 remappings=[
                     ('input_pointcloud', '/transformed_points'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 初期スキャン・地図作成
@@ -120,7 +123,8 @@ def generate_launch_description():
                     ('target_pitch_angle', '/target_pitch_angle'),
                     ('transformed_points', '/transformed_points'),
                     ('map_points', '/map_points'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
             # 移動物体検出
@@ -160,7 +164,8 @@ def generate_launch_description():
                     ('detected_objects', '/detected_objects'),
                     ('target_pitch_angle', '/target_pitch_angle'),
                     ('bbox_marker', '/bbox_marker'),
-                ]
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
             ),
         ],
         output='screen',
