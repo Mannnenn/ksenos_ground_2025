@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <ksenos_ground_msgs/msg/sbus_raw_data.hpp>
 #include <ksenos_ground_msgs/msg/sbus_data.hpp>
 #include <sys/socket.h>
@@ -10,7 +11,7 @@
 class SbusUdpSender : public rclcpp::Node
 {
 public:
-    SbusUdpSender() : Node("sbus_udp_sender"), is_manual_mode_(true)
+    SbusUdpSender(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("sbus_udp_sender", options), is_manual_mode_(true)
     {
         // パラメータの宣言
         this->declare_parameter("udp_ip", "10.42.0.2");
@@ -119,11 +120,4 @@ private:
     bool is_manual_mode_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<SbusUdpSender>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(SbusUdpSender)

@@ -1,13 +1,14 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <ksenos_ground_msgs/msg/sbus_data.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
 #include <chrono>
 #include <vector>
 
-class SbusCalibrationNode : public rclcpp::Node
+class SbusCalibration : public rclcpp::Node
 {
 public:
-    SbusCalibrationNode() : Node("sbus_calibration_node")
+    SbusCalibration(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("sbus_calibration_node", options)
     {
         // パラメータ宣言
         this->declare_parameter("calibration_duration", 1.0);
@@ -38,7 +39,7 @@ public:
         // Subscriber and Publisher
         sbus_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
             input_topic, 10,
-            std::bind(&SbusCalibrationNode::sbus_callback, this, std::placeholders::_1));
+            std::bind(&SbusCalibration::sbus_callback, this, std::placeholders::_1));
 
         // オフセット値をパブリッシュするためのパブリッシャー
         // Vector3を使用: x=aileron_r, y=elevator, z=rudder
@@ -49,7 +50,7 @@ public:
         // タイマーでオフセット値を継続的にパブリッシュ
         publish_timer_ = this->create_wall_timer(
             std::chrono::milliseconds(100),
-            std::bind(&SbusCalibrationNode::publish_offset, this));
+            std::bind(&SbusCalibration::publish_offset, this));
 
         RCLCPP_INFO(this->get_logger(), "SBUS Calibration Node started. Calibrating for %.1f seconds...", calibration_duration_);
     }
@@ -150,11 +151,4 @@ private:
     double aileron_l_offset_;
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<SbusCalibrationNode>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(SbusCalibration)

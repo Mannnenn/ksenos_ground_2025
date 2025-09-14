@@ -1,10 +1,11 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <ksenos_ground_msgs/msg/sbus_data.hpp>
 
-class SbusOffsetApplyNode : public rclcpp::Node
+class SbusOffsetApply : public rclcpp::Node
 {
 public:
-    SbusOffsetApplyNode() : Node("sbus_offset_apply_node")
+    SbusOffsetApply(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("sbus_offset_apply_node", options)
     {
         // パラメータ宣言
         this->declare_parameter("input_topic", "sbus_raw");
@@ -41,11 +42,11 @@ public:
         // Subscribers and Publisher
         sbus_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
             input_topic, 10,
-            std::bind(&SbusOffsetApplyNode::sbus_callback, this, std::placeholders::_1));
+            std::bind(&SbusOffsetApply::sbus_callback, this, std::placeholders::_1));
 
         offset_sub_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
             offset_topic, 10,
-            std::bind(&SbusOffsetApplyNode::offset_callback, this, std::placeholders::_1));
+            std::bind(&SbusOffsetApply::offset_callback, this, std::placeholders::_1));
 
         sbus_pub_ = this->create_publisher<ksenos_ground_msgs::msg::SbusData>(
             output_topic, 10);
@@ -122,11 +123,4 @@ private:
     std::string offset_operation_; // "subtract" or "add"
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<SbusOffsetApplyNode>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(SbusOffsetApply)

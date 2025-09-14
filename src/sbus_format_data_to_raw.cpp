@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <ksenos_ground_msgs/msg/sbus_data.hpp>
 #include <ksenos_ground_msgs/msg/sbus_raw_data.hpp>
 #include <std_msgs/msg/header.hpp>
@@ -8,7 +9,7 @@
 class SbusDataToRawProcessor : public rclcpp::Node
 {
 public:
-    SbusDataToRawProcessor() : Node("sbus_data_to_raw_processor")
+    SbusDataToRawProcessor(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("sbus_data_to_raw_processor", options)
     {
         // パブリッシャーの作成
         publisher_ = this->create_publisher<ksenos_ground_msgs::msg::SbusRawData>(
@@ -117,11 +118,4 @@ private:
     rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr subscription_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<SbusDataToRawProcessor>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(SbusDataToRawProcessor)

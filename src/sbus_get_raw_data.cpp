@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <ksenos_ground_msgs/msg/sbus_raw_data.hpp>
 #include <std_msgs/msg/header.hpp>
 #include <string>
@@ -14,7 +15,7 @@
 class SbusSerialReader : public rclcpp::Node
 {
 public:
-    SbusSerialReader() : Node("sbus_serial_reader"), serial_fd_(-1)
+    SbusSerialReader(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("sbus_serial_reader", options), serial_fd_(-1)
     {
         // パブリッシャーの作成
         publisher_ = this->create_publisher<ksenos_ground_msgs::msg::SbusRawData>(
@@ -212,15 +213,5 @@ private:
     int serial_fd_;
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-
-    auto node = std::make_shared<SbusSerialReader>();
-
-    // シンプルな実行でオーバーヘッドを削減
-    rclcpp::spin(node);
-
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(SbusSerialReader)
