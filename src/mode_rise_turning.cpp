@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include "ksenos_ground_msgs/msg/sbus_data.hpp"
 // for parameter callback result
@@ -7,7 +8,7 @@
 class ModeRiseTurning : public rclcpp::Node
 {
 public:
-    ModeRiseTurning() : Node("mode_rise_turning")
+    ModeRiseTurning(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("mode_rise_turning", options)
     {
         // パラメータ宣言（周回判定用）
         this->declare_parameter<float>("yaw_per_lap", 6.2831853f); // 1周=2πラジアン
@@ -234,10 +235,5 @@ private:
     bool received_altitude_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ModeRiseTurning>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(ModeRiseTurning)

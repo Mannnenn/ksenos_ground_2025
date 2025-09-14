@@ -43,7 +43,7 @@ def generate_launch_description():
             # 横加速度から目標ロール角を計算するノード
             ComposableNode(
                 package='ksenos_ground',
-                plugin='LatAccToTargetRollAngleNode',
+                plugin='LatAccToTargetRollAngle',
                 namespace='controller/lat/calc',
                 name='lat_acc_to_target_roll_angle',
                 parameters=[{

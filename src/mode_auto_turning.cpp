@@ -1,11 +1,12 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include "ksenos_ground_msgs/msg/sbus_data.hpp"
 
 class ModeAutoTurning : public rclcpp::Node
 {
 public:
-    ModeAutoTurning() : Node("mode_auto_turning")
+    ModeAutoTurning(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("mode_auto_turning", options)
     {
         // パラメータの宣言と初期値設定
         this->declare_parameter<float>("target_radius", 1000.0f);
@@ -104,10 +105,5 @@ private:
     float target_radius_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ModeAutoTurning>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(ModeAutoTurning)

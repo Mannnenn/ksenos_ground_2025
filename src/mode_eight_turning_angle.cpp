@@ -1,13 +1,14 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/int32.hpp>
 #include <ksenos_ground_msgs/msg/sbus_data.hpp>
 #include <cmath>
 
-class ModeEightTurningAngleNode : public rclcpp::Node
+class ModeEightTurningAngle : public rclcpp::Node
 {
 public:
-    ModeEightTurningAngleNode() : Node("mode_eight_turning_angle")
+    ModeEightTurningAngle(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("mode_eight_turning_angle", options)
     {
         // パラメータ宣言
         this->declare_parameter<double>("max_turn_radius", 15.0);
@@ -25,11 +26,11 @@ public:
         // サブスクライバーとパブリッシャーの設定
         yaw_subscriber_ = this->create_subscription<std_msgs::msg::Float32>(
             "serialized_yaw", 10,
-            std::bind(&ModeEightTurningAngleNode::yaw_callback, this, std::placeholders::_1));
+            std::bind(&ModeEightTurningAngle::yaw_callback, this, std::placeholders::_1));
 
         sbus_subscriber_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
             "sbus_data", 10,
-            std::bind(&ModeEightTurningAngleNode::sbus_callback, this, std::placeholders::_1));
+            std::bind(&ModeEightTurningAngle::sbus_callback, this, std::placeholders::_1));
 
         turn_radius_publisher_ = this->create_publisher<std_msgs::msg::Float32>("turn_radius", 10);
         mode_publisher_ = this->create_publisher<std_msgs::msg::Int32>("turn_mode", 10);
@@ -216,10 +217,5 @@ private:
     rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr mode_publisher_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ModeEightTurningAngleNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(ModeEightTurningAngle)

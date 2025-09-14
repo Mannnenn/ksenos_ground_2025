@@ -3,10 +3,10 @@
 #include <std_msgs/msg/float32.hpp>
 #include <cmath>
 
-class LatAccToTargetRollAngleNode : public rclcpp::Node
+class LatAccToTargetRollAngle : public rclcpp::Node
 {
 public:
-    LatAccToTargetRollAngleNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+    LatAccToTargetRollAngle(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
         : Node("lat_acc_to_target_roll_angle", options)
     {
         // 重力加速度の定義 (m/s^2)
@@ -20,7 +20,7 @@ public:
         lateral_acceleration_sub_ = this->create_subscription<std_msgs::msg::Float32>(
             "lateral_acceleration",
             10,
-            std::bind(&LatAccToTargetRollAngleNode::lateral_acceleration_callback, this, std::placeholders::_1));
+            std::bind(&LatAccToTargetRollAngle::lateral_acceleration_callback, this, std::placeholders::_1));
 
         // Publisher: 目標ロール角トピック
         target_roll_angle_pub_ = this->create_publisher<std_msgs::msg::Float32>("target_roll_angle", 10);
@@ -67,4 +67,4 @@ private:
 };
 
 // コンポーネント登録
-RCLCPP_COMPONENTS_REGISTER_NODE(LatAccToTargetRollAngleNode)
+RCLCPP_COMPONENTS_REGISTER_NODE(LatAccToTargetRollAngle)

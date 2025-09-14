@@ -36,7 +36,6 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # 初期スキャン地図化
-# コンポーネント版
 ament_auto_add_library(init_scans_component SHARED src/init_scans.cpp)
 target_link_libraries(init_scans_component ${PCL_LIBRARIES})
 ament_target_dependencies(init_scans_component pcl_conversions)
@@ -46,7 +45,6 @@ install(TARGETS init_scans_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 点群モーター座標系変換
-# コンポーネント版
 ament_auto_add_library(pointcloud_transform_component SHARED src/pointcloud_transform.cpp)
 rclcpp_components_register_nodes(pointcloud_transform_component "PointCloudTransformer")
 
@@ -54,7 +52,6 @@ install(TARGETS pointcloud_transform_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 点群飛行機検出
-# コンポーネント版
 ament_auto_add_library(detect_movable_objects_component SHARED src/detect_movable_objects.cpp)
 target_compile_features(detect_movable_objects_component PUBLIC c_std_99 cxx_std_17)
 target_link_libraries(detect_movable_objects_component ${PCL_LIBRARIES})
@@ -65,7 +62,6 @@ install(TARGETS detect_movable_objects_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 地面推定
-# コンポーネント版
 ament_auto_add_library(correction_ground_component SHARED src/correction_ground.cpp)
 target_link_libraries(correction_ground_component ${PCL_LIBRARIES})
 ament_target_dependencies(correction_ground_component pcl_conversions)
@@ -111,7 +107,6 @@ install(TARGETS sbus_offset_apply_node
   DESTINATION lib/${PROJECT_NAME})
 
 # UDPパケット受信ノード
-# コンポーネント版
 ament_auto_add_library(receive_udp_packet_component SHARED src/receive_udp_packet.cpp)
 rclcpp_components_register_nodes(receive_udp_packet_component "UDPReceiver")
 
@@ -134,7 +129,6 @@ install(TARGETS pub_area
   DESTINATION lib/${PROJECT_NAME})
 
 # 角度投影パブリッシャー
-# コンポーネント版
 ament_auto_add_library(project_orientation_component SHARED src/project_orientation.cpp)
 rclcpp_components_register_nodes(project_orientation_component "TfProjectionNode")
 
@@ -148,7 +142,6 @@ install(TARGETS pub_rpy
   DESTINATION lib/${PROJECT_NAME})
 
 # ポイントクラウドパブリッシャー
-# コンポーネント版
 ament_auto_add_library(pub_pointcloud_component SHARED src/pub_pointcloud.cpp)
 target_compile_features(pub_pointcloud_component PUBLIC c_std_99 cxx_std_17)
 target_link_libraries(pub_pointcloud_component ${PCL_LIBRARIES} PandarGeneralSDK ${Boost_LIBRARIES})
@@ -188,7 +181,6 @@ install(TARGETS pose_estimation_container
   DESTINATION lib/${PROJECT_NAME})
 
 # クォータニオンからRPY計算ノード
-# コンポーネント版
 ament_auto_add_library(calc_rpy_from_quat_component SHARED src/calc_rpy_from_quat.cpp)
 rclcpp_components_register_nodes(calc_rpy_from_quat_component "CalcRpyFromQuat")
 
@@ -201,7 +193,6 @@ install(TARGETS calc_rpy_from_quat_component
 #  DESTINATION lib/${PROJECT_NAME})
 
 # 回転回数カウンター
-# コンポーネント版
 ament_auto_add_library(yaw_angle_serialization_component SHARED src/yaw_angle_serialization.cpp)
 rclcpp_components_register_nodes(yaw_angle_serialization_component "RotationCounterNode")
 
@@ -209,7 +200,6 @@ install(TARGETS yaw_angle_serialization_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 旋回半径から横加速度を計算するノード
-# コンポーネント版
 ament_auto_add_library(turningRadius_to_latAcc_component SHARED src/turningRadius_to_latAcc.cpp)
 rclcpp_components_register_nodes(turningRadius_to_latAcc_component "LateralAccelerationCalculator")
 
@@ -217,15 +207,13 @@ install(TARGETS turningRadius_to_latAcc_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 横加速度から目標ロール角を計算するノード
-# コンポーネント版
 ament_auto_add_library(latAcc_to_targetRollAngle_component SHARED src/latAcc_to_targetRollAngle.cpp)
-rclcpp_components_register_nodes(latAcc_to_targetRollAngle_component "LatAccToTargetRollAngleNode")
+rclcpp_components_register_nodes(latAcc_to_targetRollAngle_component "LatAccToTargetRollAngle")
 
 install(TARGETS latAcc_to_targetRollAngle_component
   DESTINATION lib/${PROJECT_NAME})
 
 # エルロン制御ノード（PD制御）
-# コンポーネント版
 ament_auto_add_library(control_aileron_component SHARED src/control_aileron.cpp)
 rclcpp_components_register_nodes(control_aileron_component "AileronControl")
 
@@ -233,7 +221,6 @@ install(TARGETS control_aileron_component
   DESTINATION lib/${PROJECT_NAME})
 
 # ラダー制御ノード（FF+PI制御）
-# コンポーネント版
 ament_auto_add_library(control_rudder_component SHARED src/control_rudder.cpp)
 rclcpp_components_register_nodes(control_rudder_component "RudderControl")
 
@@ -246,7 +233,6 @@ install(TARGETS control_speed
   DESTINATION lib/${PROJECT_NAME})
 
 # スロットル制御ノード（PI制御）
-# コンポーネント版
 ament_auto_add_library(control_throttle_component SHARED src/control_throttle.cpp)
 rclcpp_components_register_nodes(control_throttle_component "ThrottleControl")
 
@@ -255,7 +241,6 @@ install(TARGETS control_throttle_component
 
 
 # エレベーター制御ノード
-# コンポーネント版
 ament_auto_add_library(control_elevator_component SHARED src/control_elevator.cpp)
 rclcpp_components_register_nodes(control_elevator_component "ElevatorControl")
 
@@ -270,22 +255,24 @@ install(TARGETS calc_flight_distance
   DESTINATION lib/${PROJECT_NAME})
 
 # 自動旋回モードノード
-ament_auto_add_executable(mode_auto_turning src/mode_auto_turning.cpp)
+ament_auto_add_library(mode_auto_turning SHARED src/mode_auto_turning.cpp)
+rclcpp_components_register_nodes(mode_auto_turning "ModeAutoTurning")
+
 install(TARGETS mode_auto_turning
   DESTINATION lib/${PROJECT_NAME})
 
-# 8の字旋回モードノード
-ament_auto_add_executable(mode_eight_turning src/mode_eight_turning.cpp)
-install(TARGETS mode_eight_turning
-  DESTINATION lib/${PROJECT_NAME})
 
 # 8の字旋回（角度基準）モードノード
-ament_auto_add_executable(mode_eight_turning_angle src/mode_eight_turning_angle.cpp)
+ament_auto_add_library(mode_eight_turning_angle SHARED src/mode_eight_turning_angle.cpp)
+rclcpp_components_register_nodes(mode_eight_turning_angle "ModeEightTurningAngle")
+
 install(TARGETS mode_eight_turning_angle
   DESTINATION lib/${PROJECT_NAME})
 
 # 上昇旋回モード
-ament_auto_add_executable(mode_rise_turning src/mode_rise_turning.cpp)
+ament_auto_add_library(mode_rise_turning SHARED src/mode_rise_turning.cpp)
+rclcpp_components_register_nodes(mode_rise_turning "ModeRiseTurning")
+
 install(TARGETS mode_rise_turning
   DESTINATION lib/${PROJECT_NAME})
 
@@ -296,7 +283,6 @@ install(TARGETS mode_target_lat_acc_selector
 
 
 # モード別目標高度セレクター
-# コンポーネント版
 ament_auto_add_library(mode_target_altitude_selector_component SHARED src/mode_target_altitude_selector.cpp)
 rclcpp_components_register_nodes(mode_target_altitude_selector_component "ModeTargetAltitudeSelector")
 
@@ -305,7 +291,6 @@ install(TARGETS mode_target_altitude_selector_component
 
 
 # エネルギー計算ノード
-# コンポーネント版
 ament_auto_add_library(calc_energy_component SHARED src/calc_energy.cpp)
 rclcpp_components_register_nodes(calc_energy_component "CalcEnergyNode")
 
@@ -314,7 +299,6 @@ install(TARGETS calc_energy_component
 
 
 # 高度計算ノード（ToF傾き補正）
-# コンポーネント版
 ament_auto_add_library(calc_altitude_imu_component SHARED src/calc_altitude_imu.cpp)
 rclcpp_components_register_nodes(calc_altitude_imu_component "CalcAltitudeNode")
 
@@ -322,7 +306,6 @@ install(TARGETS calc_altitude_imu_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 高度計算ノード（LiDAR）
-# コンポーネント版
 ament_auto_add_library(calc_altitude_lidar_component SHARED src/calc_altitude_lidar.cpp)
 rclcpp_components_register_nodes(calc_altitude_lidar_component "AltitudeLidarNode")
 
@@ -335,7 +318,6 @@ install(TARGETS calc_altitude_pressure
   DESTINATION lib/${PROJECT_NAME})
 
 # 平均高度・速度計算ノード
-# コンポーネント版
 ament_auto_add_library(calc_average_altitude_velocity_component SHARED src/calc_average_altitude_velocity.cpp)
 rclcpp_components_register_nodes(calc_average_altitude_velocity_component "AverageAltitudeVelocityNode")
 
@@ -360,7 +342,6 @@ install(TARGETS test_path_follow_with_joy
   DESTINATION lib/${PROJECT_NAME})
 
 # 制御入力統合ノード
-# コンポーネント版
 ament_auto_add_library(unity_control_input_component SHARED src/unity_control_input.cpp)
 rclcpp_components_register_nodes(unity_control_input_component "UnityControlInputNode")
 
