@@ -133,7 +133,7 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='UnityControlInputNode',
-                namespace='',  # controllerルートレベル
+                namespace='controller',  # controllerルートレベル
                 name='unity_control_input_node',
                 parameters=[],
                 remappings=[
