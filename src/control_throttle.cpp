@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <ksenos_ground_msgs/msg/plane_energy.hpp>
 #include <ksenos_ground_msgs/msg/control_input.hpp>
 #include <chrono>
@@ -8,7 +9,7 @@
 class ThrottleControl : public rclcpp::Node
 {
 public:
-    ThrottleControl() : Node("throttle_control")
+    ThrottleControl(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("throttle_control", options)
     {
         // パラメータの宣言と取得
         this->declare_parameter("kp", 0.5);
@@ -156,10 +157,5 @@ private:
     bool current_received_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ThrottleControl>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(ThrottleControl)

@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <ksenos_ground_msgs/msg/control_input.hpp>
@@ -9,7 +10,8 @@
 class RudderControl : public rclcpp::Node
 {
 public:
-    RudderControl() : Node("rudder_control")
+    RudderControl(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("rudder_control", options)
     {
         // パラメータの宣言
         this->declare_parameter<double>("kp", 0.5);                   // PI制御の比例ゲイン
@@ -254,10 +256,5 @@ private:
     bool imu_received_ = false;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<RudderControl>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネント登録
+RCLCPP_COMPONENTS_REGISTER_NODE(RudderControl)

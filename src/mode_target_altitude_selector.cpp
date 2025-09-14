@@ -1,11 +1,12 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include "ksenos_ground_msgs/msg/sbus_data.hpp"
 
 class ModeTargetAltitudeSelector : public rclcpp::Node
 {
 public:
-    ModeTargetAltitudeSelector() : Node("mode_target_altitude_selector")
+    ModeTargetAltitudeSelector(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("mode_target_altitude_selector", options)
     {
         // パブリッシャーの初期化
         altitude_target_publisher_ = this->create_publisher<std_msgs::msg::Float32>(
@@ -139,10 +140,5 @@ private:
     bool altitude_dynamic_available_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ModeTargetAltitudeSelector>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(ModeTargetAltitudeSelector)

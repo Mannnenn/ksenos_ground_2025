@@ -209,23 +209,35 @@ install(TARGETS yaw_angle_serialization_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 旋回半径から横加速度を計算するノード
-ament_auto_add_executable(turningRadius_to_latAcc src/turningRadius_to_latAcc.cpp)
-install(TARGETS turningRadius_to_latAcc
+# コンポーネント版
+ament_auto_add_library(turningRadius_to_latAcc_component SHARED src/turningRadius_to_latAcc.cpp)
+rclcpp_components_register_nodes(turningRadius_to_latAcc_component "LateralAccelerationCalculator")
+
+install(TARGETS turningRadius_to_latAcc_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 横加速度から目標ロール角を計算するノード
-ament_auto_add_executable(latAcc_to_targetRollAngle src/latAcc_to_targetRollAngle.cpp)
-install(TARGETS latAcc_to_targetRollAngle
+# コンポーネント版
+ament_auto_add_library(latAcc_to_targetRollAngle_component SHARED src/latAcc_to_targetRollAngle.cpp)
+rclcpp_components_register_nodes(latAcc_to_targetRollAngle_component "LatAccToTargetRollAngleNode")
+
+install(TARGETS latAcc_to_targetRollAngle_component
   DESTINATION lib/${PROJECT_NAME})
 
 # エルロン制御ノード（PD制御）
-ament_auto_add_executable(control_aileron src/control_aileron.cpp)
-install(TARGETS control_aileron
+# コンポーネント版
+ament_auto_add_library(control_aileron_component SHARED src/control_aileron.cpp)
+rclcpp_components_register_nodes(control_aileron_component "AileronControl")
+
+install(TARGETS control_aileron_component
   DESTINATION lib/${PROJECT_NAME})
 
 # ラダー制御ノード（FF+PI制御）
-ament_auto_add_executable(control_rudder src/control_rudder.cpp)
-install(TARGETS control_rudder
+# コンポーネント版
+ament_auto_add_library(control_rudder_component SHARED src/control_rudder.cpp)
+rclcpp_components_register_nodes(control_rudder_component "RudderControl")
+
+install(TARGETS control_rudder_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 速度ターゲット生成ノード（位置xに応じて速度指令とYZ平面マーカーを出力）
@@ -234,14 +246,23 @@ install(TARGETS control_speed
   DESTINATION lib/${PROJECT_NAME})
 
 # スロットル制御ノード（PI制御）
-ament_auto_add_executable(control_throttle src/control_throttle.cpp)
-install(TARGETS control_throttle
+# コンポーネント版
+ament_auto_add_library(control_throttle_component SHARED src/control_throttle.cpp)
+rclcpp_components_register_nodes(control_throttle_component "ThrottleControl")
+
+install(TARGETS control_throttle_component
   DESTINATION lib/${PROJECT_NAME})
 
+
 # エレベーター制御ノード
-ament_auto_add_executable(control_elevator src/control_elevator.cpp)
-install(TARGETS control_elevator
+# コンポーネント版
+ament_auto_add_library(control_elevator_component SHARED src/control_elevator.cpp)
+rclcpp_components_register_nodes(control_elevator_component "ElevatorControl")
+
+install(TARGETS control_elevator_component
   DESTINATION lib/${PROJECT_NAME})
+
+
 
 # 飛行距離計測ノード
 ament_auto_add_executable(calc_flight_distance src/calc_flight_distance.cpp)
@@ -275,16 +296,22 @@ install(TARGETS mode_target_lat_acc_selector
 
 
 # モード別目標高度セレクター
-ament_auto_add_executable(mode_target_altitude_selector src/mode_target_altitude_selector.cpp)
-install(TARGETS mode_target_altitude_selector
-  DESTINATION lib/${PROJECT_NAME})
+# コンポーネント版
+ament_auto_add_library(mode_target_altitude_selector_component SHARED src/mode_target_altitude_selector.cpp)
+rclcpp_components_register_nodes(mode_target_altitude_selector_component "ModeTargetAltitudeSelector")
 
+install(TARGETS mode_target_altitude_selector_component
+  DESTINATION lib/${PROJECT_NAME})
 
 
 # エネルギー計算ノード
-ament_auto_add_executable(calc_energy src/calc_energy.cpp)
-install(TARGETS calc_energy
+# コンポーネント版
+ament_auto_add_library(calc_energy_component SHARED src/calc_energy.cpp)
+rclcpp_components_register_nodes(calc_energy_component "CalcEnergyNode")
+
+install(TARGETS calc_energy_component
   DESTINATION lib/${PROJECT_NAME})
+
 
 # 高度計算ノード（ToF傾き補正）
 # コンポーネント版
@@ -308,9 +335,14 @@ install(TARGETS calc_altitude_pressure
   DESTINATION lib/${PROJECT_NAME})
 
 # 平均高度・速度計算ノード
-ament_auto_add_executable(calc_average_altitude_velocity src/calc_average_altitude_velocity.cpp)
-install(TARGETS calc_average_altitude_velocity
+# コンポーネント版
+ament_auto_add_library(calc_average_altitude_velocity_component SHARED src/calc_average_altitude_velocity.cpp)
+rclcpp_components_register_nodes(calc_average_altitude_velocity_component "AverageAltitudeVelocityNode")
+
+install(TARGETS calc_average_altitude_velocity_component
   DESTINATION lib/${PROJECT_NAME})
+
+
 
 # 経路生成ノード
 ament_auto_add_executable(path_generator src/path_generator.cpp)
@@ -328,9 +360,14 @@ install(TARGETS test_path_follow_with_joy
   DESTINATION lib/${PROJECT_NAME})
 
 # 制御入力統合ノード
-ament_auto_add_executable(unity_control_input src/unity_control_input.cpp)
-install(TARGETS unity_control_input
+# コンポーネント版
+ament_auto_add_library(unity_control_input_component SHARED src/unity_control_input.cpp)
+rclcpp_components_register_nodes(unity_control_input_component "UnityControlInputNode")
+
+install(TARGETS unity_control_input_component
   DESTINATION lib/${PROJECT_NAME})
+
+
 
 # SBUS UDP送信ノード
 ament_auto_add_executable(sbus_send_raw_data src/sbus_send_raw_data.cpp)

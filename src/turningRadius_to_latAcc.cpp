@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <ksenos_ground_msgs/msg/flow_rate_data.hpp>
 #include <memory>
@@ -6,7 +7,8 @@
 class LateralAccelerationCalculator : public rclcpp::Node
 {
 public:
-    LateralAccelerationCalculator() : Node("lateral_acceleration_calculator")
+    LateralAccelerationCalculator(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("lateral_acceleration_calculator", options)
     {
         // パラメータの宣言と初期化
         this->declare_parameter("low_pass_filter_alpha", 0.1);
@@ -97,11 +99,5 @@ private:
     bool is_first_flow_rate_;      // 最初のflow_rateデータかどうか
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<LateralAccelerationCalculator>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネント登録
+RCLCPP_COMPONENTS_REGISTER_NODE(LateralAccelerationCalculator)

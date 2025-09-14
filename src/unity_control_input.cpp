@@ -1,4 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
 #include "ksenos_ground_msgs/msg/control_input.hpp"
 #include "ksenos_ground_msgs/msg/sbus_data.hpp"
 #include <memory>
@@ -6,7 +7,8 @@
 class UnityControlInputNode : public rclcpp::Node
 {
 public:
-    UnityControlInputNode() : Node("unity_control_input")
+    UnityControlInputNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("unity_control_input", options)
     {
         // 初期値設定
         latest_aileron_ = 0.0;
@@ -110,11 +112,5 @@ private:
     float latest_throttle_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<UnityControlInputNode>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(UnityControlInputNode)

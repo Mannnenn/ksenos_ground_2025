@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <ksenos_ground_msgs/msg/rpy.hpp>
 #include <ksenos_ground_msgs/msg/plane_energy.hpp>
@@ -9,7 +10,7 @@
 class ElevatorControl : public rclcpp::Node
 {
 public:
-    ElevatorControl() : Node("elevator_control")
+    ElevatorControl(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("elevator_control", options)
     {
         // パラメータの宣言
         this->declare_parameter("k_energy_gain", 1.0);         // エネルギー制御ゲイン
@@ -265,11 +266,5 @@ private:
     bool imu_received_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<ElevatorControl>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(ElevatorControl)

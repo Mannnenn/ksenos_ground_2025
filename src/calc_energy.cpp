@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 
 #include "ksenos_ground_msgs/msg/flow_rate_data.hpp"
@@ -9,7 +10,7 @@
 class CalcEnergyNode : public rclcpp::Node
 {
 public:
-    CalcEnergyNode() : Node("calc_energy_node")
+    CalcEnergyNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("calc_energy_node", options)
     {
         // パラメータ宣言（質量m、重力加速度g、トピック名）
         this->declare_parameter("mass", 1.0);
@@ -116,11 +117,5 @@ private:
     bool has_altitude_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<CalcEnergyNode>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(CalcEnergyNode)

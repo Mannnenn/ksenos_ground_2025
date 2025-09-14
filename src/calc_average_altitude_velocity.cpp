@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include "ksenos_ground_msgs/msg/sbus_data.hpp"
 #include "ksenos_ground_msgs/msg/flow_rate_data.hpp"
@@ -8,7 +9,7 @@
 class AverageAltitudeVelocityNode : public rclcpp::Node
 {
 public:
-    AverageAltitudeVelocityNode() : Node("calc_average_altitude_velocity"), is_manual_mode_(false)
+    AverageAltitudeVelocityNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("calc_average_altitude_velocity", options), is_manual_mode_(false)
     {
         // SbusDataのサブスクライバー
         sbus_subscription_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
@@ -172,10 +173,5 @@ private:
     const size_t QUEUE_SIZE_HIGH_RATE = 10;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<AverageAltitudeVelocityNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネントとして登録
+RCLCPP_COMPONENTS_REGISTER_NODE(AverageAltitudeVelocityNode)

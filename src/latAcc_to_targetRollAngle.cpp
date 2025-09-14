@@ -1,11 +1,13 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <cmath>
 
 class LatAccToTargetRollAngleNode : public rclcpp::Node
 {
 public:
-    LatAccToTargetRollAngleNode() : Node("lat_acc_to_target_roll_angle")
+    LatAccToTargetRollAngleNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("lat_acc_to_target_roll_angle", options)
     {
         // 重力加速度の定義 (m/s^2)
         g_ = 9.81;
@@ -64,11 +66,5 @@ private:
     double max_roll_angle_; // 最大ロール角制限値
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<LatAccToTargetRollAngleNode>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネント登録
+RCLCPP_COMPONENTS_REGISTER_NODE(LatAccToTargetRollAngleNode)

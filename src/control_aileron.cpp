@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <ksenos_ground_msgs/msg/rpy.hpp>
@@ -8,7 +9,8 @@
 class AileronControl : public rclcpp::Node
 {
 public:
-    AileronControl() : Node("aileron_control")
+    AileronControl(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("aileron_control", options)
     {
         // パラメータの宣言
         this->declare_parameter("kp", 1.0);
@@ -167,11 +169,5 @@ private:
     bool imu_received_ = false;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<AileronControl>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+// コンポーネント登録
+RCLCPP_COMPONENTS_REGISTER_NODE(AileronControl)
