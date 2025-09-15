@@ -48,7 +48,7 @@ def generate_launch_description():
                 namespace='controller/lat/calc',
                 name='lat_acc_to_target_roll_angle',
                 parameters=[{
-                    'max_roll_angle': 0.524,  # 30度 (0.524 rad)
+                    'max_roll_angle': 0.6,
                 }],
                 remappings=[
                     ('/controller/lat/calc/lateral_acceleration', '/controller/lat/lateral_acceleration'),
@@ -65,7 +65,7 @@ def generate_launch_description():
                 name='aileron_control',
                 parameters=[{
                     'kp': -0.70,
-                    'kd': 0.1,
+                    'kd': 0.05,
                     'max_aileron': 0.6,
                     'min_aileron': -0.6,
                     'kp_right_scale': 1.06,
@@ -88,13 +88,13 @@ def generate_launch_description():
                 parameters=[{
                     'kp': 0.00,
                     'ki': 0.00,
-                    'ff_lat_acc_gain': 0.075,
-                    'ff_aileron_gain': 0.74,
+                    'ff_lat_acc_gain': 0.05,
+                    'ff_lat_acc_right_scale': 0.6,
+                    'ff_lat_acc_left_scale': 1.0,
+                    'ff_aileron_gain': 0.01,
                     'max_rudder': 0.6,
                     'min_rudder': -0.6,
                     'max_integral': 0.1,
-                    'ff_lat_acc_right_scale': 0.74,
-                    'ff_lat_acc_left_scale': 1.0,
                 }],
                 remappings=[
                     ('/aileron_input', '/controller/lat/aileron_input'),

@@ -97,7 +97,7 @@ def generate_launch_description():
                 namespace='controller/long/control',
                 name='throttle_control_node',
                 parameters=[{
-                    'kp': 0.005,
+                    'kp': 0.010,
                     'ki': 0.0,
                     'max_throttle': 0.7,
                     'min_throttle': 0.0,
@@ -120,11 +120,11 @@ def generate_launch_description():
                 name='elevator_control_node',
                 parameters=[{
                     'k_energy_gain': 0.065,
-                    'kd_pitch_angle': -0.6,
-                    'kd_pitch_rate': 0.5,
+                    'kd_pitch_angle': -0.5,
+                    'kd_pitch_rate': 0.55,
                     'max_elevator': 0.3,
                     'min_elevator': -0.3,
-                    'balanced_flight_pitch': 0.0,
+                    'balanced_flight_pitch': 0.20,
                 }],
                 remappings=[
                     ('/elevator_input', '/controller/long/elevator_input'),

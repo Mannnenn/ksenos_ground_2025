@@ -49,7 +49,7 @@ def generate_launch_description():
                 name='eight_turning_node',
                 parameters=[{
                     'lobe_span_deg': 270.0,
-                    'max_turn_radius': 6.0,
+                    'max_turn_radius': 5.0,
                     'min_turn_radius': 2.5,
                 }],
                 remappings=[

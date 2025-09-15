@@ -129,7 +129,7 @@ def generate_launch_description():
                 }],
                 remappings=[
                     ('imu/data_raw', '/sensor/imu'),
-                    ('imu/data', '/sensor/imu/data'),
+                    ('imu/data', '/sensor/orientation/imu/data'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
