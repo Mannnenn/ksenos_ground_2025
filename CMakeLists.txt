@@ -119,7 +119,8 @@ install(TARGETS simulate_airplane_motion
   DESTINATION lib/${PROJECT_NAME})
 
 # 動翼角度パブリッシャー
-ament_auto_add_executable(publish_joint_airplane src/publish_joint_airplane.cpp)
+ament_auto_add_library(publish_joint_airplane SHARED src/sbus_data_processor/publish_joint_airplane.cpp)
+rclcpp_components_register_nodes(publish_joint_airplane "ControlToJointPublisher")
 install(TARGETS publish_joint_airplane
   DESTINATION lib/${PROJECT_NAME})
 

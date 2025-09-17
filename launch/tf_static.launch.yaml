@@ -30,4 +30,4 @@ launch:
       exec: "rviz2"
       name: "rviz2"
       output: "log"
-      args: "-d $(find-pkg-share ksenos_ground)/config/LiDAR.rviz"
+      args: "-d $(find-pkg-share ksenos_ground)/config/rviz.rviz"

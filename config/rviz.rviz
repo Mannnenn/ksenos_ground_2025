@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Grid1/Offset1
         - /TF1/Frames1
+        - /RobotModel1/Description Topic1
       Splitter Ratio: 0.5
     Tree Height: 1218
   - Class: rviz_common/Selection
@@ -29,8 +30,8 @@ Panels:
 Visualization Manager:
   Class: ""
   Displays:
-    - Alpha: 0.800000011920929
-      Cell Size: 1
+    - Alpha: 0.30000001192092896
+      Cell Size: 2.5
       Class: rviz_default_plugins/Grid
       Color: 154; 153; 150
       Enabled: true
@@ -40,15 +41,15 @@ Visualization Manager:
       Name: Grid
       Normal Cell Count: 0
       Offset:
-        X: 20
+        X: 19
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 40
+      Plane Cell Count: 20
       Reference Frame: map
       Value: true
-    - Alpha: 0.800000011920929
-      Cell Size: 1
+    - Alpha: 0.30000001192092896
+      Cell Size: 2.5
       Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
       Enabled: true
@@ -58,11 +59,11 @@ Visualization Manager:
       Name: Grid
       Normal Cell Count: 0
       Offset:
-        X: 20
-        Y: 20
-        Z: 20
+        X: 19
+        Y: 25
+        Z: 25
       Plane: XZ
-      Plane Cell Count: 40
+      Plane Cell Count: 20
       Reference Frame: map
       Value: true
     - Alpha: 1
@@ -272,7 +273,6 @@ Visualization Manager:
           Value: true
       Enabled: true
       Name: ""
-
     - Class: rviz_default_plugins/TF
       Enabled: true
       Frame Timeout: 1
@@ -324,24 +324,35 @@ Visualization Manager:
           Value: true
       Marker Scale: 3
       Name: TF
-      Show Arrows: true
+      Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
         map:
-          origin: {}
+          origin:
+            {}
           start_point:
             waypoint_0:
-              drop_point: {}
-              throttle_off_point: {}
-              waypoint_1: {}
-              waypoint_2: {}
-              waypoint_3: {}
-              waypoint_4: {}
-              waypoint_5: {}
-              waypoint_6: {}
-              waypoint_7: {}
-              waypoint_8: {}
+              drop_point:
+                {}
+              throttle_off_point:
+                {}
+              waypoint_1:
+                {}
+              waypoint_2:
+                {}
+              waypoint_3:
+                {}
+              waypoint_4:
+                {}
+              waypoint_5:
+                {}
+              waypoint_6:
+                {}
+              waypoint_7:
+                {}
+              waypoint_8:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -465,7 +476,8 @@ Visualization Manager:
     - Class: rviz_default_plugins/Marker
       Enabled: true
       Name: Detect Area
-      Namespaces: {}
+      Namespaces:
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -644,6 +656,62 @@ Visualization Manager:
           top: 128
       Enabled: true
       Name: Plots
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: /home/oga/ros2_ksenos/src/ksenos_ground/urdf/ksenos_model.urdf
+      Description Source: File
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: ""
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        aileron_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        aileron_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        elevator:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        propeller:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rudder:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: RobotModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -690,7 +758,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 46.3317756652832
+      Distance: 58.48654556274414
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -705,10 +773,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5647968649864197
+      Pitch: 0.3147982954978943
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.6223645210266113
+      Yaw: 3.3723771572113037
     Saved: ~
 Window Geometry:
   Displays:

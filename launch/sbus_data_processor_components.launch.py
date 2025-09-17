@@ -97,6 +97,22 @@ def generate_launch_description():
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
+            # ジョイントパブリッシャーノード
+            ComposableNode(
+                package='ksenos_ground',
+                plugin='ControlToJointPublisher',
+                namespace='sbus/manual',
+                name='control_to_joint_publisher',
+                parameters=[{
+                }],
+                remappings=[
+                    ('/sbus_data', '/sbus/manual/sbus_data'),
+                    ('sbus_manual', '/sbus/manual/sbus_data'),
+                    ('sbus_auto', '/controller/control_input'),
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            ),
+
             # Auto SBUS処理グループ
             # SBUSオフセット適用ノード（機体用）
             ComposableNode(

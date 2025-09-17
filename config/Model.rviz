@@ -417,10 +417,8 @@ Visualization Manager:
           Tree:
             map:
               ksenos_smooth_0:
-                odom:
-                  {}
-              origin:
-                {}
+                odom: {}
+              origin: {}
           Update Interval: 0
           Value: true
         - Class: jsk_rviz_plugin/TFTrajectory
