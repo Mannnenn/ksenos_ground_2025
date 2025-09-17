@@ -106,7 +106,7 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='LidarScanNode',
-                name='lidar_scan_node',
+                name='init_scan_node',
                 parameters=[{
                     'scan_duration': 10.0,
                     'lower_limit_rad': -1.5708,  # -π/2
@@ -143,11 +143,11 @@ def generate_launch_description():
                     'object_frame_prefix': 'movable_object_',
                     'octree_resolution': 1.5,
                     'voxel_leaf_size': 0.025,
-                    'bbox_min_x': -10.0,
+                    'bbox_min_x': 0.5,
                     'bbox_min_y': -10.0,
-                    'bbox_min_z': -2.0,
-                    'bbox_max_x': 10.0,
-                    'bbox_max_y': 10.0,
+                    'bbox_min_z': 0.4,
+                    'bbox_max_x': 30.0,
+                    'bbox_max_y': 7.0,
                     'bbox_max_z': 10.0,
                     'cluster_tolerance': 0.25,
                     'min_cluster_size': 10,

@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LiDAR point
 Visualization Manager:
   Class: ""
   Displays:
@@ -70,21 +70,50 @@ Visualization Manager:
       Frame Timeout: 1
       Frames:
         All Enabled: false
+        aircraft_stability_axes:
+          Value: true
         hesai_lidar:
           Value: false
+        imu_link:
+          Value: true
+        ksenos_smooth_0:
+          Value: true
         lidar_center:
+          Value: true
+        map:
           Value: true
         motor_base:
           Value: false
         motor_rotating:
           Value: false
+        movable_object_0:
+          Value: true
+        movable_object_1:
+          Value: true
+        odom:
+          Value: true
       Marker Scale: 3
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        map:
+          ksenos_smooth_0:
+            odom:
+              imu_link:
+                aircraft_stability_axes:
+                  {}
+          motor_base:
+            lidar_center:
+              {}
+            motor_rotating:
+              hesai_lidar:
+                {}
+          movable_object_0:
+            {}
+          movable_object_1:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -202,14 +231,14 @@ Visualization Manager:
       Name: Smooth Traj
       Value: true
       color: 25; 255; 240
-      duration: 40
+      duration: 10
       frame: ksenos_smooth_0
       line_width: 0.029999999329447746
     - Class: rviz_default_plugins/Marker
       Enabled: true
       Name: Detect Area
       Namespaces:
-        {}
+        bounding_box: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -283,25 +312,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 42.45969009399414
+      Distance: 46.3317756652832
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 18.0329647064209
-        Y: 4.7092766761779785
-        Z: -5.0406036376953125
+        X: 21.05107307434082
+        Y: -0.1470133364200592
+        Z: -1.8140909671783447
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5597969889640808
+      Pitch: 0.5647968649864197
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.602365493774414
+      Yaw: 3.6223645210266113
     Saved: ~
 Window Geometry:
   Displays:

@@ -18,7 +18,7 @@ public:
         max_radius_ = this->get_parameter("max_turn_radius").as_double();
         min_radius_ = this->get_parameter("min_turn_radius").as_double();
 
-        turn_mode_ = TurnMode::RIGHT; // 左旋回から開始
+        turn_mode_ = TurnMode::LEFT; // 左旋回から開始
         reference_yaw_ = 0.0;
         is_initialized_ = false;
         is_eight_turning_mode_ = false;
@@ -199,7 +199,7 @@ private:
     {
         is_initialized_ = false;
         reference_yaw_ = 0.0;
-        turn_mode_ = TurnMode::RIGHT; // 左旋回から再開
+        turn_mode_ = TurnMode::LEFT; // 左旋回から再開
         RCLCPP_INFO(this->get_logger(), "State reset - ready for new eight turning cycle");
     }
 

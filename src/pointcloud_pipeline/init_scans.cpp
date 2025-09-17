@@ -64,8 +64,8 @@ public:
             input_pointcloud_topic, 10,
             std::bind(&LidarScanNode::pointCloudCallback, this, std::placeholders::_1));
 
-        // publisher: フィルタ後のポイントクラウド出力用 (信頼性の高いQoSプロファイルを使用)
-        auto qos = rclcpp::QoS(10).reliability(rclcpp::ReliabilityPolicy::Reliable).durability(rclcpp::DurabilityPolicy::TransientLocal);
+        // publisher: フィルタ後のポイントクラウド出力用 (プロセス間通信対応のQoSプロファイルを使用)
+        auto qos = rclcpp::QoS(10).reliability(rclcpp::ReliabilityPolicy::Reliable).durability(rclcpp::DurabilityPolicy::Volatile);
         filtered_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(output_pointcloud_topic, qos);
 
         start_time_ = this->now();

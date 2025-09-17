@@ -1,106 +1,106 @@
 launch:
+  #   ========================================
+  #   Topic Configuration
+  #   ========================================
+
+  - arg:
+      name: "lidar_pointcloud_topic_name"
+      default: "lidar_points"
+
+  - arg:
+      name: "lidar_pointcloud_transformed_topic_name"
+      default: "transformed_points"
+
+  - arg:
+      name: "map_pointcloud_topic_name"
+      default: "map_points"
+
+  - arg:
+      name: "target_elevation_topic_name"
+      default: "target_pitch_angle"
+
+  - arg:
+      name: "bbox_maker_topic_name"
+      default: "filer_box_size_maker"
+
   # ========================================
-  # Topic Configuration
+  # Frame Configuration
   # ========================================
 
-  # - arg:
-  #     name: "lidar_pointcloud_topic_name"
-  #     default: "lidar_points"
+  - arg:
+      name: "motor_base_frame"
+      default: "motor_base"
 
-  # - arg:
-  #     name: "lidar_pointcloud_transformed_topic_name"
-  #     default: "transformed_points"
+  - arg:
+      name: "lidar_frame"
+      default: "hesai_lidar"
 
-  # - arg:
-  #     name: "map_pointcloud_topic_name"
-  #     default: "map_points"
+  - arg:
+      name: "lidar_center_frame"
+      default: "lidar_center"
 
-  # - arg:
-  #     name: "target_elevation_topic_name"
-  #     default: "target_pitch_angle"
+  - arg:
+      name: "origin_frame"
+      default: "map"
 
-  # - arg:
-  #     name: "bbox_maker_topic_name"
-  #     default: "filer_box_size_maker"
+  - arg:
+      name: "motor_rotating_frame"
+      default: "motor_rotating"
 
-  # # ========================================
-  # # Frame Configuration
-  # # ========================================
+  - arg:
+      name: "motor_base_frame"
+      default: "motor_base"
 
-  # - arg:
-  #     name: "motor_base_frame"
-  #     default: "motor_base"
+  - arg:
+      name: "sensor_base_frame"
+      default: "sensor_base"
 
-  # - arg:
-  #     name: "lidar_frame"
-  #     default: "hesai_lidar"
+  - arg:
+      name: "hesai_lidar_frame"
+      default: "hesai_lidar"
 
-  # - arg:
-  #     name: "lidar_center_frame"
-  #     default: "lidar_center"
+  # ========================================
+  # Frame Configuration
+  # ========================================
 
-  # - arg:
-  #     name: "origin_frame"
-  #     default: "map"
+  - arg:
+      name: "robot_name"
+      default: "ksenos"
 
-  # - arg:
-  #     name: "motor_rotating_frame"
-  #     default: "motor_rotating"
+  - arg:
+      name: "lidar_motor_horizontal_offset"
+      default: "0.074"
 
-  # - arg:
-  #     name: "motor_base_frame"
-  #     default: "motor_base"
+  - arg:
+      name: "lidar_motor_vertical_offset"
+      default: "0.03"
 
-  # - arg:
-  #     name: "sensor_base_frame"
-  #     default: "sensor_base"
+  # ========================================
+  # PointCloud Processing Nodes
+  # ========================================
 
-  # - arg:
-  #     name: "hesai_lidar_frame"
-  #     default: "hesai_lidar"
-
-  # # ========================================
-  # # Frame Configuration
-  # # ========================================
-
-  # - arg:
-  #     name: "robot_name"
-  #     default: "ksenos"
-
-  # - arg:
-  #     name: "lidar_motor_horizontal_offset"
-  #     default: "0.074"
-
-  # - arg:
-  #     name: "lidar_motor_vertical_offset"
-  #     default: "0.03"
-
-  # # ========================================
-  # # PointCloud Processing Nodes
-  # # ========================================
-
-  # - node:
-  #     pkg: "ksenos_ground"
-  #     exec: "tf_smoother"
-  #     name: "tf_smoother"
-  #     output: "log"
-  #     param:
-  #       - name: "source_frame"
-  #         value: "$(var origin_frame)"
-  #       - name: "target_frame"
-  #         value: "$(var robot_name)_0"
-  #       - name: "smoothed_target_frame"
-  #         value: "$(var robot_name)_smooth_0"
-  #       - name: "max_translation_threshold"
-  #         value: 5.0
-  #       - name: "max_rotation_threshold"
-  #         value: 0.75
-  #       - name: "timeout_duration"
-  #         value: 0.5
-  #       - name: "publish_rate"
-  #         value: 10.0
-  #       - name: "smoothing_factor"
-  #         value: 0.65
+  - node:
+      pkg: "ksenos_ground"
+      exec: "tf_smoother"
+      name: "tf_smoother"
+      output: "log"
+      param:
+        - name: "source_frame"
+          value: "$(var origin_frame)"
+        - name: "target_frame"
+          value: "movable_object_0"
+        - name: "smoothed_target_frame"
+          value: "$(var robot_name)_smooth_0"
+        - name: "max_translation_threshold"
+          value: 5.0
+        - name: "max_rotation_threshold"
+          value: 0.75
+        - name: "timeout_duration"
+          value: 0.5
+        - name: "publish_rate"
+          value: 10.0
+        - name: "smoothing_factor"
+          value: 0.65
 
   # - node:
   #     pkg: "ksenos_ground"
@@ -132,11 +132,25 @@ launch:
       exec: pub_area
       name: pub_area
 
+  #   - node:
+  #       pkg: "tf2_ros"
+  #       exec: "static_transform_publisher"
+  #       name: "static_transform_publisher_map_lidar"
+  #       args: "--x 10 --y 20 --z 5 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id ksenos_smooth_0"
+
   - node:
       pkg: "tf2_ros"
       exec: "static_transform_publisher"
-      name: "static_transform_publisher_map_lidar"
-      args: "--x 10 --y 20 --z 5 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id ksenos_smooth_0"
+      name: "static_transform_publisher_motorBase2lidarCenter"
+      args: "--x 0 --y -$(var lidar_motor_horizontal_offset) --z $(var lidar_motor_vertical_offset) --roll 0 --pitch 0 --yaw 0 --frame-id $(var motor_base_frame) --child-frame-id $(var lidar_center_frame)"
+
+  - node:
+      pkg: "tf2_ros"
+      exec: "static_transform_publisher"
+      name: "static_transform_publisher_motorRotating2hesaiLidar"
+      args: "--x 0 --y $(var lidar_motor_horizontal_offset) --z 0 --roll 0 --pitch 3.14 --yaw 0 --frame-id $(var motor_rotating_frame) --child-frame-id $(var hesai_lidar_frame)"
+
+  # ==============
 
   - node:
       pkg: "tf2_ros"
@@ -154,9 +168,9 @@ launch:
   # Visualization
   # ========================================
 
-  # - node:
-  #     pkg: "rviz2"
-  #     exec: "rviz2"
-  #     name: "rviz2"
-  #     output: "log"
-  #     args: "-d $(find-pkg-share ksenos_ground)/config/LiDAR.rviz"
+  - node:
+      pkg: "rviz2"
+      exec: "rviz2"
+      name: "rviz2"
+      output: "log"
+      args: "-d $(find-pkg-share ksenos_ground)/config/LiDAR.rviz"

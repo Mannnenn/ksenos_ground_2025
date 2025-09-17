@@ -73,6 +73,13 @@ public:
 private:
     void pointcloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
     {
+        // 平面検出が既に成功している場合は処理をスキップ
+        if (ground_plane_estimated_)
+        {
+            RCLCPP_DEBUG(this->get_logger(), "Ground plane already estimated, skipping processing");
+            return;
+        }
+
         try
         {
             // PCLに変換
@@ -103,7 +110,8 @@ private:
             // 平面検出
             if (estimateGroundPlane(cloud_denoised))
             {
-                RCLCPP_DEBUG(this->get_logger(), "Ground plane estimation successful");
+                ground_plane_estimated_ = true;
+                RCLCPP_INFO(this->get_logger(), "Ground plane estimation completed successfully. Future callbacks will be skipped.");
             }
             else
             {
@@ -248,6 +256,7 @@ private:
     double statistical_filter_stddev_;
 
     bool static_transform_published_ = false;
+    bool ground_plane_estimated_ = false;
 };
 
 // コンポーネントの登録
