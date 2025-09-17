@@ -21,7 +21,7 @@ def generate_launch_description():
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
         name="lat_control_container",
-        namespace="",
+        namespace="controller/lat",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[

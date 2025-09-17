@@ -2,7 +2,8 @@
 // and visualize threshold planes (YZ planes) at x=5 and x=8.
 
 #include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/float32.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
+#include "ksenos_ground_msgs/msg/flow_rate_data.hpp"
 #include <visualization_msgs/msg/marker.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
@@ -14,10 +15,10 @@
 class ControlSpeedNode : public rclcpp::Node
 {
 public:
-    ControlSpeedNode()
-        : Node("control_speed"), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_)
+    ControlSpeedNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+        : Node("control_speed", options), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_)
     {
-        // Parameters
+        // Parametersconst rclcpp::NodeOptions &options = rclcpp::NodeOptions()
         this->declare_parameter<std::string>("world_frame", "start_point");
         this->declare_parameter<std::string>("base_frame", "base_link");
         this->declare_parameter<std::string>("target_speed_topic", "target_speed");
@@ -41,7 +42,7 @@ public:
         }
 
         auto qos = rclcpp::QoS(rclcpp::KeepLast(10)).reliable();
-        speed_pub_ = this->create_publisher<std_msgs::msg::Float32>(target_speed_topic_, qos);
+        speed_pub_ = this->create_publisher<ksenos_ground_msgs::msg::FlowRateData>(target_speed_topic_, qos);
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>(marker_topic_, qos);
 
         timer_ = this->create_wall_timer(std::chrono::milliseconds(50), std::bind(&ControlSpeedNode::on_timer, this));
@@ -65,8 +66,8 @@ private:
         const double x = tf.transform.translation.x;
         const float v = static_cast<float>(compute_target_speed(x));
 
-        std_msgs::msg::Float32 msg;
-        msg.data = v;
+        ksenos_ground_msgs::msg::FlowRateData msg;
+        msg.flow_rate = v;
         speed_pub_->publish(msg);
 
         publish_plane_marker(x_sustain_end_, 0, 0.1f, 0.8f, 0.2f); // green-ish for x=5
@@ -118,7 +119,7 @@ private:
     }
 
     // pubs/timer
-    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr speed_pub_;
+    rclcpp::Publisher<ksenos_ground_msgs::msg::FlowRateData>::SharedPtr speed_pub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
 
@@ -136,10 +137,4 @@ private:
     double v_max_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ControlSpeedNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(ControlSpeedNode)

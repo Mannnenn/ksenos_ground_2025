@@ -13,10 +13,12 @@ public:
         // パラメータ宣言
         this->declare_parameter<double>("max_turn_radius", 15.0);
         this->declare_parameter<double>("min_turn_radius", 4.5);
+        this->declare_parameter<double>("turn_angle_deg", 270.0);
 
         // パラメータ取得
         max_radius_ = this->get_parameter("max_turn_radius").as_double();
         min_radius_ = this->get_parameter("min_turn_radius").as_double();
+        turn_angle_deg_ = this->get_parameter("turn_angle_deg").as_double();
 
         turn_mode_ = TurnMode::LEFT; // 左旋回から開始
         reference_yaw_ = 0.0;
@@ -36,7 +38,8 @@ public:
         mode_publisher_ = this->create_publisher<std_msgs::msg::Int32>("turn_mode", 10);
 
         RCLCPP_INFO(this->get_logger(), "Mode Eight Turning Angle Node has been started");
-        RCLCPP_INFO(this->get_logger(), "max_turn_radius: %.2f, min_turn_radius: %.2f", max_radius_, min_radius_);
+        RCLCPP_INFO(this->get_logger(), "max_turn_radius: %.2f, min_turn_radius: %.2f, turn_angle_deg: %.1f",
+                    max_radius_, min_radius_, turn_angle_deg_);
     }
 
 private:
@@ -120,20 +123,21 @@ private:
     {
         float turn_radius = 0.0;
         float angle_deg = angle_diff * 180.0 / M_PI;
+        double half_turn_angle = turn_angle_deg_ / 2.0;
 
         if (turn_mode_ == TurnMode::LEFT)
         {
-            // 左旋回: 0° → +135° → +270°
-            if (angle_deg >= 0.0 && angle_deg <= 135.0)
+            // 左旋回: 0° → +half_turn_angle° → +turn_angle_deg_°
+            if (angle_deg >= 0.0 && angle_deg <= half_turn_angle)
             {
                 // 最大半径から最小半径へ減少
-                float progress = angle_deg / 135.0;
+                float progress = angle_deg / half_turn_angle;
                 turn_radius = max_radius_ - (max_radius_ - min_radius_) * progress;
             }
-            else if (angle_deg > 135.0 && angle_deg <= 270.0)
+            else if (angle_deg > half_turn_angle && angle_deg <= turn_angle_deg_)
             {
                 // 最小半径から最大半径へ増加
-                float progress = (angle_deg - 135.0) / 135.0;
+                float progress = (angle_deg - half_turn_angle) / half_turn_angle;
                 turn_radius = min_radius_ + (max_radius_ - min_radius_) * progress;
             }
             else
@@ -144,17 +148,17 @@ private:
         }
         else // RIGHT
         {
-            // 右旋回: 0° → -135° → -270°
-            if (angle_deg <= 0.0 && angle_deg >= -135.0)
+            // 右旋回: 0° → -half_turn_angle° → -turn_angle_deg_°
+            if (angle_deg <= 0.0 && angle_deg >= -half_turn_angle)
             {
                 // 負の最大半径から負の最小半径へ
-                float progress = (-angle_deg) / 135.0;
+                float progress = (-angle_deg) / half_turn_angle;
                 turn_radius = -max_radius_ + (max_radius_ - min_radius_) * progress;
             }
-            else if (angle_deg < -135.0 && angle_deg >= -270.0)
+            else if (angle_deg < -half_turn_angle && angle_deg >= -turn_angle_deg_)
             {
                 // 負の最小半径から負の最大半径へ
-                float progress = (-angle_deg - 135.0) / 135.0;
+                float progress = (-angle_deg - half_turn_angle) / half_turn_angle;
                 turn_radius = -min_radius_ - (max_radius_ - min_radius_) * progress;
             }
             else
@@ -173,8 +177,8 @@ private:
 
         if (turn_mode_ == TurnMode::LEFT)
         {
-            // 左旋回が270°完了したら右旋回に切り替え
-            if (angle_deg >= 270.0)
+            // 左旋回が turn_angle_deg_° 完了したら右旋回に切り替え
+            if (angle_deg >= turn_angle_deg_)
             {
                 turn_mode_ = TurnMode::RIGHT;
                 reference_yaw_ = current_yaw; // 現在のヨー角を新しい基準にする
@@ -184,8 +188,8 @@ private:
         }
         else // RIGHT
         {
-            // 右旋回が-270°完了したら左旋回に切り替え
-            if (angle_deg <= -270.0)
+            // 右旋回が -turn_angle_deg_° 完了したら左旋回に切り替え
+            if (angle_deg <= -turn_angle_deg_)
             {
                 turn_mode_ = TurnMode::LEFT;
                 reference_yaw_ = current_yaw; // 現在のヨー角を新しい基準にする
@@ -210,6 +214,7 @@ private:
     bool is_eight_turning_mode_;
     float max_radius_;
     float min_radius_;
+    double turn_angle_deg_;
 
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr yaw_subscriber_;
     rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_subscriber_;

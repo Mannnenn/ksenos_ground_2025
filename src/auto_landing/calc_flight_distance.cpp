@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <ksenos_ground_msgs/msg/flow_rate_data.hpp>
 #include <ksenos_ground_msgs/msg/sbus_data.hpp>
 #include <std_msgs/msg/float32.hpp>
@@ -7,7 +8,7 @@
 class CalcFlightDistance : public rclcpp::Node
 {
 public:
-    CalcFlightDistance() : Node("calc_flight_distance")
+    CalcFlightDistance(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("calc_flight_distance", options)
     {
         // Subscriber
         flow_rate_sub_ = this->create_subscription<ksenos_ground_msgs::msg::FlowRateData>(
@@ -95,11 +96,4 @@ private:
     std::string current_mode_;
 };
 
-int main(int argc, char **argv)
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<CalcFlightDistance>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(CalcFlightDistance)

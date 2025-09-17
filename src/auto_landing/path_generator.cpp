@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/Splines>
 #include "rclcpp/rclcpp.hpp"
+#include <rclcpp_components/register_node_macro.hpp>
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/pose_array.hpp"
 #include "tf2_ros/transform_listener.h"
@@ -15,7 +16,7 @@ typedef Eigen::Spline<double, 3> Spline3d;
 class PathGenerator : public rclcpp::Node
 {
 public:
-    PathGenerator() : Node("path_generator"), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_)
+    PathGenerator(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("path_generator", options), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_)
     {
         this->declare_parameter<std::string>("output_path_topic_name", "/path");
 
@@ -132,10 +133,4 @@ private:
     tf2_ros::TransformListener tf_listener_;
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<PathGenerator>());
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(PathGenerator)

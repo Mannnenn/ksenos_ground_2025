@@ -194,8 +194,9 @@ install(TARGETS control_rudder_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 速度ターゲット生成ノード（位置xに応じて速度指令とYZ平面マーカーを出力）
-ament_auto_add_executable(control_speed src/auto_landing/control_speed.cpp)
-install(TARGETS control_speed
+ament_auto_add_library(control_speed_component SHARED src/auto_landing/control_speed.cpp)
+rclcpp_components_register_nodes(control_speed_component "ControlSpeedNode")
+install(TARGETS control_speed_component
   DESTINATION lib/${PROJECT_NAME})
 
 # スロットル制御ノード（PI制御）
@@ -211,11 +212,10 @@ rclcpp_components_register_nodes(control_elevator_component "ElevatorControl")
 install(TARGETS control_elevator_component
   DESTINATION lib/${PROJECT_NAME})
 
-
-
 # 飛行距離計測ノード
-ament_auto_add_executable(calc_flight_distance src/auto_landing/calc_flight_distance.cpp)
-install(TARGETS calc_flight_distance
+ament_auto_add_library(calc_flight_distance_component SHARED src/auto_landing/calc_flight_distance.cpp)
+rclcpp_components_register_nodes(calc_flight_distance_component "CalcFlightDistance")
+install(TARGETS calc_flight_distance_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 自動旋回モードノード
@@ -235,11 +235,6 @@ install(TARGETS mode_eight_turning_angle
 ament_auto_add_library(mode_rise_turning SHARED src/mode_control/mode_rise_turning.cpp)
 rclcpp_components_register_nodes(mode_rise_turning "ModeRiseTurning")
 install(TARGETS mode_rise_turning
-  DESTINATION lib/${PROJECT_NAME})
-
-# モード別目標横加速度セレクター
-ament_auto_add_executable(mode_target_lat_acc_selector src/auto_landing/mode_target_lat_acc_selector.cpp)
-install(TARGETS mode_target_lat_acc_selector
   DESTINATION lib/${PROJECT_NAME})
 
 
@@ -281,13 +276,15 @@ install(TARGETS calc_average_altitude_velocity_component
   DESTINATION lib/${PROJECT_NAME})
 
 # 経路生成ノード
-ament_auto_add_executable(path_generator src/auto_landing/path_generator.cpp)
-install(TARGETS path_generator
+ament_auto_add_library(path_generator_component SHARED src/auto_landing/path_generator.cpp)
+rclcpp_components_register_nodes(path_generator_component "PathGenerator")
+install(TARGETS path_generator_component
   DESTINATION lib/${PROJECT_NAME})
 
 # L1 path following (eta/markers/optional lateral acceleration)
-ament_auto_add_executable(control_L1_law src/auto_landing/control_L1_law.cpp)
-install(TARGETS control_L1_law
+ament_auto_add_library(control_L1_law_component SHARED src/auto_landing/control_L1_law.cpp)
+rclcpp_components_register_nodes(control_L1_law_component "L1ControlNode")
+install(TARGETS control_L1_law_component
   DESTINATION lib/${PROJECT_NAME})
 
 # L1 path following (eta/markers/optional lateral acceleration)

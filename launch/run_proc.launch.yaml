@@ -1,21 +1,47 @@
 launch:
+  - arg:
+      name: "is_auto_landing_mode"
+      default: "true"
+
   - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/model_load.launch.py"
+      file: "$(find-pkg-share ksenos_ground)/launch/tf_static.launch.yaml"
+
   - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/long_control_components.launch.py"
+      file: "$(find-pkg-share ksenos_ground)/launch/tf_lidar.launch.yaml"
+      if: '$(eval ''"$(var is_auto_landing_mode)" == "true"'')'
+
   - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/lat_control_components.launch.py"
-  - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation_components.launch.py"
+      file: "$(find-pkg-share ksenos_ground)/launch/tf_non_lidar.launch.yaml"
+      if: '$(eval ''"$(var is_auto_landing_mode)" == "false"'')'
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/sbus_data_processor_components.launch.py"
 
   - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/pose_estimation_components.launch.py"
+
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/model_load.launch.py"
+
+  - include:
       file: "$(find-pkg-share ksenos_ground)/launch/mode_control_components.launch.py"
+      arg:
+        - name: "is_auto_landing_mode"
+          value: "$(var is_auto_landing_mode)"
+
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/long_control_components.launch.py"
+      arg:
+        - name: "is_auto_landing_mode"
+          value: "$(var is_auto_landing_mode)"
+
+  - include:
+      file: "$(find-pkg-share ksenos_ground)/launch/lat_control_components.launch.py"
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/pointcloud_pipeline_components.launch.py"
+      if: '$(eval ''"$(var is_auto_landing_mode)" == "true"'')'
 
   - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/tf_static.launch.yaml"
+      file: "$(find-pkg-share ksenos_ground)/launch/path_generator.launch.yaml"
+      if: '$(eval ''"$(var is_auto_landing_mode)" == "true"'')'

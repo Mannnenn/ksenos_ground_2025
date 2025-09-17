@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <ksenos_ground_msgs/msg/flow_rate_data.hpp>
 #include <std_msgs/msg/float32.hpp>
@@ -50,9 +51,9 @@ namespace
 class L1ControlNode : public rclcpp::Node
 {
 public:
-    L1ControlNode() : Node("control_L1_law"),
-                      tf_buffer_(this->get_clock()),
-                      tf_listener_(tf_buffer_)
+    L1ControlNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("control_L1_law", options),
+                                                                                tf_buffer_(this->get_clock()),
+                                                                                tf_listener_(tf_buffer_)
     {
         // Parameters
         this->declare_parameter<std::string>("path_topic", "/path");
@@ -348,10 +349,4 @@ private:
     double min_speed_for_heading_{0.5};
 };
 
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<L1ControlNode>());
-    rclcpp::shutdown();
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(L1ControlNode)

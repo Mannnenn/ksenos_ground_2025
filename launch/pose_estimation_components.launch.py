@@ -21,7 +21,7 @@ def generate_launch_description():
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
         name="pose_estimation_container",
-        namespace="",
+        namespace="sensor",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[

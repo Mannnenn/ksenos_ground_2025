@@ -1,0 +1,10 @@
+launch:
+  - group:
+      - push-ros-namespace:
+          namespace: "tf"
+
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "static_transform_publisher_map_lidar"
+          args: "--x 5 --y 0 --z 5 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id ksenos_smooth_0"

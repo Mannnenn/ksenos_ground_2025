@@ -21,7 +21,7 @@ def generate_launch_description():
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
         name="sbus_data_processor_container",
-        namespace="",
+        namespace="sbus",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -105,7 +105,7 @@ def generate_launch_description():
                 namespace='sbus/auto',
                 name='sbus_offset_apply_node_to_aircraft',
                 parameters=[{
-                    'input_topic': '/control_input',
+                    'input_topic': '/controller/control_input',
                     'offset_topic': '/sbus/sbus_offset_amount',
                     'output_topic': 'sbus_radian_format',
                     'offset_operation': 'add',  # オフセットを足す

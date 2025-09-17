@@ -42,7 +42,7 @@ def generate_launch_description():
     # コンポーネントコンテナーの設定
     container = ComposableNodeContainer(
         name="pointcloud_pipeline_container",
-        namespace="",
+        namespace="pointcloud_pipeline",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
@@ -50,12 +50,13 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='PointCloudPublisher',
+                namespace='pointcloud_pipeline',
                 name='pointcloud_publisher',
                 parameters=[{
                     # LiDAR設定パラメータ（必要に応じて追加）
                 }],
                 remappings=[
-                    ('lidar_points', '/lidar_points'),
+                    ('lidar_points', '/pointcloud_pipeline/lidar_points'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
@@ -64,18 +65,17 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='PointCloudTransformer',
+                namespace='pointcloud_pipeline',
                 name='pointcloud_transform_node',
                 parameters=[{
-                    'input_topic': '/lidar_points',
-                    'output_topic': '/transformed_points',
+                    'input_topic': '/pointcloud_pipeline/lidar_points',
+                    'output_topic': '/pointcloud_pipeline/transformed_points',
                     'target_frame': 'motor_base',
                     'source_frame': 'hesai_lidar',
                     'timeout_seconds': 0.01,
                     'queue_size': 10,
                 }],
                 remappings=[
-                    ('lidar_points', '/lidar_points'),
-                    ('transformed_points', '/transformed_points'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
@@ -84,9 +84,10 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='GroundCorrectionNode',
+                namespace='pointcloud_pipeline',
                 name='ground_correction_node',
                 parameters=[{
-                    'input_topic': '/transformed_points',
+                    'input_topic': '/pointcloud_pipeline/transformed_points',
                     'base_frame': 'map',
                     'lidar_frame': 'motor_base',
                     'voxel_size': 0.05,
@@ -97,7 +98,6 @@ def generate_launch_description():
                     'statistical_filter_stddev': 1.0,
                 }],
                 remappings=[
-                    ('input_pointcloud', '/transformed_points'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
@@ -106,6 +106,7 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='LidarScanNode',
+                namespace='pointcloud_pipeline',
                 name='init_scan_node',
                 parameters=[{
                     'scan_duration': 10.0,
@@ -115,13 +116,10 @@ def generate_launch_description():
                     'voxel_leaf_size': 0.1,
                     'timer_period_ms': 100,
                     'angle_topic': '/target_pitch_angle',
-                    'input_pointcloud_topic': '/transformed_points',
-                    'output_pointcloud_topic': '/map_points',
+                    'input_pointcloud_topic': '/pointcloud_pipeline/transformed_points',
+                    'output_pointcloud_topic': '/pointcloud_pipeline/map_points',
                 }],
                 remappings=[
-                    ('target_pitch_angle', '/target_pitch_angle'),
-                    ('transformed_points', '/transformed_points'),
-                    ('map_points', '/map_points'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
@@ -130,11 +128,12 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='MovableObjectDetector',
+                namespace='pointcloud_pipeline',
                 name='movable_object_detector',
                 parameters=[{
-                    'map_topic': '/map_points',
-                    'scan_topic': '/transformed_points',
-                    'output_topic': '/detected_objects',
+                    'map_topic': '/pointcloud_pipeline/map_points',
+                    'scan_topic': '/pointcloud_pipeline/transformed_points',
+                    'output_topic': '/pointcloud_pipeline/detected_objects',
                     'elevation_topic': '/target_pitch_angle',
                     'bbox_marker_topic': '/bbox_marker',
                     'lidar_frame': 'lidar_center',
@@ -158,11 +157,6 @@ def generate_launch_description():
                     'elevation_offset': -0.0523,
                 }],
                 remappings=[
-                    ('map_points', '/map_points'),
-                    ('transformed_points', '/transformed_points'),
-                    ('detected_objects', '/detected_objects'),
-                    ('target_pitch_angle', '/target_pitch_angle'),
-                    ('bbox_marker', '/bbox_marker'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
