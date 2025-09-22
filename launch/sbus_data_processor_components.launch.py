@@ -47,6 +47,7 @@ def generate_launch_description():
                 package="robot_state_publisher",
                 plugin="robot_state_publisher::RobotStatePublisher",
                 parameters=[robot_description],
+                namespace='sbus',
                 name="robot_state_publisher",
             ),
             
@@ -126,7 +127,7 @@ def generate_launch_description():
             ComposableNode(
                 package='ksenos_ground',
                 plugin='ControlToJointPublisher',
-                namespace='sbus/manual',
+                namespace='sbus',
                 name='control_to_joint_publisher',
                 parameters=[{
                 }],

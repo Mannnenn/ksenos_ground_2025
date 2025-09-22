@@ -19,7 +19,7 @@ public:
     {
         // パブリッシャーの作成（キューサイズを増やして高頻度パブリッシュに対応）
         publisher_ = this->create_publisher<ksenos_ground_msgs::msg::SbusRawData>(
-            "sbus_raw_data", 100);
+            "sbus_raw_data", 10);
 
         // シリアルポートの設定
         const char *device_name = "/dev/ttyESP32S3";
@@ -35,7 +35,7 @@ public:
 
         // タイマーでシリアルデータを読み込み (2ms間隔で高頻度読み込み)
         timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(2),
+            std::chrono::milliseconds(10),
             std::bind(&SbusSerialReader::readSerialData, this));
 
         RCLCPP_INFO(this->get_logger(), "SBUS Serial Reader ノードが開始されました");
