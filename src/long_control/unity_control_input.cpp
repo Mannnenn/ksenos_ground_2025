@@ -2,6 +2,7 @@
 #include "rclcpp_components/register_node_macro.hpp"
 #include "ksenos_ground_msgs/msg/control_input.hpp"
 #include "ksenos_ground_msgs/msg/sbus_data.hpp"
+#include "std_msgs/msg/u_int8.hpp"
 #include <memory>
 
 class UnityControlInputNode : public rclcpp::Node
@@ -15,6 +16,7 @@ public:
         latest_elevator_ = 0.0;
         latest_rudder_ = 0.0;
         latest_throttle_ = 0.0;
+        latest_dropping_device_ = 0;
 
         // サブスクライバーの作成
         aileron_sub_ = this->create_subscription<ksenos_ground_msgs::msg::ControlInput>(
@@ -32,6 +34,10 @@ public:
         throttle_sub_ = this->create_subscription<ksenos_ground_msgs::msg::ControlInput>(
             "/throttle_input", 10,
             std::bind(&UnityControlInputNode::throttleCallback, this, std::placeholders::_1));
+
+        drop_sub_ = this->create_subscription<std_msgs::msg::UInt8>(
+            "/drop_signal", 10,
+            std::bind(&UnityControlInputNode::dropCallback, this, std::placeholders::_1));
 
         // パブリッシャーの作成
         control_input_pub_ = this->create_publisher<ksenos_ground_msgs::msg::SbusData>(
@@ -70,6 +76,12 @@ private:
         RCLCPP_DEBUG(this->get_logger(), "Received throttle input: %.3f", latest_throttle_);
     }
 
+    void dropCallback(const std_msgs::msg::UInt8::SharedPtr msg)
+    {
+        latest_dropping_device_ = msg->data;
+        RCLCPP_DEBUG(this->get_logger(), "Received drop signal: %u", latest_dropping_device_);
+    }
+
     void publishControlInput()
     {
         auto control_msg = ksenos_ground_msgs::msg::SbusData();
@@ -84,13 +96,14 @@ private:
         control_msg.elevator = latest_elevator_;
         control_msg.rudder = latest_rudder_;
         control_msg.throttle = latest_throttle_;
+        control_msg.dropping_device = latest_dropping_device_;
 
         // メッセージをパブリッシュ
         control_input_pub_->publish(control_msg);
 
         RCLCPP_DEBUG(this->get_logger(),
-                     "Published control input - Aileron: %.3f, Elevator: %.3f, Rudder: %.3f, Throttle: %.3f",
-                     control_msg.aileron_l, control_msg.elevator, control_msg.rudder, control_msg.throttle);
+                     "Published control input - Aileron: %.3f, Elevator: %.3f, Rudder: %.3f, Throttle: %.3f, Drop: %u",
+                     control_msg.aileron_l, control_msg.elevator, control_msg.rudder, control_msg.throttle, control_msg.dropping_device);
     }
 
     // サブスクライバー
@@ -98,6 +111,7 @@ private:
     rclcpp::Subscription<ksenos_ground_msgs::msg::ControlInput>::SharedPtr elevator_sub_;
     rclcpp::Subscription<ksenos_ground_msgs::msg::ControlInput>::SharedPtr rudder_sub_;
     rclcpp::Subscription<ksenos_ground_msgs::msg::ControlInput>::SharedPtr throttle_sub_;
+    rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr drop_sub_;
 
     // パブリッシャー
     rclcpp::Publisher<ksenos_ground_msgs::msg::SbusData>::SharedPtr control_input_pub_;
@@ -110,6 +124,7 @@ private:
     float latest_elevator_;
     float latest_rudder_;
     float latest_throttle_;
+    uint8_t latest_dropping_device_;
 };
 
 // コンポーネントとして登録

@@ -14,11 +14,13 @@ public:
         this->declare_parameter<double>("max_turn_radius", 15.0);
         this->declare_parameter<double>("min_turn_radius", 4.5);
         this->declare_parameter<double>("turn_angle_deg", 270.0);
+        this->declare_parameter<double>("right_turning_ratio", 0.9);
 
         // パラメータ取得
         max_radius_ = this->get_parameter("max_turn_radius").as_double();
         min_radius_ = this->get_parameter("min_turn_radius").as_double();
         turn_angle_deg_ = this->get_parameter("turn_angle_deg").as_double();
+        right_turning_ratio_ = this->get_parameter("right_turning_ratio").as_double();
 
         turn_mode_ = TurnMode::LEFT; // 左旋回から開始
         reference_yaw_ = 0.0;
@@ -149,16 +151,16 @@ private:
         else // RIGHT
         {
             // 右旋回: 0° → -half_turn_angle° → -turn_angle_deg_°
-            if (angle_deg <= 0.0 && angle_deg >= -half_turn_angle)
+            if (angle_deg <= 0.0 && angle_deg >= -(half_turn_angle * right_turning_ratio_))
             {
                 // 負の最大半径から負の最小半径へ
-                float progress = (-angle_deg) / half_turn_angle;
+                float progress = (-angle_deg) / (half_turn_angle * right_turning_ratio_);
                 turn_radius = -max_radius_ + (max_radius_ - min_radius_) * progress;
             }
-            else if (angle_deg < -half_turn_angle && angle_deg >= -turn_angle_deg_)
+            else if (angle_deg < -half_turn_angle * right_turning_ratio_ && angle_deg >= -(turn_angle_deg_ * right_turning_ratio_))
             {
                 // 負の最小半径から負の最大半径へ
-                float progress = (-angle_deg - half_turn_angle) / half_turn_angle;
+                float progress = (-angle_deg - half_turn_angle * right_turning_ratio_) / (half_turn_angle * right_turning_ratio_);
                 turn_radius = -min_radius_ - (max_radius_ - min_radius_) * progress;
             }
             else
@@ -215,6 +217,7 @@ private:
     float max_radius_;
     float min_radius_;
     double turn_angle_deg_;
+    double right_turning_ratio_;
 
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr yaw_subscriber_;
     rclcpp::Subscription<ksenos_ground_msgs::msg::SbusData>::SharedPtr sbus_subscriber_;

@@ -200,6 +200,12 @@ rclcpp_components_register_nodes(control_speed_component "ControlSpeedNode")
 install(TARGETS control_speed_component
   DESTINATION lib/${PROJECT_NAME})
 
+# 投下ノード（位置xに応じて投下指令とYZ平面マーカーを出力）
+ament_auto_add_library(control_drop_component SHARED src/auto_landing/control_drop.cpp)
+rclcpp_components_register_nodes(control_drop_component "ControlDropNode")
+install(TARGETS control_drop_component
+  DESTINATION lib/${PROJECT_NAME})
+
 # スロットル制御ノード（PI制御）
 ament_auto_add_library(control_throttle_component SHARED src/long_control/control_throttle.cpp)
 rclcpp_components_register_nodes(control_throttle_component "ThrottleControl")

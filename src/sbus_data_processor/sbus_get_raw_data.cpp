@@ -17,9 +17,9 @@ class SbusSerialReader : public rclcpp::Node
 public:
     SbusSerialReader(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("sbus_serial_reader", options), serial_fd_(-1)
     {
-        // パブリッシャーの作成
+        // パブリッシャーの作成（キューサイズを増やして高頻度パブリッシュに対応）
         publisher_ = this->create_publisher<ksenos_ground_msgs::msg::SbusRawData>(
-            "sbus_raw_data", 10);
+            "sbus_raw_data", 100);
 
         // シリアルポートの設定
         const char *device_name = "/dev/ttyESP32S3";
@@ -33,9 +33,9 @@ public:
 
         RCLCPP_INFO(this->get_logger(), "シリアルポートが正常に開かれました: %s", device_name);
 
-        // タイマーでシリアルデータを読み込み (5ms間隔で高頻度読み込み)
+        // タイマーでシリアルデータを読み込み (2ms間隔で高頻度読み込み)
         timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(5),
+            std::chrono::milliseconds(2),
             std::bind(&SbusSerialReader::readSerialData, this));
 
         RCLCPP_INFO(this->get_logger(), "SBUS Serial Reader ノードが開始されました");
@@ -64,7 +64,7 @@ private:
         struct termios conf_tio;
         tcgetattr(fd, &conf_tio);
 
-        speed_t BAUDRATE = B115200;
+        speed_t BAUDRATE = B230400;
         cfsetispeed(&conf_tio, BAUDRATE);
         cfsetospeed(&conf_tio, BAUDRATE);
 
@@ -120,13 +120,8 @@ private:
                 line.pop_back();
             }
 
-            // データ処理を試行
-            if (processLine(line))
-            {
-                // 成功した場合は処理済みデータをバッファから削除して終了
-                line_buffer.erase(0, start_pos);
-                return;
-            }
+            // データ処理を試行（成功・失敗に関わらず続行）
+            processLine(line);
         }
 
         // 処理済みの行をバッファから削除
@@ -143,7 +138,7 @@ private:
         }
     }
 
-    bool processLine(const std::string &line)
+    void processLine(const std::string &line)
     {
         // 空白文字で分割して整数に変換
         std::vector<uint16_t> numbers;
@@ -159,25 +154,24 @@ private:
                 int value = std::stoi(token);
                 if (value < 0 || value > 65535)
                 {
-                    return false; // 早期リターンで処理を軽くする
+                    return; // 無効なデータの場合は処理を中断
                 }
                 numbers.push_back(static_cast<uint16_t>(value));
             }
             catch (const std::exception &)
             {
-                return false; // エラーログを減らして処理速度向上
+                return; // 変換エラーの場合は処理を中断
             }
         }
 
         // データ数チェック
         if (numbers.size() != 18)
         {
-            return false;
+            return; // データ数が正しくない場合は処理を中断
         }
 
         // SbusRawDataメッセージの作成と配信
         publishSbusData(numbers);
-        return true;
     }
 
     void publishSbusData(const std::vector<uint16_t> &numbers)

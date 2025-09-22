@@ -1,6 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/imu.hpp>
+#include <std_msgs/msg/float32.hpp>
 #include <ksenos_ground_msgs/msg/rpy.hpp>
 #include <ksenos_ground_msgs/msg/plane_energy.hpp>
 #include <ksenos_ground_msgs/msg/control_input.hpp>
@@ -49,6 +50,11 @@ public:
             "/sensor/imu", 10,
             std::bind(&ElevatorControl::imu_callback, this, std::placeholders::_1));
 
+        // ターゲットピッチサブスクライバー
+        target_pitch_sub_ = this->create_subscription<std_msgs::msg::Float32>(
+            "/target_pitch", 10,
+            std::bind(&ElevatorControl::target_pitch_callback, this, std::placeholders::_1));
+
         // パブリッシャーの作成
         control_input_pub_ = this->create_publisher<ksenos_ground_msgs::msg::ControlInput>(
             "/elevator_input", 10);
@@ -65,6 +71,7 @@ public:
         reference_potential_energy_ = 0.0;
         current_pitch_ = 0.0;
         pitch_rate_ = 0.0;
+        target_pitch_ = balanced_flight_pitch_; // 初期値はbalanced_flight_pitch_
 
         // ローパスフィルター変数の初期化
         filtered_current_kinetic_energy_ = 0.0;
@@ -85,6 +92,7 @@ public:
         reference_energy_received_ = false;
         rpy_received_ = false;
         imu_received_ = false;
+        target_pitch_received_ = false; // ターゲットピッチは最初は受信されていない
 
         RCLCPP_INFO(this->get_logger(), "Elevator Control Node Started");
         RCLCPP_INFO(this->get_logger(), "Energy Gain: %.3f, Pitch D Gain: %.3f, Lowpass Cutoff: %.1f Hz",
@@ -163,6 +171,13 @@ private:
         imu_received_ = true;
     }
 
+    void target_pitch_callback(const std_msgs::msg::Float32::SharedPtr msg)
+    {
+        target_pitch_ = msg->data;
+        target_pitch_received_ = true;
+        RCLCPP_INFO(this->get_logger(), "Target pitch updated: %.3f", target_pitch_);
+    }
+
     void control_loop()
     {
         // 必要なデータが全て受信されているかチェック
@@ -185,7 +200,9 @@ private:
         double elevator_base = k_energy_gain_ * (kinetic_error - potential_error);
 
         // D制御：フィルター済みピッチ角・角速度を使用して振動を抑制（負の符号で安定化）
-        double pitch_error = balanced_flight_pitch_ - filtered_current_pitch_;
+        // ターゲットピッチが受信されている場合はそれを使用、そうでなければbalanced_flight_pitch_を使用
+        double target_pitch_value = target_pitch_received_ ? target_pitch_ : balanced_flight_pitch_;
+        double pitch_error = target_pitch_value - filtered_current_pitch_;
         double d_term = kd_pitch_angle_ * pitch_error - kd_pitch_rate_ * filtered_pitch_rate_;
 
         // 最終的なエレベータ操作量
@@ -208,8 +225,8 @@ private:
 
         // デバッグ情報の出力
         RCLCPP_DEBUG(this->get_logger(),
-                     "K_err: %.3f, P_err: %.3f, Base: %.3f, Pitch Rate: %.3f (filtered: %.3f), D_term: %.3f, Elevator: %.3f",
-                     kinetic_error, potential_error, elevator_base, pitch_rate_, filtered_pitch_rate_, d_term, elevator_output);
+                     "K_err: %.3f, P_err: %.3f, Base: %.3f, Target_pitch: %.3f, Pitch Rate: %.3f (filtered: %.3f), D_term: %.3f, Elevator: %.3f",
+                     kinetic_error, potential_error, elevator_base, target_pitch_value, pitch_rate_, filtered_pitch_rate_, d_term, elevator_output);
     }
 
     // エネルギー関連のサブスクライバー
@@ -219,6 +236,7 @@ private:
     // RPY・IMUサブスクライバー
     rclcpp::Subscription<ksenos_ground_msgs::msg::Rpy>::SharedPtr rpy_sub_;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
+    rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr target_pitch_sub_;
 
     // パブリッシャー
     rclcpp::Publisher<ksenos_ground_msgs::msg::ControlInput>::SharedPtr control_input_pub_;
@@ -244,6 +262,7 @@ private:
     // 姿勢状態変数
     float current_pitch_;
     float pitch_rate_;
+    float target_pitch_; // ターゲットピッチ角
 
     // ローパスフィルター済み変数
     double filtered_current_kinetic_energy_;
@@ -264,6 +283,7 @@ private:
     bool reference_energy_received_;
     bool rpy_received_;
     bool imu_received_;
+    bool target_pitch_received_; // ターゲットピッチ受信フラグ
 };
 
 // コンポーネントとして登録

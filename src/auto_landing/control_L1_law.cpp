@@ -35,6 +35,15 @@ namespace
         return a + (b - a) * t;
     }
 
+    inline double clamp(double value, double min_val, double max_val)
+    {
+        if (value < min_val)
+            return min_val;
+        if (value > max_val)
+            return max_val;
+        return value;
+    }
+
     double distance2(const Vec2 &a, const Vec2 &b)
     {
         const double dx = a.x - b.x;
@@ -67,7 +76,8 @@ public:
         this->declare_parameter<bool>("publish_lateral_acc", true); // publish lateral acceleration by default
         this->declare_parameter<std::string>("lateral_acc_topic", "lateral_acceleration");
         this->declare_parameter<double>("min_speed_for_heading", 0.5);                    // [m/s] use velocity heading above this
-        this->declare_parameter<std::string>("target_altitude_topic", "target_altitude"); // publish target altitude (L1 point z)
+        this->declare_parameter<std::string>("target_altitude_topic", "target_altitude"); // publish target altitude (closest point z)
+        this->declare_parameter<std::string>("target_pitch_topic", "target_pitch");       // publish target pitch angle at closest point
 
         std::string path_topic = this->get_parameter("path_topic").as_string();
         std::string velocity_topic = this->get_parameter("velocity_topic").as_string();
@@ -81,6 +91,7 @@ public:
         lateral_acc_topic_ = this->get_parameter("lateral_acc_topic").as_string();
         min_speed_for_heading_ = this->get_parameter("min_speed_for_heading").as_double();
         target_altitude_topic_ = this->get_parameter("target_altitude_topic").as_string();
+        target_pitch_topic_ = this->get_parameter("target_pitch_topic").as_string();
 
         // QoS
         auto qos = rclcpp::QoS(rclcpp::KeepLast(10)).reliable();
@@ -102,6 +113,7 @@ public:
             lat_acc_pub_ = this->create_publisher<std_msgs::msg::Float32>(lateral_acc_topic_, qos);
         }
         target_alt_pub_ = this->create_publisher<std_msgs::msg::Float32>(target_altitude_topic_, qos);
+        target_pitch_pub_ = this->create_publisher<std_msgs::msg::Float32>(target_pitch_topic_, qos);
 
         // Timer
         timer_ = this->create_wall_timer(std::chrono::milliseconds(50), std::bind(&L1ControlNode::on_timer, this));
@@ -186,7 +198,7 @@ private:
             if (len2 > 1e-12)
             {
                 t = ((p.x - a.x) * vx + (p.y - a.y) * vy) / len2;
-                t = std::clamp(t, 0.0, 1.0);
+                t = ::clamp(t, 0.0, 1.0);
             }
             Vec2 proj{a.x + t * vx, a.y + t * vy};
             double d2 = distance2(p, proj);
@@ -201,7 +213,7 @@ private:
         }
 
         // Compute L1 distance
-        double L1 = std::clamp(lookahead_gain_ * std::max(speed_, 0.0), lookahead_min_, lookahead_max_);
+        double L1 = ::clamp(lookahead_gain_ * std::max(speed_, 0.0), lookahead_min_, lookahead_max_);
 
         // March along the path from closest point by L1 distance
         Vec2 l1_point = closest;
@@ -271,10 +283,62 @@ private:
         eta_msg.data = static_cast<float>(eta);
         eta_pub_->publish(eta_msg);
 
-        // Publish target altitude (z of the L1 point)
+        // Publish target altitude (z of the closest point)
         std_msgs::msg::Float32 alt_msg;
-        alt_msg.data = static_cast<float>(l1_z);
+        alt_msg.data = static_cast<float>(closest_z);
         target_alt_pub_->publish(alt_msg);
+
+        // Calculate and publish target pitch angle at closest point using quaternion from PoseArray
+        if (seg_idx < n)
+        {
+            // Get quaternion from the closest point's pose and interpolate if needed
+            geometry_msgs::msg::Quaternion q_closest;
+
+            if (seg_t == 0.0 || seg_idx + 1 >= n)
+            {
+                // Use quaternion from seg_idx
+                q_closest = poses[seg_idx].orientation;
+            }
+            else
+            {
+                // Interpolate quaternions between seg_idx and seg_idx+1
+                const auto &q1 = poses[seg_idx].orientation;
+                const auto &q2 = poses[seg_idx + 1].orientation;
+
+                // Simple linear interpolation of quaternions (SLERP would be more accurate but this is simpler)
+                q_closest.x = lerp(q1.x, q2.x, seg_t);
+                q_closest.y = lerp(q1.y, q2.y, seg_t);
+                q_closest.z = lerp(q1.z, q2.z, seg_t);
+                q_closest.w = lerp(q1.w, q2.w, seg_t);
+
+                // Normalize quaternion
+                double norm = std::sqrt(q_closest.x * q_closest.x + q_closest.y * q_closest.y +
+                                        q_closest.z * q_closest.z + q_closest.w * q_closest.w);
+                if (norm > 1e-6)
+                {
+                    q_closest.x /= norm;
+                    q_closest.y /= norm;
+                    q_closest.z /= norm;
+                    q_closest.w /= norm;
+                }
+            }
+
+            // Extract pitch angle from quaternion
+            double sinp = 2.0 * (q_closest.w * q_closest.y - q_closest.z * q_closest.x);
+            double pitch_angle;
+            if (std::abs(sinp) >= 1)
+            {
+                pitch_angle = std::copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+            }
+            else
+            {
+                pitch_angle = std::asin(sinp);
+            }
+
+            std_msgs::msg::Float32 pitch_msg;
+            pitch_msg.data = static_cast<float>(pitch_angle);
+            target_pitch_pub_->publish(pitch_msg);
+        }
 
         // Optionally compute and publish lateral acceleration: a_lat = v^2 * sin(eta) / L1
         if (publish_lateral_acc_ && L1 > 1e-3)
@@ -321,6 +385,7 @@ private:
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
     rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr lat_acc_pub_;
     rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr target_alt_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr target_pitch_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     // TF
@@ -337,6 +402,7 @@ private:
     std::string marker_topic_;
     std::string lateral_acc_topic_;
     std::string target_altitude_topic_;
+    std::string target_pitch_topic_;
 
     // Velocity
     double speed_{4.0};

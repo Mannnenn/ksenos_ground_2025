@@ -1,10 +1,27 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
+from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
+    # Robot description setup
+    packages_name = "ksenos_ground"
+    xacro_file_name = "ksenos_model.urdf"
+
+    # Get URDF via xacro
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [FindPackageShare(packages_name), "urdf", xacro_file_name]
+            ),
+        ]
+    )
+    robot_description = {"robot_description": robot_description_content}
+
     # Launch引数の宣言
     container_name_arg = DeclareLaunchArgument(
         'container_name',
@@ -25,6 +42,14 @@ def generate_launch_description():
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
+            # Robot State Publisher
+            ComposableNode(
+                package="robot_state_publisher",
+                plugin="robot_state_publisher::RobotStatePublisher",
+                parameters=[robot_description],
+                name="robot_state_publisher",
+            ),
+            
             # Manual SBUS処理グループ
             # SBUS生データ取得ノード
             ComposableNode(

@@ -24,7 +24,7 @@ public:
         auto_subscription_ = this->create_subscription<ksenos_ground_msgs::msg::SbusData>(
             "sbus_auto", 10, std::bind(&ControlToJointPublisher::auto_callback, this, _1));
 
-        publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+        publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 10);
 
         RCLCPP_INFO(this->get_logger(), "Joint Publisher node started. Subscribing to both sbus_manual and sbus_auto.");
     }

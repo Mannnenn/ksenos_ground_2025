@@ -86,6 +86,8 @@ private:
             offset_msg->aileron_l -= aileron_l_offset_;
         }
 
+        offset_msg->dropping_device = msg->dropping_device; // ドロップ信号はそのままコピー
+
         // パブリッシュ
         sbus_pub_->publish(*offset_msg);
     }

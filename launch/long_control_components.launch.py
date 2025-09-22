@@ -125,7 +125,7 @@ def generate_launch_description():
             namespace='controller/long/control',
             name='throttle_control_node',
             parameters=[{
-                'kp': 0.010,
+                'kp': 0.0075,
                 'ki': 0.0,
                 'max_throttle': 0.7,
                 'min_throttle': 0.0,

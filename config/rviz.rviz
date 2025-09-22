@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Grid1/Offset1
         - /TF1/Frames1
+        - /Plots1
         - /RobotModel1/Description Topic1
       Splitter Ratio: 0.5
     Tree Height: 1218
@@ -280,47 +281,17 @@ Visualization Manager:
         All Enabled: false
         aircraft_stability_axes:
           Value: true
-        drop_point:
+        base_link:
           Value: true
-        hesai_lidar:
-          Value: false
         imu_link:
           Value: true
         ksenos_smooth_0:
           Value: true
-        lidar_center:
-          Value: true
         map:
           Value: true
-        motor_base:
-          Value: false
-        motor_rotating:
-          Value: false
         odom:
           Value: true
         origin:
-          Value: true
-        start_point:
-          Value: true
-        throttle_off_point:
-          Value: true
-        waypoint_0:
-          Value: true
-        waypoint_1:
-          Value: true
-        waypoint_2:
-          Value: true
-        waypoint_3:
-          Value: true
-        waypoint_4:
-          Value: true
-        waypoint_5:
-          Value: true
-        waypoint_6:
-          Value: true
-        waypoint_7:
-          Value: true
-        waypoint_8:
           Value: true
       Marker Scale: 3
       Name: TF
@@ -329,30 +300,14 @@ Visualization Manager:
       Show Names: false
       Tree:
         map:
+          ksenos_smooth_0:
+            odom:
+              imu_link:
+                aircraft_stability_axes:
+                  base_link:
+                    {}
           origin:
             {}
-          start_point:
-            waypoint_0:
-              drop_point:
-                {}
-              throttle_off_point:
-                {}
-              waypoint_1:
-                {}
-              waypoint_2:
-                {}
-              waypoint_3:
-                {}
-              waypoint_4:
-                {}
-              waypoint_5:
-                {}
-              waypoint_6:
-                {}
-              waypoint_7:
-                {}
-              waypoint_8:
-                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -491,7 +446,7 @@ Visualization Manager:
         - Buffer length: 100
           Class: jsk_rviz_plugin/Plotter2D
           Enabled: true
-          Name: Plotter2D
+          Name: target_roll
           Show Value: true
           Topic:
             Depth: 5
@@ -508,7 +463,7 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 25; 255; 240
           height: 128
-          left: 128
+          left: 600
           linewidth: 1
           max color: 255; 0; 0
           max value: 1
@@ -521,7 +476,7 @@ Visualization Manager:
         - Buffer length: 100
           Class: jsk_rviz_plugin/Plotter2D
           Enabled: true
-          Name: Plotter2D
+          Name: target
           Show Value: true
           Topic:
             Depth: 5
@@ -538,7 +493,7 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 25; 255; 240
           height: 128
-          left: 128
+          left: 450
           linewidth: 1
           max color: 255; 0; 0
           max value: 1
@@ -758,7 +713,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 58.48654556274414
+      Distance: 39.85694122314453
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -773,10 +728,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3147982954978943
+      Pitch: 0.7797980904579163
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.3723771572113037
+      Yaw: 3.94238018989563
     Saved: ~
 Window Geometry:
   Displays:

@@ -31,6 +31,9 @@ public:
         this->declare_parameter("throttle_min_openness", 0.0); // 開度の最小値
         this->declare_parameter("throttle_max_openness", 1.0); // 開度の最大値
 
+        this->declare_parameter("dropping_device_min", 176);
+        this->declare_parameter("dropping_device_max", 1385);
+
         RCLCPP_INFO(this->get_logger(), "SBUS Data To Raw Processor ノードが開始されました");
     }
 
@@ -53,6 +56,9 @@ private:
         double throttle_min_openness = this->get_parameter("throttle_min_openness").as_double();
         double throttle_max_openness = this->get_parameter("throttle_max_openness").as_double();
 
+        int dropping_device_min = this->get_parameter("dropping_device_min").as_int();
+        int dropping_device_max = this->get_parameter("dropping_device_max").as_int();
+
         // ラジアンからカウント値への変換（負の符号を適用）
         raw_msg.aileron_r = radiansToCount(-msg->aileron_r, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
         raw_msg.elevator = radiansToCount(-msg->elevator, servo_min_count, servo_max_count, servo_min_rad, servo_max_rad);
@@ -63,7 +69,14 @@ private:
         raw_msg.throttle = opennessToCount(msg->throttle, throttle_min_count, throttle_max_count, throttle_min_openness, throttle_max_openness);
 
         // dropping_deviceはそのまま
-        raw_msg.dropping_device = msg->dropping_device;
+        if (msg->dropping_device == 0)
+        {
+            raw_msg.dropping_device = static_cast<uint16_t>(dropping_device_min); // ドロップしない場合は最小値
+        }
+        else if (msg->dropping_device == 1)
+        {
+            raw_msg.dropping_device = static_cast<uint16_t>(dropping_device_max);
+        }
 
         // その他のチャンネルはuint16の最大値で固定
         raw_msg.is_autopilot = std::numeric_limits<uint16_t>::max();

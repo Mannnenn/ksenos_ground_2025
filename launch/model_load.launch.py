@@ -2,7 +2,8 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 
-from launch_ros.actions import Node
+from launch_ros.actions import Node, ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -23,16 +24,28 @@ def generate_launch_description():
     )
     robot_description = {"robot_description": robot_description_content}
 
-    robot_state_pub_node = Node(
+    # Robot State Publisher as a composable node
+    robot_state_pub_component = ComposableNode(
         package="robot_state_publisher",
-        executable="robot_state_publisher",
-        output="both",
+        plugin="robot_state_publisher::RobotStatePublisher",
         parameters=[robot_description],
+        name="robot_state_publisher"
     )
 
+    # Composable Node Container
+    container = ComposableNodeContainer(
+        name="robot_state_container",
+        namespace="",
+        package="rclcpp_components",
+        executable="component_container",
+        composable_node_descriptions=[
+            robot_state_pub_component,
+        ],
+        output="both",
+    )
 
     nodes = [
-        robot_state_pub_node,
+        container,
     ]
 
     return LaunchDescription(nodes)

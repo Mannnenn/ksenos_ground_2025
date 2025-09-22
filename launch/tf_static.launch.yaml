@@ -21,6 +21,20 @@ launch:
           name: "static_transform_publisher_imu_link_to_aircraft_stability_axes"
           args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id imu_link --child-frame-id aircraft_stability_axes"
 
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "map_origin"
+          output: "screen"
+          args: "--x -1 --y 14.5 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id origin"
+
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "aircraft_stability_axes_base_link"
+          output: "screen"
+          args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id aircraft_stability_axes --child-frame-id base_link"
+
   # ========================================
   # Visualization
   # ========================================

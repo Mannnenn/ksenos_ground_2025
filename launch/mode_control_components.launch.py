@@ -58,7 +58,8 @@ def generate_launch_description():
                 parameters=[{
                     'max_turn_radius': 4.5,
                     'min_turn_radius': 4.0,
-                    'turn_angle_deg': 320.0,
+                    'turn_angle_deg': 340.0,
+                    'right_turning_ratio': 0.45,
                 }],
                 remappings=[
                     ('sbus_data', '/sbus/manual/sbus_data'),
@@ -125,6 +126,23 @@ def generate_launch_description():
                 }],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ))
+
+            # Drop device control
+            nodes.append(ComposableNode(
+                package='ksenos_ground',
+                plugin='ControlDropNode',
+                namespace='controller/',
+                name='control_drop_node',
+                parameters=[{
+                    'world_frame_id': 'start_point',
+                    'base_link_frame_id': 'ksenos_smooth_0',
+                    'drop_signal_topic': '/controller/long/calc/',
+                    'marker_topic': '/visualization/target_drop_marker',
+                    'x_threshold': 5.0,
+                }],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            ))
+
 
         # コンポーネントコンテナーの設定
         container = ComposableNodeContainer(
