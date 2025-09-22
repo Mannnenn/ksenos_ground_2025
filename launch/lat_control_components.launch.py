@@ -64,11 +64,11 @@ def generate_launch_description():
                 namespace='controller/lat/control',
                 name='aileron_control',
                 parameters=[{
-                    'kp': -0.65,
-                    'kd': 0.05,
+                    'kp': -0.55,
+                    'kd': 0.025,
                     'max_aileron': 0.6,
                     'min_aileron': -0.6,
-                    'kp_right_scale': 1.06,
+                    'kp_right_scale': 1.3,
                     'kp_left_scale': 1.0,
                 }],
                 remappings=[
@@ -89,7 +89,7 @@ def generate_launch_description():
                     'kp': 0.00,
                     'ki': 0.00,
                     'ff_lat_acc_gain': 0.045,
-                    'ff_lat_acc_right_scale': 0.55,
+                    'ff_lat_acc_right_scale': 1.85,
                     'ff_lat_acc_left_scale': 1.0,
                     'ff_aileron_gain': 0.01,
                     'max_rudder': 0.6,

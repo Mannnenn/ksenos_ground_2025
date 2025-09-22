@@ -48,10 +48,6 @@ launch:
       default: "motor_rotating"
 
   - arg:
-      name: "motor_base_frame"
-      default: "motor_base"
-
-  - arg:
       name: "sensor_base_frame"
       default: "sensor_base"
 

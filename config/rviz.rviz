@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
-        - /TF1/Frames1
         - /Plots1
         - /RobotModel1/Description Topic1
       Splitter Ratio: 0.5
@@ -279,12 +278,18 @@ Visualization Manager:
       Frame Timeout: 1
       Frames:
         All Enabled: false
+        aileron_left:
+          Value: false
+        aileron_right:
+          Value: false
         aircraft_stability_axes:
-          Value: true
+          Value: false
         base_link:
-          Value: true
+          Value: false
+        elevator:
+          Value: false
         imu_link:
-          Value: true
+          Value: false
         ksenos_smooth_0:
           Value: true
         map:
@@ -293,6 +298,10 @@ Visualization Manager:
           Value: true
         origin:
           Value: true
+        propeller:
+          Value: false
+        rudder:
+          Value: false
       Marker Scale: 3
       Name: TF
       Show Arrows: false
@@ -305,7 +314,16 @@ Visualization Manager:
               imu_link:
                 aircraft_stability_axes:
                   base_link:
-                    {}
+                    aileron_left:
+                      {}
+                    aileron_right:
+                      {}
+                    elevator:
+                      {}
+                    propeller:
+                      {}
+                    rudder:
+                      {}
           origin:
             {}
       Update Interval: 0
@@ -713,16 +731,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 39.85694122314453
+      Distance: 18.50972557067871
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 21.05107307434082
-        Y: -0.1470133364200592
-        Z: -1.8140909671783447
+        X: 10.837287902832031
+        Y: 5.903274059295654
+        Z: -4.611964702606201
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

@@ -129,7 +129,7 @@ def generate_launch_description():
                 'ki': 0.0,
                 'max_throttle': 0.7,
                 'min_throttle': 0.0,
-                'steady_throttle': 0.45,
+                'steady_throttle': 0.425,
                 'max_integral': 0.5,
             }],
             remappings=[
