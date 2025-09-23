@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LiDAR point
 Visualization Manager:
   Class: ""
   Displays:
@@ -286,13 +286,25 @@ Visualization Manager:
           Value: false
         base_link:
           Value: false
+        drop_point:
+          Value: true
         elevator:
           Value: false
+        hesai_lidar:
+          Value: true
         imu_link:
           Value: false
         ksenos_smooth_0:
           Value: true
+        lidar_center:
+          Value: true
         map:
+          Value: true
+        motor_base:
+          Value: true
+        motor_rotating:
+          Value: true
+        movable_object_0:
           Value: true
         odom:
           Value: true
@@ -302,6 +314,28 @@ Visualization Manager:
           Value: false
         rudder:
           Value: false
+        start_point:
+          Value: true
+        throttle_off_point:
+          Value: true
+        waypoint_0:
+          Value: true
+        waypoint_1:
+          Value: true
+        waypoint_2:
+          Value: true
+        waypoint_3:
+          Value: true
+        waypoint_4:
+          Value: true
+        waypoint_5:
+          Value: true
+        waypoint_6:
+          Value: true
+        waypoint_7:
+          Value: true
+        waypoint_8:
+          Value: true
       Marker Scale: 3
       Name: TF
       Show Arrows: false
@@ -324,8 +358,38 @@ Visualization Manager:
                       {}
                     rudder:
                       {}
+          motor_base:
+            lidar_center:
+              {}
+            motor_rotating:
+              hesai_lidar:
+                {}
+          movable_object_0:
+            {}
           origin:
             {}
+          start_point:
+            waypoint_0:
+              drop_point:
+                {}
+              throttle_off_point:
+                {}
+              waypoint_1:
+                {}
+              waypoint_2:
+                {}
+              waypoint_3:
+                {}
+              waypoint_4:
+                {}
+              waypoint_5:
+                {}
+              waypoint_6:
+                {}
+              waypoint_7:
+                {}
+              waypoint_8:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -372,7 +436,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz_default_plugins/PointCloud2
       Color: 237; 51; 59
-      Color Transformer: FlatColor
+      Color Transformer: Intensity
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -450,7 +514,7 @@ Visualization Manager:
       Enabled: true
       Name: Detect Area
       Namespaces:
-        {}
+        bounding_box: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -731,25 +795,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 18.50972557067871
+      Distance: 44.170230865478516
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 10.837287902832031
-        Y: 5.903274059295654
-        Z: -4.611964702606201
+        X: 21.949600219726562
+        Y: 2.0663130283355713
+        Z: -5.538387775421143
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7797980904579163
+      Pitch: 0.6247984766960144
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.94238018989563
+      Yaw: 3.4473865032196045
     Saved: ~
 Window Geometry:
   Displays:

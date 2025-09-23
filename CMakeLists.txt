@@ -66,6 +66,12 @@ rclcpp_components_register_nodes(correction_ground_component "GroundCorrectionNo
 install(TARGETS correction_ground_component
   DESTINATION lib/${PROJECT_NAME})
 
+# IMU水平補正
+ament_auto_add_executable(leveling_imu src/pointcloud_pipeline/leveling_imu.cpp)
+ament_target_dependencies(leveling_imu tf2_geometry_msgs)
+install(TARGETS leveling_imu
+  DESTINATION lib/${PROJECT_NAME})
+
 # TF平滑化ノード
 ament_auto_add_executable(tf_smoother src/tf_smoother.cpp)
 install(TARGETS tf_smoother
@@ -318,7 +324,6 @@ if(BUILD_TESTING)
 endif()
 
 # コンポーネントライブラリのエクスポート
-ament_export_targets(${PROJECT_NAME}_targetsHook HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   rclcpp
   rclcpp_components
@@ -332,6 +337,7 @@ ament_export_dependencies(
   PCL
   Eigen3
   Boost
+  serial
 )
 
 ament_auto_package()

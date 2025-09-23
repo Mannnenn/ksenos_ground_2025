@@ -120,6 +120,10 @@ public:
         this->declare_parameter("bbox_max_y", 10.0);  // 奥右上Y座標
         this->declare_parameter("bbox_max_z", 10.0);  // 奥右上Z座標
 
+        // min_z拡張パラメータの宣言
+        this->declare_parameter("min_z_x_threshold", 5.0); // xがこの値以上ならmin_zを下げる
+        this->declare_parameter("min_z_lowering", 1.0);    // min_zをいくら下げるか
+
         // クラスタリングパラメータの宣言
         this->declare_parameter("cluster_tolerance", 0.25);
         this->declare_parameter("min_cluster_size", 10);
@@ -154,6 +158,10 @@ public:
         bbox_max_x_ = this->get_parameter("bbox_max_x").as_double();
         bbox_max_y_ = this->get_parameter("bbox_max_y").as_double();
         bbox_max_z_ = this->get_parameter("bbox_max_z").as_double();
+
+        // min_z拡張パラメータの取得
+        min_z_x_threshold_ = this->get_parameter("min_z_x_threshold").as_double();
+        min_z_lowering_ = this->get_parameter("min_z_lowering").as_double();
 
         cluster_tolerance_ = this->get_parameter("cluster_tolerance").as_double();
         min_cluster_size_ = this->get_parameter("min_cluster_size").as_int();
@@ -198,6 +206,8 @@ public:
 
         RCLCPP_INFO(this->get_logger(), "  BBox filter: (%.1f,%.1f,%.1f) to (%.1f,%.1f,%.1f)",
                     bbox_min_x_, bbox_min_y_, bbox_min_z_, bbox_max_x_, bbox_max_y_, bbox_max_z_);
+        RCLCPP_INFO(this->get_logger(), "  Min_z extension: x_threshold=%.1f, lowering=%.1f",
+                    min_z_x_threshold_, min_z_lowering_);
 
         RCLCPP_INFO(this->get_logger(), "  Cluster tolerance: %.2f m", cluster_tolerance_);
         RCLCPP_INFO(this->get_logger(), "  Min cluster size: %d points", min_cluster_size_);
@@ -286,9 +296,14 @@ private:
             // 地図データから指定した直方体の範囲内の点のみを抽出
             for (const auto &pt : temp_map_cloud->points)
             {
+                double min_z = bbox_min_z_;
+                if (pt.x >= min_z_x_threshold_)
+                {
+                    min_z = bbox_min_z_ - min_z_lowering_;
+                }
                 if (pt.x >= bbox_min_x_ && pt.x <= bbox_max_x_ &&
                     pt.y >= bbox_min_y_ && pt.y <= bbox_max_y_ &&
-                    pt.z >= bbox_min_z_ && pt.z <= bbox_max_z_)
+                    pt.z >= min_z && pt.z <= bbox_max_z_)
                 {
                     map_cloud_->points.push_back(pt);
                 }
@@ -351,9 +366,14 @@ private:
         pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_scan_cloud(new pcl::PointCloud<pcl::PointXYZ>);
         for (const auto &pt : scan_cloud->points)
         {
+            double min_z = bbox_min_z_;
+            if (pt.x >= min_z_x_threshold_)
+            {
+                min_z = bbox_min_z_ - min_z_lowering_;
+            }
             if (pt.x >= bbox_min_x_ && pt.x <= bbox_max_x_ &&
                 pt.y >= bbox_min_y_ && pt.y <= bbox_max_y_ &&
-                pt.z >= bbox_min_z_ && pt.z <= bbox_max_z_)
+                pt.z >= min_z && pt.z <= bbox_max_z_)
             {
                 filtered_scan_cloud->points.push_back(pt);
             }
@@ -795,6 +815,9 @@ private:
     // 直方体フィルタリングパラメータ
     double bbox_min_x_, bbox_min_y_, bbox_min_z_; // 手前左下の座標
     double bbox_max_x_, bbox_max_y_, bbox_max_z_; // 奥右上の座標
+    // min_z拡張パラメータ
+    double min_z_x_threshold_;
+    double min_z_lowering_;
 
     // クラスタリングパラメータ
     double cluster_tolerance_;
