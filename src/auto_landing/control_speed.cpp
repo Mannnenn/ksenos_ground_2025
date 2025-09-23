@@ -89,7 +89,7 @@ private:
             const double t = (x - x_sustain_end_) / (x_stop_ - x_sustain_end_);
             return v_max_ * std::clamp(1.0 - t, 0.0, 1.0);
         }
-        return 0.0;
+        return -1.0; // スロットル停止命令
     }
 
     void publish_plane_marker(double x_plane, int id, float r, float g, float b)

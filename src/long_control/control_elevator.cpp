@@ -132,7 +132,8 @@ private:
         auto current_time = this->now();
         double dt = (current_time - previous_reference_energy_filter_time_).seconds();
 
-        reference_kinetic_energy_ = msg->kinetic_energy;
+        // kinetic_energyが-1の場合は0として扱う
+        reference_kinetic_energy_ = (msg->kinetic_energy < 0.0) ? 0.0 : msg->kinetic_energy;
         reference_potential_energy_ = msg->potential_energy;
 
         filtered_reference_kinetic_energy_ = applyLowpassFilter(

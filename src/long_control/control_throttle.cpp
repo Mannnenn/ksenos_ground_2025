@@ -51,6 +51,7 @@ public:
         last_time_ = this->now();
         reference_received_ = false;
         current_received_ = false;
+        stop_throttle_flag_ = false; // 追加：エネルギーが無効かどうかを示すフラグ
 
         RCLCPP_INFO(this->get_logger(), "Throttle control node initialized");
         RCLCPP_INFO(this->get_logger(), "Parameters:");
@@ -67,6 +68,9 @@ private:
     {
         reference_energy_ = msg->total_energy;
         reference_received_ = true;
+
+        // total_energyが-1の場合は無効フラグを立てる
+        stop_throttle_flag_ = (msg->total_energy == -1);
     }
 
     void current_energy_callback(const ksenos_ground_msgs::msg::PlaneEnergy::SharedPtr msg)
@@ -80,6 +84,25 @@ private:
         // データが受信されていない場合は制御しない
         if (!reference_received_ || !current_received_)
         {
+            return;
+        }
+
+        // reference kinetic_energyまたはtotal_energyが無効（-1）の場合はthrottleを0に設定
+        if (stop_throttle_flag_)
+        {
+            // ControlInputメッセージの作成とパブリッシュ（throttle = 0）
+            auto control_msg = ksenos_ground_msgs::msg::ControlInput();
+            control_msg.header.stamp = this->now();
+            control_msg.header.frame_id = "base_link";
+            control_msg.throttle = 0.0;
+            // 他の制御入力は0に設定
+            control_msg.aileron = 0.0;
+            control_msg.elevator = 0.0;
+            control_msg.rudder = 0.0;
+
+            control_input_pub_->publish(control_msg);
+
+            RCLCPP_DEBUG(this->get_logger(), "Reference energy invalid (kinetic or total energy is -1), setting throttle to 0");
             return;
         }
 
@@ -155,6 +178,7 @@ private:
     // データ受信フラグ
     bool reference_received_;
     bool current_received_;
+    bool stop_throttle_flag_; // エネルギー（kinetic または total）が無効（-1）かどうかを示すフラグ
 };
 
 // コンポーネントとして登録

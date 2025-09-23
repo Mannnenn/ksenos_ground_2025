@@ -77,14 +77,26 @@ private:
 
     void calculate_and_publish_energy()
     {
-        // 運動エネルギー: K = 1/2 * m * v²
-        float kinetic_energy = 0.5 * mass_ * velocity_ * velocity_;
-
         // 位置エネルギー: U = mgh
         float potential_energy = mass_ * gravity_ * altitude_;
 
-        // 総エネルギー: E = K + U
-        float total_energy = kinetic_energy + potential_energy;
+        float kinetic_energy;
+        float total_energy;
+
+        // 速度が負の場合（特に-1の場合）は運動エネルギーを-1とする
+        if (velocity_ == -1.0)
+        {
+            kinetic_energy = -1.0;
+            total_energy = -1.0;
+        }
+        else
+        {
+            // 運動エネルギー: K = 1/2 * m * v²
+            kinetic_energy = 0.5 * mass_ * velocity_ * velocity_;
+
+            // 総エネルギー: E = K + U (kinetic_energyが-1の場合は-1 + U)
+            total_energy = kinetic_energy + potential_energy;
+        }
 
         // メッセージ作成・パブリッシュ
         auto energy_msg = ksenos_ground_msgs::msg::PlaneEnergy();
