@@ -1,8 +1,10 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
+
 
 def generate_launch_description():
     # Launch引数の宣言
@@ -11,37 +13,45 @@ def generate_launch_description():
         default_value='lat_control_container',
         description='Name of the component container'
     )
-    
+
     namespace_arg = DeclareLaunchArgument(
         'namespace',
         default_value='',
         description='Namespace for all nodes'
     )
 
-    # コンポーネントコンテナーの設定
-    container = ComposableNodeContainer(
-        name="lat_control_container",
-        namespace="controller/lat",
-        package='rclcpp_components',
-        executable='component_container',
-        composable_node_descriptions=[
+    is_auto_landing_mode_arg = DeclareLaunchArgument(
+        'is_auto_landing_mode',
+        default_value='false',
+        description='Enable auto landing mode (affects which nodes are launched)'
+    )
+
+    def launch_setup(context, *args, **kwargs):
+        is_auto_landing_mode = LaunchConfiguration('is_auto_landing_mode').perform(context) == 'true'
+
+        nodes = []
+
+        if not is_auto_landing_mode:
             # 旋回半径から横加速度を計算するノード
-            ComposableNode(
-                package='ksenos_ground',
-                plugin='LateralAccelerationCalculator',
-                namespace='controller/lat/calc',
-                name='turning_radius_to_lat_acc',
-                parameters=[{
-                    'low_pass_filter_alpha': 0.1,
-                }],
-                remappings=[
-                    ('/controller/lat/calc/lateral_acceleration', '/controller/lat/lateral_acceleration'),
-                    ('/average/flow_rate', '/sensor/flow_rate'),
-                ],
-                extra_arguments=[{"use_intra_process_comms": True}],
-            ),
-            
-            # 横加速度から目標ロール角を計算するノード
+            nodes.append(
+                ComposableNode(
+                    package='ksenos_ground',
+                    plugin='LateralAccelerationCalculator',
+                    namespace='controller/lat/calc',
+                    name='turning_radius_to_lat_acc',
+                    parameters=[{
+                        'low_pass_filter_alpha': 0.1,
+                    }],
+                    remappings=[
+                        ('/controller/lat/calc/lateral_acceleration', '/controller/lat/lateral_acceleration'),
+                        ('/average/flow_rate', '/sensor/flow_rate'),
+                    ],
+                    extra_arguments=[{"use_intra_process_comms": True}],
+                )
+            )
+
+        # 横加速度から目標ロール角を計算するノード
+        nodes.append(
             ComposableNode(
                 package='ksenos_ground',
                 plugin='LatAccToTargetRollAngle',
@@ -55,9 +65,11 @@ def generate_launch_description():
                     ('/controller/lat/calc/target_roll_angle', '/controller/lat/target_roll_angle'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
-            ),
-            
-            # エルロン制御ノード（PD制御）
+            )
+        )
+
+        # エルロン制御ノード（PD制御）
+        nodes.append(
             ComposableNode(
                 package='ksenos_ground',
                 plugin='AileronControl',
@@ -77,9 +89,11 @@ def generate_launch_description():
                     ('/aileron_input', '/controller/lat/aileron_input'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
-            ),
-            
-            # ラダー制御ノード（FF+PI制御）
+            )
+        )
+
+        # ラダー制御ノード（FF+PI制御）
+        nodes.append(
             ComposableNode(
                 package='ksenos_ground',
                 plugin='RudderControl',
@@ -102,14 +116,24 @@ def generate_launch_description():
                     ('/rudder_input', '/controller/lat/rudder_input'),
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
-            ),
-        ],
-        output='both',
-        arguments=['--ros-args', '--log-level', 'info'],
-    )
+            )
+        )
+
+        container = ComposableNodeContainer(
+            name="lat_control_container",
+            namespace="controller/lat",
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=nodes,
+            output='both',
+            arguments=['--ros-args', '--log-level', 'info'],
+        )
+
+        return [container]
 
     return LaunchDescription([
         container_name_arg,
         namespace_arg,
-        container,
+        is_auto_landing_mode_arg,
+        OpaqueFunction(function=launch_setup),
     ])

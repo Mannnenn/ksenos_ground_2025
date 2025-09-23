@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LiDAR point
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -290,21 +290,11 @@ Visualization Manager:
           Value: true
         elevator:
           Value: false
-        hesai_lidar:
-          Value: true
         imu_link:
           Value: false
         ksenos_smooth_0:
           Value: true
-        lidar_center:
-          Value: true
         map:
-          Value: true
-        motor_base:
-          Value: true
-        motor_rotating:
-          Value: true
-        movable_object_0:
           Value: true
         odom:
           Value: true
@@ -358,14 +348,6 @@ Visualization Manager:
                       {}
                     rudder:
                       {}
-          motor_base:
-            lidar_center:
-              {}
-            motor_rotating:
-              hesai_lidar:
-                {}
-          movable_object_0:
-            {}
           origin:
             {}
           start_point:
@@ -514,7 +496,7 @@ Visualization Manager:
       Enabled: true
       Name: Detect Area
       Namespaces:
-        bounding_box: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -558,7 +540,7 @@ Visualization Manager:
         - Buffer length: 100
           Class: jsk_rviz_plugin/Plotter2D
           Enabled: true
-          Name: target
+          Name: target_altitude
           Show Value: true
           Topic:
             Depth: 5
@@ -609,7 +591,7 @@ Visualization Manager:
         - Buffer length: 100
           Class: jsk_rviz_plugin/Plotter2D
           Enabled: true
-          Name: Plotter2D
+          Name: altitude
           Show Value: true
           Topic:
             Depth: 5
@@ -626,7 +608,7 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 25; 255; 240
           height: 128
-          left: 128
+          left: 300
           linewidth: 1
           max color: 255; 0; 0
           max value: 1
@@ -639,7 +621,7 @@ Visualization Manager:
         - Buffer length: 100
           Class: jsk_rviz_plugin/Plotter2D
           Enabled: true
-          Name: Plotter2D
+          Name: yaw
           Show Value: true
           Topic:
             Depth: 5
@@ -666,9 +648,68 @@ Visualization Manager:
           top: 128
           update interval: 0.03999999910593033
           width: 128
+        - Class: rviz_default_plugins/Marker
+          Enabled: true
+          Name: Marker
+          Namespaces:
+            l1_control: true
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /visualization/L1_marker
+          Value: true
+        - Class: rviz_default_plugins/MarkerArray
+          Enabled: true
+          Name: MarkerArray
+          Namespaces:
+            {}
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /visualization/L1_marker_array
+          Value: true
+        - Class: rviz_default_plugins/Marker
+          Enabled: true
+          Name: Marker
+          Namespaces:
+            control_speed_planes: true
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /visualization/target_velocity_marker
+          Value: true
+        - Alpha: 1
+          Arrow Length: 0.30000001192092896
+          Axes Length: 0.30000001192092896
+          Axes Radius: 0.009999999776482582
+          Class: rviz_default_plugins/PoseArray
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.07000000029802322
+          Head Radius: 0.029999999329447746
+          Name: PoseArray
+          Shaft Length: 0.23000000417232513
+          Shaft Radius: 0.009999999776482582
+          Shape: Arrow (Flat)
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller/lat/calc/path
+          Value: true
         - Class: jsk_rviz_plugin/PieChart
           Enabled: true
-          Name: PieChart
+          Name: target_speed
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -683,7 +724,7 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground alpha 2: 0.4000000059604645
           foreground color: 25; 255; 240
-          left: 128
+          left: 796
           max color: 255; 0; 0
           max value: 1
           min value: 0
@@ -691,6 +732,39 @@ Visualization Manager:
           size: 128
           text size: 14
           top: 128
+        - Alpha: 1
+          Arrow Length: 0.30000001192092896
+          Axes Length: 0.30000001192092896
+          Axes Radius: 0.009999999776482582
+          Class: rviz_default_plugins/PoseArray
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.07000000029802322
+          Head Radius: 0.029999999329447746
+          Name: PoseArray
+          Shaft Length: 0.23000000417232513
+          Shaft Radius: 0.009999999776482582
+          Shape: Arrow (Flat)
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /path
+          Value: true
+        - Class: rviz_default_plugins/MarkerArray
+          Enabled: true
+          Name: MarkerArray
+          Namespaces:
+            {}
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /visualization/target_velocity_marker_array
+          Value: true
       Enabled: true
       Name: Plots
     - Alpha: 1
@@ -795,25 +869,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 44.170230865478516
+      Distance: 17.54595947265625
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 21.949600219726562
-        Y: 2.0663130283355713
-        Z: -5.538387775421143
+        X: 22.48213768005371
+        Y: -1.4106392860412598
+        Z: -5.432415008544922
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6247984766960144
+      Pitch: 0.8897982835769653
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.4473865032196045
+      Yaw: 0.18917419016361237
     Saved: ~
 Window Geometry:
   Displays:

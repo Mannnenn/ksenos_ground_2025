@@ -176,7 +176,7 @@ private:
     {
         target_pitch_ = msg->data;
         target_pitch_received_ = true;
-        RCLCPP_INFO(this->get_logger(), "Target pitch updated: %.3f", target_pitch_);
+        // RCLCPP_INFO(this->get_logger(), "Target pitch updated: %.3f", target_pitch_);
     }
 
     void control_loop()

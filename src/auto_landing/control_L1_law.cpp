@@ -70,10 +70,9 @@ public:
         this->declare_parameter<std::string>("base_frame", "base_link");
         this->declare_parameter<std::string>("eta_topic", "eta");
         this->declare_parameter<std::string>("marker_topic", "visualization_marker");
-        this->declare_parameter<double>("lookahead_gain", 2.0);     // [s] equivalent (L1 = gain * speed)
-        this->declare_parameter<double>("lookahead_min", 3.0);      // [m]
-        this->declare_parameter<double>("lookahead_max", 50.0);     // [m]
-        this->declare_parameter<bool>("publish_lateral_acc", true); // publish lateral acceleration by default
+        this->declare_parameter<double>("lookahead_gain", 2.0); // [s] equivalent (L1 = gain * speed)
+        this->declare_parameter<double>("lookahead_min", 3.0);  // [m]
+        this->declare_parameter<double>("lookahead_max", 50.0); // [m]
         this->declare_parameter<std::string>("lateral_acc_topic", "lateral_acceleration");
         this->declare_parameter<double>("min_speed_for_heading", 0.5);                    // [m/s] use velocity heading above this
         this->declare_parameter<std::string>("target_altitude_topic", "target_altitude"); // publish target altitude (closest point z)
@@ -87,7 +86,6 @@ public:
         lookahead_gain_ = this->get_parameter("lookahead_gain").as_double();
         lookahead_min_ = this->get_parameter("lookahead_min").as_double();
         lookahead_max_ = this->get_parameter("lookahead_max").as_double();
-        publish_lateral_acc_ = this->get_parameter("publish_lateral_acc").as_bool();
         lateral_acc_topic_ = this->get_parameter("lateral_acc_topic").as_string();
         min_speed_for_heading_ = this->get_parameter("min_speed_for_heading").as_double();
         target_altitude_topic_ = this->get_parameter("target_altitude_topic").as_string();
@@ -108,10 +106,7 @@ public:
         // Publishers
         eta_pub_ = this->create_publisher<std_msgs::msg::Float32>(eta_topic_, qos);
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>(marker_topic_, qos);
-        if (publish_lateral_acc_)
-        {
-            lat_acc_pub_ = this->create_publisher<std_msgs::msg::Float32>(lateral_acc_topic_, qos);
-        }
+        lat_acc_pub_ = this->create_publisher<std_msgs::msg::Float32>(lateral_acc_topic_, qos);
         target_alt_pub_ = this->create_publisher<std_msgs::msg::Float32>(target_altitude_topic_, qos);
         target_pitch_pub_ = this->create_publisher<std_msgs::msg::Float32>(target_pitch_topic_, qos);
 
@@ -341,7 +336,7 @@ private:
         }
 
         // Optionally compute and publish lateral acceleration: a_lat = v^2 * sin(eta) / L1
-        if (publish_lateral_acc_ && L1 > 1e-3)
+        if (L1 > 1e-3)
         {
             const double a_lat = (speed_ * speed_) * std::sin(eta) / L1;
             std_msgs::msg::Float32 a_msg;
@@ -411,7 +406,6 @@ private:
     double lookahead_gain_{2.0};
     double lookahead_min_{3.0};
     double lookahead_max_{10.0};
-    bool publish_lateral_acc_{false};
     double min_speed_for_heading_{0.5};
 };
 

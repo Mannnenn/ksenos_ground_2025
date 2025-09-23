@@ -1,14 +1,14 @@
 launch:
   - arg:
       name: "is_auto_landing_mode"
-      default: "false"
+      default: "true"
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/tf_static.launch.yaml"
 
   - include:
-      file: "$(find-pkg-share ksenos_ground)/launch/tf_lidar.launch.yaml"
-      if: '$(eval ''"$(var is_auto_landing_mode)" == "true"'')'
+    file: "$(find-pkg-share ksenos_ground)/launch/tf_lidar.launch.yaml"
+    if: '$(eval ''"$(var is_auto_landing_mode)" == "true"'')'
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/tf_non_lidar.launch.yaml"
@@ -34,6 +34,9 @@ launch:
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/lat_control_components.launch.py"
+      arg:
+        - name: "is_auto_landing_mode"
+          value: "$(var is_auto_landing_mode)"
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/pointcloud_pipeline_components.launch.py"

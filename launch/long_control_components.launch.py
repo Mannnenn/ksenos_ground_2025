@@ -159,6 +159,7 @@ def generate_launch_description():
                 ('/airplane/reference_energy', '/controller/long/reference_energy'),
                 ('/airplane/current_energy', '/controller/long/current_energy'),
                 ('/rpy', '/sensor/orientation/euler_angles'),
+                ('/target_pitch', '/controller/lat/calc/target_pitch'),
             ],
             extra_arguments=[{"use_intra_process_comms": True}],
         ))
