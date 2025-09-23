@@ -77,7 +77,7 @@ def generate_launch_description():
                 name='rise_turning_node',
                 parameters=[{
                     'altitude_offset': 3.5,
-                    'lap_count_initial': 3,
+                    'lap_count_initial': 2,
                     'lap_count_transition': 2,
                     'target_radius': -5.0,
                 }],

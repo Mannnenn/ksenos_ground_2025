@@ -152,7 +152,7 @@ def generate_launch_description():
                 'kd_pitch_rate': 0.55,
                 'max_elevator': 0.3,
                 'min_elevator': -0.3,
-                'balanced_flight_pitch': 0.20,
+                'balanced_flight_pitch': 0.30,
             }],
             remappings=[
                 ('/elevator_input', '/controller/long/elevator_input'),

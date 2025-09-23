@@ -1,7 +1,7 @@
 launch:
   - arg:
       name: "is_auto_landing_mode"
-      default: "true"
+      default: "false"
 
   - include:
       file: "$(find-pkg-share ksenos_ground)/launch/tf_static.launch.yaml"
