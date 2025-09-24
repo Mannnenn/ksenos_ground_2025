@@ -283,11 +283,16 @@ private:
         sensor_msgs::msg::PointCloud2 transformed_map;
         try
         {
-            // 地図データをmap_frame_に変換
-            tf_buffer_->lookupTransform(map_frame_, msg->header.frame_id, msg->header.stamp,
+            // 現在の時刻を使用して地図データをmap_frame_に変換
+            rclcpp::Time current_time = this->get_clock()->now();
+            tf_buffer_->lookupTransform(map_frame_, msg->header.frame_id, current_time,
                                         rclcpp::Duration::from_seconds(1.0));
 
-            pcl_ros::transformPointCloud(map_frame_, *msg, transformed_map, *tf_buffer_);
+            // 変換用のメッセージを作成（タイムスタンプを現在時刻に変更）
+            sensor_msgs::msg::PointCloud2 msg_with_current_time = *msg;
+            msg_with_current_time.header.stamp = current_time;
+
+            pcl_ros::transformPointCloud(map_frame_, msg_with_current_time, transformed_map, *tf_buffer_);
 
             // 変換した地図データを一時的なクラウドに格納
             pcl::PointCloud<pcl::PointXYZ>::Ptr temp_map_cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -546,7 +551,7 @@ private:
             double size_z = max_z - min_z;
 
             // 1.5m四方の立体に収まらない場合は除去
-            constexpr double MAX_CLUSTER_SIZE = 1.5;
+            constexpr double MAX_CLUSTER_SIZE = 2.0;
             if (size_x > MAX_CLUSTER_SIZE || size_y > MAX_CLUSTER_SIZE || size_z > MAX_CLUSTER_SIZE)
             {
                 RCLCPP_DEBUG(this->get_logger(), "Cluster filtered out due to size: %.2fx%.2fx%.2f m", size_x, size_y, size_z);

@@ -326,7 +326,8 @@ private:
         auto flow_msg = ksenos_ground_msgs::msg::FlowRateData();
         flow_msg.header.stamp = sensor_time;
         flow_msg.header.frame_id = "flow_rate_link";
-        flow_msg.flow_rate = packet.flow_rate; // L/min
+        // flow_msg.flow_rate = packet.flow_rate; // L/min
+        flow_msg.flow_rate = 4.0;
         flow_rate_publisher_->publish(flow_msg);
 
         // サーボ有効フラグの発行

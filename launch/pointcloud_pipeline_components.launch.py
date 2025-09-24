@@ -80,27 +80,7 @@ def generate_launch_description():
                 extra_arguments=[{"use_intra_process_comms": True}],
             ),
             
-            # 地面補正ノード
-            ComposableNode(
-                package='ksenos_ground',
-                plugin='GroundCorrectionNode',
-                namespace='pointcloud_pipeline',
-                name='ground_correction_node',
-                parameters=[{
-                    'input_topic': '/pointcloud_pipeline/map_points',
-                    'base_frame': 'map',
-                    'lidar_frame': 'motor_base',
-                    'voxel_size': 0.05,
-                    'plane_distance_threshold': 0.01,
-                    'max_iterations': 100,
-                    'min_inliers': 1000,
-                    'statistical_filter_mean_k': 50,
-                    'statistical_filter_stddev': 1.0,
-                }],
-                remappings=[
-                ],
-                extra_arguments=[{"use_intra_process_comms": True}],
-            ),
+
             
             # 初期スキャン・地図作成
             ComposableNode(
@@ -141,17 +121,17 @@ def generate_launch_description():
                     'map_frame': 'map',
                     'object_frame_prefix': 'movable_object_',
                     'octree_resolution': 0.15,
-                    'voxel_leaf_size': 0.025,
+                    'voxel_leaf_size': 0.015,
                     'bbox_min_x': 0.5,
-                    'bbox_min_y': -3.0,
-                    'bbox_min_z': 0.2,
-                    'bbox_max_x': 30.0,
-                    'bbox_max_y': 5.0,
-                    'bbox_max_z': 1.0,
-                    'min_z_x_threshold' : 20.0,
+                    'bbox_min_y': -1.0,
+                    'bbox_min_z': 0.3,
+                    'bbox_max_x': 40.0,
+                    'bbox_max_y': 1.0,
+                    'bbox_max_z': 3.0,
+                    'min_z_x_threshold' : 30.0,
                     'min_z_lowering' : 1.0,
-                    'cluster_tolerance': 0.5,
-                    'min_cluster_size': 10,
+                    'cluster_tolerance': 1.2,
+                    'min_cluster_size': 5,
                     'max_cluster_size': 500,
                     'object_timeout': 5.0,
                     'max_association_distance': 5.0,
