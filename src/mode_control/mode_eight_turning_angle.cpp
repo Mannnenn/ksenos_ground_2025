@@ -191,7 +191,7 @@ private:
         else // RIGHT
         {
             // 右旋回が -turn_angle_deg_° 完了したら左旋回に切り替え
-            if (angle_deg <= -turn_angle_deg_)
+            if (angle_deg <= -turn_angle_deg_ * right_turning_ratio_)
             {
                 turn_mode_ = TurnMode::LEFT;
                 reference_yaw_ = current_yaw; // 現在のヨー角を新しい基準にする

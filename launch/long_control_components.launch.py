@@ -176,6 +176,7 @@ def generate_launch_description():
                 ('/elevator_input', '/controller/long/elevator_input'),
                 ('/aileron_input', '/controller/lat/aileron_input'),
                 ('/rudder_input', '/controller/lat/rudder_input'),
+                ('/drop_signal','/controller/drop_signal'),
                 ('/control_input', '/controller/control_input'),
             ],
             extra_arguments=[{"use_intra_process_comms": True}],

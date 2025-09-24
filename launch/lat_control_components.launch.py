@@ -103,7 +103,7 @@ def generate_launch_description():
                     'kp': 0.00,
                     'ki': 0.00,
                     'ff_lat_acc_gain': 0.045,
-                    'ff_lat_acc_right_scale': 1.75,
+                    'ff_lat_acc_right_scale': 1.85,
                     'ff_lat_acc_left_scale': 1.0,
                     'ff_aileron_gain': 0.01,
                     'max_rudder': 0.6,

@@ -300,6 +300,12 @@ rclcpp_components_register_nodes(control_L1_law_component "L1ControlNode")
 install(TARGETS control_L1_law_component
   DESTINATION lib/${PROJECT_NAME})
 
+# Yaw角度修正器
+ament_auto_add_executable(yaw_angle_correction src/auto_landing/yaw_angle_correction.cpp)
+install(TARGETS yaw_angle_correction
+  DESTINATION lib/${PROJECT_NAME})
+
+
 # L1 path following (eta/markers/optional lateral acceleration)
 ament_auto_add_executable(test_path_follow_with_joy src/auto_landing/test_path_follow_with_joy.cpp)
 install(TARGETS test_path_follow_with_joy

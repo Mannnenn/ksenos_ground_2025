@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LiDAR point
 Visualization Manager:
   Class: ""
   Displays:
@@ -286,15 +286,21 @@ Visualization Manager:
           Value: false
         base_link:
           Value: false
-        drop_point:
-          Value: true
         elevator:
           Value: false
+        hesai_lidar:
+          Value: true
         imu_link:
           Value: false
         ksenos_smooth_0:
           Value: true
+        lidar_center:
+          Value: true
         map:
+          Value: true
+        motor_base:
+          Value: true
+        motor_rotating:
           Value: true
         odom:
           Value: true
@@ -305,8 +311,6 @@ Visualization Manager:
         rudder:
           Value: false
         start_point:
-          Value: true
-        throttle_off_point:
           Value: true
         waypoint_0:
           Value: true
@@ -333,29 +337,16 @@ Visualization Manager:
       Show Names: false
       Tree:
         map:
-          ksenos_smooth_0:
-            odom:
-              imu_link:
-                aircraft_stability_axes:
-                  base_link:
-                    aileron_left:
-                      {}
-                    aileron_right:
-                      {}
-                    elevator:
-                      {}
-                    propeller:
-                      {}
-                    rudder:
-                      {}
+          motor_base:
+            lidar_center:
+              {}
+            motor_rotating:
+              hesai_lidar:
+                {}
           origin:
             {}
           start_point:
             waypoint_0:
-              drop_point:
-                {}
-              throttle_off_point:
-                {}
               waypoint_1:
                 {}
               waypoint_2:
@@ -652,7 +643,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            l1_control: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -677,7 +668,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            control_speed_planes: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -752,6 +743,19 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /path
+          Value: true
+        - Class: rviz_default_plugins/Marker
+          Enabled: true
+          Name: Marker
+          Namespaces:
+            {}
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /visualization/target_drop_marker
           Value: true
         - Class: rviz_default_plugins/MarkerArray
           Enabled: true
@@ -869,25 +873,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 17.54595947265625
+      Distance: 62.67668914794922
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 22.48213768005371
-        Y: -1.4106392860412598
-        Z: -5.432415008544922
+        X: 17.329803466796875
+        Y: -0.6511839628219604
+        Z: -1.8283360004425049
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8897982835769653
+      Pitch: 0.7497988939285278
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.18917419016361237
+      Yaw: 3.5491786003112793
     Saved: ~
 Window Geometry:
   Displays:

@@ -59,7 +59,7 @@ def generate_launch_description():
                     'max_turn_radius': 4.5,
                     'min_turn_radius': 4.0,
                     'turn_angle_deg': 340.0,
-                    'right_turning_ratio': 0.45,
+                    'right_turning_ratio': 0.9,
                 }],
                 remappings=[
                     ('sbus_data', '/sbus/manual/sbus_data'),
@@ -136,9 +136,9 @@ def generate_launch_description():
                 parameters=[{
                     'world_frame_id': 'start_point',
                     'base_link_frame_id': 'ksenos_smooth_0',
-                    'drop_signal_topic': '/controller/long/calc/',
+                    'drop_signal_topic': '/controller/drop_signal',
                     'marker_topic': '/visualization/target_drop_marker',
-                    'x_threshold': 5.0,
+                    'x_threshold': 10.0,
                 }],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ))

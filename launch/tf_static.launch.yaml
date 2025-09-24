@@ -16,10 +16,9 @@ launch:
           args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id ksenos_smooth_0 --child-frame-id odom"
 
       - node:
-          pkg: "tf2_ros"
-          exec: "static_transform_publisher"
-          name: "static_transform_publisher_imu_link_to_aircraft_stability_axes"
-          args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id imu_link --child-frame-id aircraft_stability_axes"
+          pkg: "ksenos_ground"
+          exec: "yaw_angle_correction"
+          name: "yaw_angle_correction"
 
       - node:
           pkg: "tf2_ros"
