@@ -135,6 +135,9 @@ public:
         this->declare_parameter("min_tf_cluster_size", 10);       // TF発行する最小クラスタサイズ
 
         this->declare_parameter("elevation_offset", -0.0523); // 仰角オフセット
+        // 仰角制限パラメータの宣言
+        this->declare_parameter("elevation_min", -0.5); // [rad] デフォルト下限
+        this->declare_parameter("elevation_max", 0.5);  // [rad] デフォルト上限
 
         // パラメータの取得
         map_topic_ = this->get_parameter("map_topic").as_string();
@@ -172,6 +175,8 @@ public:
         min_tf_cluster_size_ = this->get_parameter("min_tf_cluster_size").as_int();
 
         elevation_offset_ = this->get_parameter("elevation_offset").as_double();
+        elevation_min_ = this->get_parameter("elevation_min").as_double();
+        elevation_max_ = this->get_parameter("elevation_max").as_double();
 
         // 初期化
         next_object_id_ = 0;
@@ -783,9 +788,16 @@ private:
                 point_in_lidar.point.y,
                 point_in_lidar.point.z);
 
-            // 仰角をパブリッシュ（補正なし）
+            // 仰角にオフセットを加算
+            float elevation = static_cast<float>(spherical.elevation + elevation_offset_);
+            // 上下限でクリップ
+            if (elevation < elevation_min_)
+                elevation = elevation_min_;
+            if (elevation > elevation_max_)
+                elevation = elevation_max_;
+            // 仰角をパブリッシュ
             std_msgs::msg::Float32 elevation_msg;
-            elevation_msg.data = static_cast<float>(spherical.elevation + elevation_offset_);
+            elevation_msg.data = elevation;
             elevation_publisher_->publish(elevation_msg);
 
             RCLCPP_DEBUG(this->get_logger(),
@@ -830,6 +842,8 @@ private:
     int max_cluster_size_;
 
     float elevation_offset_; // 仰角のオフセット（補正値）
+    double elevation_min_;   // 仰角の下限 [rad]
+    double elevation_max_;   // 仰角の上限 [rad]
 
     // 物体追跡パラメータ
     double object_timeout_;

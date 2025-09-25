@@ -137,6 +137,8 @@ def generate_launch_description():
                     'max_association_distance': 5.0,
                     'min_tf_cluster_size': 10,
                     'elevation_offset': -0.0523,
+                    'elevation_min': -0.1,
+                    'elevation_max': 0.5,
                 }],
                 remappings=[
                 ],

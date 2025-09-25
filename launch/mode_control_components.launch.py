@@ -101,7 +101,7 @@ def generate_launch_description():
                 parameters=[{
                     'path_topic': '/controller/lat/calc/path',
                     'velocity_topic': '/sensor/flow_rate',
-                    'base_frame': 'imu_link',
+                    'base_frame': 'aircraft_stability_axes',
                     'eta_topic': '/controller/lat/calc/eta_topic',
                     'marker_topic': '/visualization/L1_marker',
                     'lookahead_gain': 2.0,
@@ -140,6 +140,24 @@ def generate_launch_description():
                     'marker_topic': '/visualization/target_drop_marker',
                     'x_threshold': 10.0,
                 }],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            ))
+
+            # Back up Mode Auto Landing Node
+            nodes.append(ComposableNode(
+                package='ksenos_ground',
+                plugin='ModeAutoLandingBackup',
+                namespace='controller/',
+                name='mode_auto_landing_backup_node',
+                parameters=[{
+                    'world_frame': 'start_point',
+                    'base_frame': 'ksenos_smooth_0',
+                    'tf_check_timeout': 5.0,
+                    'v_max': 5.0,
+                }],
+                remappings=[
+                    ('target_speed', '/controller/long/calc/average_flow_rate'),
+                ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ))
 

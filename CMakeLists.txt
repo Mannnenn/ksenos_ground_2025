@@ -250,6 +250,12 @@ rclcpp_components_register_nodes(mode_rise_turning "ModeRiseTurning")
 install(TARGETS mode_rise_turning
   DESTINATION lib/${PROJECT_NAME})
 
+# 自動離着陸バックアップモード
+ament_auto_add_library(mode_auto_landing_backup SHARED src/mode_control/mode_auto_landing_backup.cpp)
+rclcpp_components_register_nodes(mode_auto_landing_backup "ModeAutoLandingBackup")
+install(TARGETS mode_auto_landing_backup
+  DESTINATION lib/${PROJECT_NAME})
+
 
 # モード別目標高度セレクター
 ament_auto_add_library(mode_target_altitude_selector_component SHARED src/long_control/mode_target_altitude_selector.cpp)
