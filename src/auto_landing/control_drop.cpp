@@ -34,7 +34,7 @@ public:
         drop_pub_ = this->create_publisher<std_msgs::msg::UInt8>(drop_signal_topic_, qos);
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>(marker_topic_, qos);
 
-        timer_ = this->create_wall_timer(std::chrono::milliseconds(50), std::bind(&ControlDropNode::on_timer, this));
+        timer_ = this->create_wall_timer(std::chrono::milliseconds(10), std::bind(&ControlDropNode::on_timer, this));
         RCLCPP_INFO(this->get_logger(), "control_drop started. world_frame=%s base_frame=%s x_threshold=%.3f",
                     world_frame_.c_str(), base_frame_.c_str(), x_threshold_);
     }

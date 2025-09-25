@@ -336,7 +336,7 @@ private:
         }
 
         // Optionally compute and publish lateral acceleration: a_lat = v^2 * sin(eta) / L1
-        if (L1 > 1e-3)
+        if (L1 > 1e-6)
         {
             const double a_lat = (speed_ * speed_) * std::sin(eta) / L1;
             std_msgs::msg::Float32 a_msg;

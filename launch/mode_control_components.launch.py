@@ -104,9 +104,9 @@ def generate_launch_description():
                     'base_frame': 'aircraft_stability_axes',
                     'eta_topic': '/controller/lat/calc/eta_topic',
                     'marker_topic': '/visualization/L1_marker',
-                    'lookahead_gain': 2.0,
-                    'lookahead_min': 3.0,
-                    'lookahead_max': 50.0,
+                    'lookahead_gain': 1.0,
+                    'lookahead_min': 1.0,
+                    'lookahead_max': 5.0,
                     'publish_lateral_acc': False,
                     'lateral_acc_topic': '/controller/lat/lateral_acceleration',
                     'min_speed_for_heading': 0.5,
@@ -143,23 +143,23 @@ def generate_launch_description():
                 extra_arguments=[{"use_intra_process_comms": True}],
             ))
 
-            # Back up Mode Auto Landing Node
-            nodes.append(ComposableNode(
-                package='ksenos_ground',
-                plugin='ModeAutoLandingBackup',
-                namespace='controller/',
-                name='mode_auto_landing_backup_node',
-                parameters=[{
-                    'world_frame': 'start_point',
-                    'base_frame': 'ksenos_smooth_0',
-                    'tf_check_timeout': 5.0,
-                    'v_max': 5.0,
-                }],
-                remappings=[
-                    ('target_speed', '/controller/long/calc/average_flow_rate'),
-                ],
-                extra_arguments=[{"use_intra_process_comms": True}],
-            ))
+            # # Back up Mode Auto Landing Node
+            # nodes.append(ComposableNode(
+            #     package='ksenos_ground',
+            #     plugin='ModeAutoLandingBackup',
+            #     namespace='controller/',
+            #     name='mode_auto_landing_backup_node',
+            #     parameters=[{
+            #         'world_frame': 'start_point',
+            #         'base_frame': 'ksenos_smooth_0',
+            #         'tf_check_timeout': 30.0,
+            #         'v_max': 5.0,
+            #     }],
+            #     remappings=[
+            #         ('target_speed', '/controller/long/calc/average_flow_rate'),
+            #     ],
+            #     extra_arguments=[{"use_intra_process_comms": True}],
+            # ))
 
 
         # コンポーネントコンテナーの設定
