@@ -317,7 +317,7 @@ private:
         transform_stamped.child_frame_id = level_frame_;
         transform_stamped.transform.translation.x = 0.0;
         transform_stamped.transform.translation.y = 0.0;
-        transform_stamped.transform.translation.z = 0.15;
+        transform_stamped.transform.translation.z = 0.35;
         transform_stamped.transform.rotation = tf2::toMsg(q);
 
         tf_broadcaster_->sendTransform(transform_stamped);

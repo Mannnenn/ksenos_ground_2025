@@ -10,7 +10,14 @@ launch:
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
-          name: "map_to_waypoint_0"
+          name: "map_start_point"
+          output: "screen"
+          args: "--x 30 --y 0 --z 0 --roll 0 --pitch 0 --yaw 3.14 --frame-id map --child-frame-id start_point"
+
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "start_point_to_waypoint_0"
           args: "--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id start_point --child-frame-id waypoint_0"
 
       - node:
@@ -18,63 +25,56 @@ launch:
           exec: "static_transform_publisher"
           name: "waypoint_0_to_waypoint_1"
           output: "screen"
-          args: "--x 6 --y 0 --z 0.25 --roll 0 --pitch 0.35 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_1"
+          args: "--x 4 --y 0 --z 0.25 --roll 0 --pitch -0.5 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_1"
 
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "waypoint_1_to_waypoint_2"
           output: "screen"
-          args: "--x 13 --y 0 --z 2 --roll 0 --pitch 0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_2"
+          args: "--x 11 --y 0 --z 2 --roll 0 --pitch -0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_2"
 
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "waypoint_2_to_waypoint_3"
           output: "screen"
-          args: "--x 14 --y 0 --z 2 --roll 0 --pitch 0 --yaw -0.0 --frame-id waypoint_0 --child-frame-id waypoint_3"
+          args: "--x 13 --y 0 --z 2 --roll 0 --pitch -0.3 --yaw -0.0 --frame-id waypoint_0 --child-frame-id waypoint_3"
 
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "waypoint_0_to_waypoint_4"
           output: "screen"
-          args: "--x 17 --y 0 --z 2 --roll 0 --pitch 0 --yaw -0.0 --frame-id waypoint_0 --child-frame-id waypoint_4"
+          args: "--x 15 --y 0 --z 2 --roll 0 --pitch -0.3 --yaw -0.0 --frame-id waypoint_0 --child-frame-id waypoint_4"
 
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "waypoint_4_to_waypoint_5"
           output: "screen"
-          args: "--x 20 --y 0 --z 2 --roll 0 --pitch 0 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_5"
+          args: "--x 18 --y 0 --z 2 --roll 0 --pitch -0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_5"
 
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "waypoint_5_to_waypoint_6"
           output: "screen"
-          args: "--x 21 --y 0 --z 2 --roll 0 --pitch -0.05 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_6"
+          args: "--x 19 --y 0 --z 2 --roll 0 --pitch -0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_6"
 
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "waypoint_6_to_waypoint_7"
           output: "screen"
-          args: "--x 27 --y 0 --z 0.5 --roll 0 --pitch -0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_7"
+          args: "--x 23 --y 0 --z 0.5 --roll 0 --pitch -0.4 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_7"
 
       - node:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "waypoint_7_to_waypoint_8"
           output: "screen"
-          args: "--x 32 --y 0 --z 0 --roll 0 --pitch -0.3 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_8"
-
-      - node:
-          pkg: "tf2_ros"
-          exec: "static_transform_publisher"
-          name: "map_start_point"
-          output: "screen"
-          args: "--x 37 --y 0 --z 0 --roll 0 --pitch 0 --yaw 3.14 --frame-id map --child-frame-id start_point"
+          args: "--x 26 --y 0 --z 0 --roll 0 --pitch -0.4 --yaw 0 --frame-id waypoint_0 --child-frame-id waypoint_8"
 
     #   - node:
     #       pkg: "tf2_ros"

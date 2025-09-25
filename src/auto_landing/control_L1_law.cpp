@@ -331,7 +331,7 @@ private:
             }
 
             std_msgs::msg::Float32 pitch_msg;
-            pitch_msg.data = static_cast<float>(pitch_angle);
+            pitch_msg.data = static_cast<float>(-pitch_angle); // pitch up is positive in aircraft convention
             target_pitch_pub_->publish(pitch_msg);
         }
 

@@ -26,12 +26,12 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LiDAR point
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.30000001192092896
-      Cell Size: 2.5
+      Cell Size: 1
       Class: rviz_default_plugins/Grid
       Color: 154; 153; 150
       Enabled: true
@@ -42,10 +42,10 @@ Visualization Manager:
       Normal Cell Count: 0
       Offset:
         X: 19
-        Y: 0
+        Y: 0.5
         Z: 0
       Plane: XY
-      Plane Cell Count: 20
+      Plane Cell Count: 40
       Reference Frame: map
       Value: true
     - Alpha: 0.30000001192092896
@@ -337,12 +337,6 @@ Visualization Manager:
       Show Names: false
       Tree:
         map:
-          motor_base:
-            lidar_center:
-              {}
-            motor_rotating:
-              hesai_lidar:
-                {}
           origin:
             {}
           start_point:
@@ -873,25 +867,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 62.67668914794922
+      Distance: 46.43100357055664
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 17.329803466796875
-        Y: -0.6511839628219604
-        Z: -1.8283360004425049
+        X: 15.384387016296387
+        Y: 1.6595379114151
+        Z: -1.5921787023544312
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7497988939285278
+      Pitch: 1.5647963285446167
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.5491786003112793
+      Yaw: 4.70418119430542
     Saved: ~
 Window Geometry:
   Displays:
