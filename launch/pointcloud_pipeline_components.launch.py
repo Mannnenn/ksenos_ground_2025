@@ -70,7 +70,7 @@ def generate_launch_description():
                 parameters=[{
                     'input_topic': '/pointcloud_pipeline/lidar_points',
                     'output_topic': '/pointcloud_pipeline/transformed_points',
-                    'target_frame': 'motor_base',
+                    'target_frame': 'map',
                     'source_frame': 'hesai_lidar',
                     'timeout_seconds': 0.01,
                     'queue_size': 10,
@@ -117,7 +117,6 @@ def generate_launch_description():
                     'elevation_topic': '/motor/target_pitch_angle',
                     'bbox_marker_topic': '/bbox_marker',
                     'lidar_frame': 'lidar_center',
-                    'base_frame': 'motor_base',
                     'map_frame': 'map',
                     'object_frame_prefix': 'movable_object_',
                     'octree_resolution': 0.15,
@@ -138,7 +137,7 @@ def generate_launch_description():
                     'min_tf_cluster_size': 10,
                     'elevation_offset': -0.0523,
                     'elevation_min': -0.1,
-                    'elevation_max': 0.5,
+                    'elevation_max': 1.57,
                 }],
                 remappings=[
                 ],

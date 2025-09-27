@@ -63,8 +63,8 @@ private:
         sensor_msgs::msg::PointCloud2 transformed_points;
         try
         {
-            // tf2を利用して変換
-            tf_buffer_.lookupTransform(target_frame_, source_frame_, msg->header.stamp,
+            // tf2を利用して変換（常に最新のTFを使う）
+            tf_buffer_.lookupTransform(target_frame_, source_frame_, rclcpp::Time(0),
                                        rclcpp::Duration::from_seconds(timeout_seconds_));
 
             // pcl_ros::transformPointCloudを利用してPointCloudを変換

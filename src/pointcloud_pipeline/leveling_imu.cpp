@@ -25,7 +25,7 @@ public:
         this->declare_parameter("base_frame", "map");
         this->declare_parameter("level_frame", "motor_base");
         this->declare_parameter("calibration_time_sec", 5.0);
-        this->declare_parameter("publish_rate_hz", 50.0);
+        this->declare_parameter("publish_rate_hz", 100.0);
 
         device_name_ = this->get_parameter("device_name").as_string();
         baud_rate_ = this->get_parameter("baud_rate").as_int();

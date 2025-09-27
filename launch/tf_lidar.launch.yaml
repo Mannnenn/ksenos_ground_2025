@@ -111,3 +111,9 @@ launch:
           exec: "static_transform_publisher"
           name: "static_transform_publisher_motorRotating2hesaiLidar"
           args: "--x 0 --y $(var lidar_motor_horizontal_offset) --z 0 --roll 0 --pitch 3.14 --yaw 0 --frame-id $(var motor_rotating_frame) --child-frame-id $(var hesai_lidar_frame)"
+
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "static_transform_publisher_map2lidarproj"
+          args: "--x 0 --y -10 --z 0 --roll 0 --pitch 0 --yaw 1.57 --frame-id map --child-frame-id lidar_proj"

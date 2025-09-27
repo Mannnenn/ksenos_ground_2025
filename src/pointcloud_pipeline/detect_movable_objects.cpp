@@ -104,7 +104,6 @@ public:
 
         // フレーム関連パラメータの宣言
         this->declare_parameter("lidar_frame", "lidar_center");
-        this->declare_parameter("base_frame", "motor_base");
         this->declare_parameter("map_frame", "map");
         this->declare_parameter("object_frame_prefix", "movable_object_");
 
@@ -147,7 +146,6 @@ public:
         bbox_marker_topic_ = this->get_parameter("bbox_marker_topic").as_string();
 
         lidar_frame_ = this->get_parameter("lidar_frame").as_string();
-        base_frame_ = this->get_parameter("base_frame").as_string();
         map_frame_ = this->get_parameter("map_frame").as_string();
         object_frame_prefix_ = this->get_parameter("object_frame_prefix").as_string();
 
@@ -202,7 +200,6 @@ public:
         RCLCPP_INFO(this->get_logger(), "  BBox marker topic: %s", bbox_marker_topic_.c_str());
 
         RCLCPP_INFO(this->get_logger(), "  Lidar frame: %s", lidar_frame_.c_str());
-        RCLCPP_INFO(this->get_logger(), "  Base frame: %s", base_frame_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Map frame: %s", map_frame_.c_str());
         RCLCPP_INFO(this->get_logger(), "  Object frame prefix: %s", object_frame_prefix_.c_str());
 
@@ -821,7 +818,6 @@ private:
     std::string elevation_topic_;
     std::string bbox_marker_topic_;
     std::string lidar_frame_;
-    std::string base_frame_;
     std::string map_frame_;
     std::string object_frame_prefix_;
 
