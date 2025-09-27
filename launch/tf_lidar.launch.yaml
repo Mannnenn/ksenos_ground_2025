@@ -116,4 +116,4 @@ launch:
           pkg: "tf2_ros"
           exec: "static_transform_publisher"
           name: "static_transform_publisher_map2lidarproj"
-          args: "--x 0 --y -10 --z 0 --roll 0 --pitch 0 --yaw 1.57 --frame-id map --child-frame-id lidar_proj"
+          args: "--x -1 --y -16 --z 0 --roll 0 --pitch 0 --yaw 0.785 --frame-id map --child-frame-id lidar_proj"
