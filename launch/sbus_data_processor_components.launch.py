@@ -185,7 +185,7 @@ def generate_launch_description():
                 namespace='sbus/auto',
                 name='sbus_udp_sender',
                 parameters=[{
-                    'udp_ip': '10.42.0.2',  # ArduinoのIPアドレス
+                    'udp_ip': '192.168.10.251',  # ArduinoのIPアドレス
                     'udp_port': 9999,       # Arduinoの受信ポート
                 }],
                 remappings=[
