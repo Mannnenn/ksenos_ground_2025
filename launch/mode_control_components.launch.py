@@ -138,7 +138,7 @@ def generate_launch_description():
                     'base_link_frame_id': 'ksenos_smooth_0',
                     'drop_signal_topic': '/controller/drop_signal',
                     'marker_topic': '/visualization/target_drop_marker',
-                    'x_threshold': 10.0,
+                    'x_threshold': 13.0,
                 }],
                 extra_arguments=[{"use_intra_process_comms": True}],
             ))
