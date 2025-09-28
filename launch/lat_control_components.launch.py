@@ -77,6 +77,7 @@ def generate_launch_description():
                 name='aileron_control',
                 parameters=[{
                     'kp': -1.0,
+                    # 'kp': -0.5,
                     'kd': 0.05,
                     'max_aileron': 0.6,
                     'min_aileron': -0.6,
@@ -103,6 +104,7 @@ def generate_launch_description():
                     'kp': 0.00,
                     'ki': 0.00,
                     'ff_lat_acc_gain': 0.075,
+                    # 'ff_lat_acc_gain': 0.045,
                     'ff_lat_acc_right_scale': 1.75,
                     'ff_lat_acc_left_scale': 1.0,
                     'ff_aileron_gain': 0.01,

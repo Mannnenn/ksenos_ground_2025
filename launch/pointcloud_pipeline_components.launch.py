@@ -128,7 +128,7 @@ def generate_launch_description():
                     'bbox_max_x': 30.0,
                     'bbox_max_y': 5.0,
                     'bbox_max_z': 6.0,
-                    'min_z_x_threshold' : 18.0,
+                    'min_z_x_threshold' : 32.0,
                     'min_z_lowering' : 1.5,
                     'cluster_tolerance': 1.2,
                     'min_cluster_size': 10,

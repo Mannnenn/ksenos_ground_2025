@@ -126,10 +126,13 @@ def generate_launch_description():
             name='throttle_control_node',
             parameters=[{
                 'kp': 0.13,
+                # 'kp': 0.0075,
                 'ki': 0.0,
-                'max_throttle': 0.85,
+                # 'max_throttle': 0.85,
+                'max_throttle': 0.7,
                 'min_throttle': 0.0,
-                'steady_throttle': 0.46,
+                # 'steady_throttle': 0.46,
+                'steady_throttle': 0.4,
                 'max_integral': 0.5,
             }],
             remappings=[
@@ -148,7 +151,9 @@ def generate_launch_description():
             name='elevator_control_node',
             parameters=[{
                 'k_energy_gain': 0.15,
+                # 'k_energy_gain': 0.065,
                 'kd_pitch_angle': -1.0,
+                # 'kd_pitch_angle': -0.5,
                 'kd_pitch_rate': 0.55,
                 'max_elevator': 0.3,
                 'min_elevator': -0.3,
