@@ -1,317 +1,59 @@
-# ksenos_ground
+# 概要
 
-## 目的
+モード一覧
 
-このパッケージは、体育館のような環境で LiDAR 点群データから水平面（床面）を推定し、LiDAR の傾きと高さを補正するための TF（座標変換）をパブリッシュします。
+- 手動操縦
 
-## 機能
+  マニュアル操作
 
-### correction_ground
+- 自動旋回
 
-LiDAR 点群から床面を推定し、以下の情報を含む TF をパブリッシュします：
+  定常円旋回
 
-- **ロール（Roll）**: Y 軸周りの回転（横方向の傾き）
-- **ピッチ（Pitch）**: X 軸周りの回転（縦方向の傾き）
-- **高さ（Z 軸移動）**: 床面から LiDAR までの高さ
+- 8 の字
 
-#### アルゴリズム
+  8 の字軌道で周回
 
-1. **前処理**
+- 上昇旋回
 
-   - ボクセルフィルタによるダウンサンプリング
-   - 統計的外れ値除去
+  低空で定常円旋回、2 周したあとに徐々に高度上昇、安定した状態で定常円旋回 2 周
 
-2. **平面推定**
+- 自動離着陸
 
-   - RANSAC（Random Sample Consensus）を使用
-   - 床面として最も適切な平面を検出
+  離陸後目標軌道に沿って移動、着陸して静止
 
-3. **TF 計算**
-   - 推定された平面の法線ベクトルからロール・ピッチを計算
-   - 平面までの距離から高さを算出
+# モードの詳細
 
-## 使用方法
+## 手動操縦
 
-### ビルド
+何もしない
 
-```bash
-cd /path/to/your/ros2_workspace
-colcon build --packages-select ksenos_ground
-source install/setup.bash
-```
+## 自動旋回
 
-### 実行
+一定旋回半径 → 一定横加速度 → 一定ロール角
+→ エルロン、ラダー制御
 
-#### 基本実行
+目標速度、高度一定
 
-```bash
-ros2 launch ksenos_ground ground_correction.launch.py
-```
+## 8 の字
 
-#### パラメータ指定実行
+8 の字軌道 → 旋回時の角度と軌道の曲率を結びつける(グラフ真ん中で θ=270deg とか)→ 曲率の逆数で半径を決定(発散はしきい値で抑える)→ ロール角徐々に変化
+→ エルロン、ラダー制御
 
-```bash
-ros2 launch ksenos_ground ground_correction.launch.py \
-    input_topic:=/velodyne_points \
-    base_frame:=map \
-    lidar_frame:=velodyne
-```
+目標速度、高度一定
 
-#### ノード単体実行
+## 上昇旋回
 
-```bash
-ros2 run ksenos_ground correction_ground --ros-args \
-    --params-file config/ground_correction_params.yaml \
-    -p input_topic:=/input_pointcloud
-```
+旋回半径一定 →(速度一定で上昇できるなら)横加速度一定 → ロール角一定
+→ エルロン、ラダー制御
 
-## パラメータ
+目標速度一定、高度は回転角度に合わせて変化
+一定値で 720deg.旋回 → 越したら徐々に増加、Ndeg.かけて上昇完了 → 一定値で旋回
 
-### 設定可能パラメータ（config/ground_correction_params.yaml）
+## 自動離着陸
 
-| パラメータ                  | デフォルト値        | 説明                               |
-| --------------------------- | ------------------- | ---------------------------------- |
-| `input_topic`               | `/input_pointcloud` | 入力点群トピック                   |
-| `base_frame`                | `base_link`         | ベースフレーム（地面基準）         |
-| `lidar_frame`               | `lidar`             | LiDAR フレーム                     |
-| `voxel_size`                | `0.05`              | ボクセルフィルタのサイズ（m）      |
-| `plane_distance_threshold`  | `0.02`              | RANSAC 距離閾値（m）               |
-| `max_iterations`            | `1000`              | RANSAC 最大反復回数                |
-| `min_inliers`               | `1000`              | 平面として認識する最小インライア数 |
-| `publish_rate`              | `10.0`              | TF 配信レート（Hz）                |
-| `statistical_filter_mean_k` | `50`                | 統計的外れ値除去の k 値            |
-| `statistical_filter_stddev` | `1.0`               | 統計的外れ値除去の標準偏差倍数     |
+L1 制御をもとに必要な横加速度を算出 → ロール角可変
+(経路に対して現在位置から最近傍点を探索 → 最近傍点から経路上を L1 距離進める → 現在位置と L1 位置のベクトルを求める → 現在の進行方向ベクトルと比較して偏角 η を算出する → 横加速度 a\_(lat) = v^2 sin(η)/L1 を求める)
+→ エルロン、ラダー制御
 
-## 入出力
-
-### 入力
-
-- **点群データ**: `sensor_msgs/msg/PointCloud2`
-  - LiDAR から取得した生の点群データ
-
-### 出力
-
-- **TF 変換**: `geometry_msgs/msg/TransformStamped`
-  - `base_frame` から `lidar_frame` への座標変換
-  - ロール、ピッチ、高さの補正情報を含む
-
-## システム要件
-
-- ROS2 Humble 以降
-- PCL（Point Cloud Library）
-- Eigen3
-- C++17 対応コンパイラ
-
-## 依存パッケージ
-
-- `rclcpp`
-- `sensor_msgs`
-- `geometry_msgs`
-- `tf2_ros`
-- `tf2_eigen`
-- `pcl_conversions`
-- `pcl_ros`
-
-## トラブルシューティング
-
-### 床面が検出されない場合
-
-1. `min_inliers` パラメータを下げる
-2. `plane_distance_threshold` パラメータを調整する
-3. 点群データに十分な床面ポイントが含まれているか確認する
-
-### TF が不安定な場合
-
-1. `voxel_size` を調整してダウンサンプリング度合いを変更
-2. `statistical_filter_*` パラメータで外れ値除去を強化
-3. `publish_rate` を下げて TF 更新頻度を調整
-
-## tf_smoother
-
-TF（座標変換）を平滑化するノードです。急激な変化を除去し、なめらかな TF をパブリッシュします。
-
-### 機能
-
-- **TF サブスクリプション**: 指定されたフレーム間の TF を監視
-- **フィルタリング**: 設定された閾値を超える急激な変化を無視
-- **平滑化**: 線形補間と SLERP（球面線形補間）による平滑化
-- **タイムアウト処理**: 長時間更新がない場合の再初期化
-
-### パラメータ
-
-| パラメータ名                | デフォルト値       | 説明                    |
-| --------------------------- | ------------------ | ----------------------- |
-| `source_frame`              | "map"              | 基準フレーム            |
-| `target_frame`              | "base_link"        | ターゲットフレーム      |
-| `smoothed_target_frame`     | "base_link_smooth" | 平滑化後のフレーム名    |
-| `max_translation_threshold` | 0.5                | 並進移動の最大閾値 [m]  |
-| `max_rotation_threshold`    | 0.5                | 回転の最大閾値 [rad]    |
-| `timeout_duration`          | 1.0                | タイムアウト時間 [s]    |
-| `publish_rate`              | 50.0               | パブリッシュレート [Hz] |
-| `smoothing_factor`          | 0.1                | 平滑化係数 (0.0-1.0)    |
-
-### 使用方法
-
-#### 1. パラメータ指定での実行
-
-```bash
-ros2 launch ksenos_ground tf_smoother.launch.py source_frame:=map target_frame:=base_link
-```
-
-#### 2. 設定ファイルを使用した実行
-
-```bash
-ros2 launch ksenos_ground tf_smoother_with_config.launch.py
-```
-
-#### 3. 直接実行
-
-```bash
-ros2 run ksenos_ground tf_smoother
-```
-
-### アルゴリズム
-
-1. **TF 監視**: 指定されたフレーム間の TF を定期的に取得
-2. **変化量計算**: 前回の TF と比較して並進・回転の変化量を計算
-3. **閾値判定**: 設定された閾値を超える場合は変化を無視
-4. **平滑化適用**: 線形補間（位置）と SLERP（回転）で平滑化
-5. **TF パブリッシュ**: 平滑化された TF をブロードキャスト
-6. **タイムアウト処理**: 長時間更新がない場合は再初期化
-
-## proc_sbus_data
-
-SBUS（S.BUS）生データを処理し、実際のフライトコントロールデータに変換するノードです。
-
-### 機能
-
-- **サーボ制御値変換**: uint16 のカウント値からラジアンへの変換
-  - aileron_r, elevator, throttle, rudder, aileron_l
-- **オートパイロットモード判定**: しきい値による bool 変換
-- **投下装置制御**: 2 つのしきい値による 0,1,2 の状態判定
-- **自動着陸判定**: しきい値による有効/無効の判定
-- **フライトモード判定**:
-  - "horizontal_turning" (水平回転)
-  - "ascending turn" (上昇旋回)
-  - "eight turn" (8 の字旋回)
-  - "autolanding" (自動着陸)
-- **通信状態変換**: フレーム欠落とフェイルセーフ状態の bool 変換
-
-### メッセージ変換
-
-**入力**: `ksenos_ground_msgs/msg/SbusRawData`
-
-```
-std_msgs/Header header
-uint16 aileron_r
-uint16 elevator
-uint16 throttle
-uint16 rudder
-uint16 button1
-uint16 aileron_l
-uint16 is_autopilot
-uint16 dropping_device
-uint16 is_autolanding_enabled
-uint16 autopilot_mode
-uint16 is_lost_frame
-uint16 is_failsafe
-```
-
-**出力**: `ksenos_ground_msgs/msg/SbusData`
-
-```
-std_msgs/Header header
-float32 aileron_r
-float32 elevator
-float32 throttle
-float32 rudder
-float32 aileron_l
-bool is_autopilot
-uint8 dropping_device
-string autopilot_mode
-bool is_lost_frame
-bool is_failsafe
-```
-
-### パラメータ
-
-| パラメータ名                     | デフォルト値 | 説明                          |
-| -------------------------------- | ------------ | ----------------------------- |
-| `servo_min_count`                | 352          | サーボ最小カウント値          |
-| `servo_max_count`                | 1696         | サーボ最大カウント値          |
-| `servo_min_rad`                  | -0.5236      | サーボ最小角度 [rad] (-30 度) |
-| `servo_max_rad`                  | 0.5236       | サーボ最大角度 [rad] (30 度)  |
-| `autopilot_threshold`            | 1000         | オートパイロット判定しきい値  |
-| `autolanding_threshold`          | 1000         | 自動着陸判定しきい値          |
-| `dropping_device_threshold_low`  | 500          | 投下装置低しきい値            |
-| `dropping_device_threshold_high` | 1500         | 投下装置高しきい値            |
-| `autopilot_mode_threshold_low`   | 500          | フライトモード低しきい値      |
-| `autopilot_mode_threshold_high`  | 1500         | フライトモード高しきい値      |
-
-### 使用方法
-
-```bash
-# 基本実行
-ros2 run ksenos_ground proc_sbus_data
-
-# launchファイルを使用した実行
-ros2 launch ksenos_ground sbus_data_processor.launch.yaml
-```
-
-### アルゴリズム
-
-1. **SbusRawData 購読**: 生の SBUS データを受信
-2. **サーボ値変換**: カウント値を線形変換でラジアンに変換
-3. **しきい値判定**: 各種しきい値により状態を判定
-4. **モード決定**: 自動着陸有効時は"autolanding"、無効時は他のモード
-5. **SbusData パブリッシュ**: 変換されたデータを配信
-
-## estimate_kalman_gain
-
-### 目的
-
-IMU の静止状態データを解析し、カルマンフィルター用の最適なノイズパラメーターを自動推定するノードです。
-
-### 推定パラメーター
-
-- **process_noise_gyro**: ジャイロスコーププロセスノイズ
-- **process_noise_acc**: 加速度計プロセスノイズ
-- **measurement_noise**: 測定ノイズ
-- **process_noise_bias**: バイアスプロセスノイズ
-- **process_noise_bias_yaw**: ヨーバイアスプロセスノイズ
-- **initial_bias_uncertainty**: 初期バイアス不確実性
-
-### アルゴリズム
-
-1. **データ収集**: 指定時間 IMU の静止状態データを収集
-2. **ノイズ推定**: 各センサーの分散を計算してノイズレベルを推定
-3. **バイアス分析**: 時間変動を分析してバイアスドリフトを推定
-4. **パラメーター出力**: YAML ファイルとして最適パラメーターを保存
-
-### 使用方法
-
-```bash
-# IMUを完全に静止させた状態で実行
-ros2 launch ksenos_ground estimate_kalman_gain.launch.yaml
-
-# 結果は /tmp/kalman_parameters.yaml に保存されます
-```
-
-### パラメーター
-
-| パラメータ名             | デフォルト値                | 説明                 |
-| ------------------------ | --------------------------- | -------------------- |
-| `estimation_duration`    | 60.0                        | 推定時間（秒）       |
-| `output_file`            | /tmp/kalman_parameters.yaml | 出力ファイルパス     |
-| `imu_topic`              | /imu/data                   | IMU データトピック   |
-| `estimation_start_delay` | 5.0                         | 開始前待機時間（秒） |
-
-### 注意事項
-
-- **IMU は完全に静止**させて実行してください
-- 推定時間は最低 30 秒以上を推奨
-- 振動や外乱のない環境で実行してください
-
-## ライセンス
-
-MIT License
+目標速度一定、高度は最近傍点から読み出し
