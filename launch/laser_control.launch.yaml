@@ -1,0 +1,64 @@
+launch:
+  - group:
+      - push-ros-namespace:
+          namespace: "laser"
+
+      - node:
+          pkg: "laser_pointer"
+          exec: "laser_pointer_controller"
+          name: "laser_pointer_controller"
+          output: "log"
+          param:
+            - name: "target_frame"
+              value: movable_object_0
+            - name: "update_rate"
+              value: 50.0
+
+      - node:
+          pkg: "laser_pointer"
+          exec: "dummy_target_publisher"
+          name: "dummy_target_publisher"
+          output: "log"
+          param:
+            - name: "target_frame"
+              value: movable_object_0
+            - name: "trajectory_type"
+              value: "circle"
+            - name: "square_size"
+              value: 3.0
+            - name: "distance"
+              value: 30.0
+            - name: "period"
+              value: 1.0
+            - name: "circle_radius"
+              value: 1.5
+            - name: "update_rate"
+              value: 50.0
+
+      - node:
+          pkg: "laser_pointer"
+          exec: "pan_tilt_node"
+          name: "pan_tilt_node"
+          output: "log"
+
+      - node:
+          pkg: "laser_pointer"
+          exec: "laser_beam_visualizer"
+          name: "laser_beam_visualizer"
+          output: "log"
+
+  - group:
+      - push-ros-namespace:
+          namespace: "tf"
+
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "static_transform_publisher_map2lasebase"
+          args: "--x 0 --y 0.2 --z 0.35 --roll 0 --pitch -0.09 --yaw 0.0 --frame-id map --child-frame-id laser_frame"
+
+    #   - node:
+    #       pkg: "tf2_ros"
+    #       exec: "static_transform_publisher"
+    #       name: "static_transform_publisher_map2movable_object_0"
+    #       args: "--x 30 --y 0.2 --z 3.35 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id movable_object_0"

@@ -5,11 +5,10 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
-        - /Smooth Traj1
-        - /Plots1
+        - /TF1/Frames1
         - /RobotModel1/Description Topic1
       Splitter Ratio: 0.5
-    Tree Height: 1218
+    Tree Height: 696
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -279,66 +278,38 @@ Visualization Manager:
       Frame Timeout: 1
       Frames:
         All Enabled: false
-        aileron_left:
-          Value: false
-        aileron_right:
-          Value: false
         aircraft_stability_axes:
           Value: false
         base_link:
           Value: false
-        elevator:
-          Value: false
         hesai_lidar:
-          Value: true
+          Value: false
         imu_link:
           Value: false
         ksenos_smooth_0:
           Value: true
-        lidar_center:
+        laser_frame:
           Value: true
+        laser_pan:
+          Value: true
+        laser_tilt:
+          Value: true
+        lidar_center:
+          Value: false
         map:
           Value: true
         motor_base:
-          Value: true
+          Value: false
         motor_rotating:
           Value: true
         movable_object_0:
           Value: true
         movable_object_1:
           Value: true
-        movable_object_2:
-          Value: true
-        movable_object_3:
-          Value: true
         odom:
-          Value: true
+          Value: false
         origin:
-          Value: true
-        propeller:
           Value: false
-        rudder:
-          Value: false
-        start_point:
-          Value: true
-        waypoint_0:
-          Value: true
-        waypoint_1:
-          Value: true
-        waypoint_2:
-          Value: true
-        waypoint_3:
-          Value: true
-        waypoint_4:
-          Value: true
-        waypoint_5:
-          Value: true
-        waypoint_6:
-          Value: true
-        waypoint_7:
-          Value: true
-        waypoint_8:
-          Value: true
       Marker Scale: 3
       Name: TF
       Show Arrows: false
@@ -348,19 +319,11 @@ Visualization Manager:
         map:
           ksenos_smooth_0:
             odom:
-              imu_link:
-                aircraft_stability_axes:
-                  base_link:
-                    aileron_left:
-                      {}
-                    aileron_right:
-                      {}
-                    elevator:
-                      {}
-                    propeller:
-                      {}
-                    rudder:
-                      {}
+              {}
+          laser_frame:
+            laser_pan:
+              laser_tilt:
+                {}
           motor_base:
             lidar_center:
               {}
@@ -371,31 +334,8 @@ Visualization Manager:
             {}
           movable_object_1:
             {}
-          movable_object_2:
-            {}
-          movable_object_3:
-            {}
           origin:
             {}
-          start_point:
-            waypoint_0:
-              {}
-            waypoint_1:
-              {}
-            waypoint_2:
-              {}
-            waypoint_3:
-              {}
-            waypoint_4:
-              {}
-            waypoint_5:
-              {}
-            waypoint_6:
-              {}
-            waypoint_7:
-              {}
-            waypoint_8:
-              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -444,7 +384,7 @@ Visualization Manager:
       Color: 237; 51; 59
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 254
@@ -465,7 +405,7 @@ Visualization Manager:
         Value: /pointcloud_pipeline/transformed_points
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -676,7 +616,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            l1_control: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -701,7 +641,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            control_speed_planes: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -781,7 +721,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            control_drop_threshold: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -801,6 +741,20 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /visualization/target_velocity_marker_array
+          Value: true
+        - Class: rviz_default_plugins/Marker
+          Enabled: true
+          Name: Marker
+          Namespaces:
+            laser_beam: true
+            laser_spot: true
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /laser/laser_beam_marker
           Value: true
       Enabled: true
       Name: Plots
@@ -906,33 +860,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 27.36513900756836
+      Distance: 40.211124420166016
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 24.159408569335938
-        Y: -2.073525905609131
-        Z: 4.127053260803223
+        X: 24.193870544433594
+        Y: -0.7062110304832458
+        Z: 1.388331651687622
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5947967767715454
+      Pitch: 0.5247973799705505
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.18678092956543
+      Yaw: 2.8567779064178467
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1792
+  Height: 1136
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000023d000005e0fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b000000b600fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000074000005e00000018e00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003d2fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000003d20000014400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000c000000006cfc0100000002fb0000000800540069006d0065010000000000000c000000067900fffffffb0000000800540069006d00650100000000000004500000000000000000000009b7000005e000000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000019d0000039efc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005e00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007301000000400000039e000000ce00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003d2fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000003d2000000ac00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000006cfc0100000002fb0000000800540069006d00650100000000000007800000034d00fffffffb0000000800540069006d00650100000000000004500000000000000000000005dd0000039e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -941,6 +895,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 3072
+  Width: 1920
   X: 0
-  Y: 54
+  Y: 27

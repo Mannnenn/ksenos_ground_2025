@@ -1,0 +1,117 @@
+launch:
+  # ========================================
+  # Topic Configuration
+  # ========================================
+
+  - arg:
+      name: "lidar_pointcloud_topic_name"
+      default: "lidar_points"
+
+  - arg:
+      name: "lidar_pointcloud_transformed_topic_name"
+      default: "transformed_points"
+
+  - arg:
+      name: "map_pointcloud_topic_name"
+      default: "map_points"
+
+  - arg:
+      name: "target_elevation_topic_name"
+      default: "target_pitch_angle"
+
+  - arg:
+      name: "bbox_maker_topic_name"
+      default: "filer_box_size_maker"
+
+  # ========================================
+  # Frame Configuration
+  # ========================================
+
+  - arg:
+      name: "motor_base_frame"
+      default: "motor_base"
+
+  - arg:
+      name: "lidar_frame"
+      default: "hesai_lidar"
+
+  - arg:
+      name: "lidar_center_frame"
+      default: "lidar_center"
+
+  - arg:
+      name: "origin_frame"
+      default: "map"
+
+  - arg:
+      name: "motor_rotating_frame"
+      default: "motor_rotating"
+
+  - arg:
+      name: "motor_base_frame"
+      default: "motor_base"
+
+  - arg:
+      name: "sensor_base_frame"
+      default: "sensor_base"
+
+  - arg:
+      name: "hesai_lidar_frame"
+      default: "hesai_lidar"
+
+  # ========================================
+  # Frame Configuration
+  # ========================================
+
+  - arg:
+      name: "robot_name"
+      default: "ksenos"
+
+  - arg:
+      name: "lidar_motor_horizontal_offset"
+      default: "0.074"
+
+  - arg:
+      name: "lidar_motor_vertical_offset"
+      default: "0.03"
+
+  - group:
+      - push-ros-namespace:
+          namespace: "motor"
+
+      - node:
+          pkg: "cybergear_driver"
+          exec: "cybergear_driver"
+          name: "cybergear_driver"
+          output: "log"
+
+      - node:
+          pkg: "cybergear_driver"
+          exec: "motorAngle2tf"
+          name: "motorAngle2tf"
+          output: "log"
+
+      - node:
+          pkg: "ksenos_ground"
+          exec: "leveling_imu"
+          name: "leveling_imu"
+          # param:
+          #   - name: "base_frame"
+          #     value: lidar_proj
+          output: "log"
+
+  - group:
+      - push-ros-namespace:
+          namespace: "tf"
+
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "static_transform_publisher_motorBase2lidarCenter"
+          args: "--x 0 --y -$(var lidar_motor_horizontal_offset) --z $(var lidar_motor_vertical_offset) --roll 0 --pitch 0 --yaw 0 --frame-id $(var motor_base_frame) --child-frame-id $(var lidar_center_frame)"
+
+      - node:
+          pkg: "tf2_ros"
+          exec: "static_transform_publisher"
+          name: "static_transform_publisher_motorRotating2hesaiLidar"
+          args: "--x 0 --y $(var lidar_motor_horizontal_offset) --z 0 --roll 0 --pitch 3.14 --yaw 0 --frame-id $(var motor_rotating_frame) --child-frame-id $(var hesai_lidar_frame)"

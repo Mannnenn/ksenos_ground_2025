@@ -32,7 +32,8 @@ def generate_launch_description():
                 namespace='sensor',
                 name='udp_sensor_receiver',
                 parameters=[{
-                    'local_ip': '192.168.10.250', #PCのIPアドレス
+                    'local_ip': '10.42.0.1',
+                    # 'local_ip': '192.168.10.250', #PCのIPアドレス
                     'local_port': 8888,
                     'publish_rate': 100.0,
                 }],

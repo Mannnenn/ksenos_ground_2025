@@ -40,7 +40,7 @@ def generate_launch_description():
                 namespace='mode_selector',
                 name='auto_turning_node',
                 parameters=[{
-                    'target_radius': 5.0,
+                    'target_radius': -4.0,
                 }],
                 remappings=[
                     ('sbus_data', '/sbus/manual/sbus_data'),
@@ -78,8 +78,8 @@ def generate_launch_description():
                 parameters=[{
                     'altitude_offset': 3.5,
                     'lap_count_initial': 2,
-                    'lap_count_transition': 2,
-                    'target_radius': -5.0,
+                    'lap_count_transition': 1,
+                    'target_radius': 4.0,
                 }],
                 remappings=[
                     ('sbus_data', '/sbus/manual/sbus_data'),

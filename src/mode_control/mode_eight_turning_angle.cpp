@@ -22,7 +22,8 @@ public:
         turn_angle_deg_ = this->get_parameter("turn_angle_deg").as_double();
         right_turning_ratio_ = this->get_parameter("right_turning_ratio").as_double();
 
-        turn_mode_ = TurnMode::LEFT; // 左旋回から開始
+        // turn_mode_ = TurnMode::LEFT; // 左旋回から開始
+        turn_mode_ = TurnMode::RIGHT; // 右旋回から開始
         reference_yaw_ = 0.0;
         is_initialized_ = false;
         is_eight_turning_mode_ = false;
@@ -205,7 +206,8 @@ private:
     {
         is_initialized_ = false;
         reference_yaw_ = 0.0;
-        turn_mode_ = TurnMode::LEFT; // 左旋回から再開
+        // turn_mode_ = TurnMode::LEFT; // 左旋回から再開
+        turn_mode_ = TurnMode::RIGHT; // 右旋回から再開
         RCLCPP_INFO(this->get_logger(), "State reset - ready for new eight turning cycle");
     }
 

@@ -33,7 +33,7 @@ public:
         this->declare_parameter("output_topic", "transformed_points");
         this->declare_parameter("target_frame", "motor_base");
         this->declare_parameter("source_frame", "hesai_lidar");
-        this->declare_parameter("timeout_seconds", 0.01);
+        this->declare_parameter("timeout_seconds", 0.1);
         this->declare_parameter("queue_size", 10);
 
         // パラメータの取得
@@ -63,9 +63,21 @@ private:
         sensor_msgs::msg::PointCloud2 transformed_points;
         try
         {
-            // tf2を利用して変換
-            tf_buffer_.lookupTransform(target_frame_, source_frame_, msg->header.stamp,
-                                       rclcpp::Duration::from_seconds(timeout_seconds_));
+            // まず最新の利用可能な変換を試行
+            geometry_msgs::msg::TransformStamped transform;
+            try
+            {
+                transform = tf_buffer_.lookupTransform(target_frame_, source_frame_, msg->header.stamp,
+                                                       rclcpp::Duration::from_seconds(timeout_seconds_));
+            }
+            catch (const tf2::TransformException &ex)
+            {
+                // 元のタイムスタンプで失敗した場合、最新の利用可能な変換を取得
+                RCLCPP_WARN(this->get_logger(),
+                            "Failed to get transform at exact timestamp, using latest available: %s", ex.what());
+                transform = tf_buffer_.lookupTransform(target_frame_, source_frame_, rclcpp::Time(0),
+                                                       rclcpp::Duration::from_seconds(timeout_seconds_));
+            }
 
             // pcl_ros::transformPointCloudを利用してPointCloudを変換
             pcl_ros::transformPointCloud(target_frame_, *msg, transformed_points, tf_buffer_);
@@ -76,7 +88,8 @@ private:
         }
         catch (const tf2::TransformException &ex)
         {
-            RCLCPP_ERROR(this->get_logger(), "Transform failed from %s to %s: %s",
+            RCLCPP_ERROR(this->get_logger(),
+                         "Transform failed from %s to %s: %s",
                          source_frame_.c_str(), target_frame_.c_str(), ex.what());
         }
     }
