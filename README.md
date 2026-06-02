@@ -2,9 +2,15 @@
 
 ROS 2ベースの飛行機自動操縦制御システムです。LiDARセンサを使用した地形認識と、複数の飛行モードをサポートしています。
 
+
+
+https://github.com/user-attachments/assets/cc7a02d9-6936-4c52-8cec-c2216e452c92
+
+
+
 ## 概要
 
-このプロジェクトは、無人飛行機の自動操縦を実現するための統合制御システムです。LiDAR（Hesai QT）を用いた点群処理、IMUデータの活用、そしてS.BUS信号の処理により、複数の自動飛行モードを提供します。
+このプロジェクトは、無人飛行機の自動操縦を実現するための統合制御システムです。LiDAR（Hesai Pandar40P）を用いた点群処理、IMUデータの活用、そしてS.BUS信号の処理により、複数の自動飛行モードを提供します。
 
 ### 主な機能
 
@@ -183,5 +189,5 @@ source install/setup.bash
 
 ## 使用ハードウェア
 
-- **LiDAR**: Hesai Qt（Hesai General SDK使用）
+- **LiDAR**: Hesai Pandar40P（Hesai General SDK使用）
 - **通信**: S.BUS（フライトコントローラーとの通信）、UDP（外部センサ/制御との通信）
